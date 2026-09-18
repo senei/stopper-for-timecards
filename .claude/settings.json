@@ -38,7 +38,8 @@
       "Bash(tail -n 40 \"C:\\\\Users\\\\MAKGRU\\\\AppData\\\\Local\\\\Packages\\\\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\\\\LocalState\\\\DiagOutputDir\\\\GitHub.cli.2.101.0-26-09-17-15-34-04.log\" 2>&1)",
       "Read(//c/Users/MAKGRU/AppData/Local/Packages/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe/LocalState/DiagOutputDir/**)",
       "Bash(/c/Users/MAKGRU/tools/bin/gh.exe auth *)",
-      "Bash(echo \"---push retry---\")"
+      "Bash(echo \"---push retry---\")",
+      "Bash(netstat -ano)"
     ],
     "deny": [
       "Bash(rm -rf *)"

@@ -6,8 +6,10 @@ deploy_mechanism: wrangler deploy
 based_on:
   - context/foundation/infrastructure.md
   - context/foundation/tech-stack.md
-status: phase-a-deployed
+status: phase-c-complete
 live_url: https://stopper-for-timecards.senei-web.workers.dev
+ci_verified: true
+next_phase: commit-and-push-phase-b-c
 ---
 
 # Deploy Plan — First Production Deployment
@@ -130,7 +132,7 @@ Run after manual gates 1–4 above are complete (so real credentials exist to wo
 
 - [x] Rename `wrangler.jsonc`'s `name` field from `"10x-astro-starter"` to `"stopper-for-timecards"` to match `project_name` in `tech-stack.md`. Done 2026-09-17.
 - [x] Fix `.github/workflows/ci.yml`'s trigger from `branches: [master]` to `branches: [main]` (both `push` and `pull_request` triggers). Done 2026-09-17.
-- [ ] Add `SUPABASE_URL` / `SUPABASE_KEY` as GitHub repo secrets (Settings → Secrets and variables → Actions) so `ci.yml`'s `ci` and `smoke` jobs can build/test successfully — separate from the Cloudflare-side secrets in section 2. **Still outstanding** — this is a GitHub dashboard action, not done yet.
+- [x] Add `SUPABASE_URL` / `SUPABASE_KEY` as GitHub repo secrets — done 2026-09-18 via `gh secret set SUPABASE_URL --repo senei/stopper-for-timecards` / same for `SUPABASE_KEY` (no dashboard click-through needed, `gh` CLI handled it directly since it was already authenticated as `senei`). Confirmed with `gh secret list`.
 - [x] Populate a local `.env` (gitignored) from `.env.example` with the real `SUPABASE_URL` / anon key. Done 2026-09-17 — also populated `.dev.vars` with the same plus `SUPABASE_SERVICE_ROLE_KEY` for local Worker dev parity.
 - [x] Run `npm run build` and confirm it completes without error against the real Supabase project. Done 2026-09-17 — succeeded, picked up real secrets from `.dev.vars`.
 - [x] Set server-only secrets on the Workers project: `npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY`. Done 2026-09-17 — this also auto-created the Worker (see Prerequisites) since none existed yet. **Also set `SUPABASE_URL` and `SUPABASE_KEY` the same way** (see the resolved discrepancy in section 2) after the first deploy revealed they were missing from the live Worker.
@@ -158,42 +160,37 @@ npx wrangler deployments list
 
 Independent of the identity model — operates on entry timestamps only, so it can be built and deployed as part of this same integration.
 
-**Researched pattern (2026-09-17, via web search — confirm against the exact installed `@astrojs/cloudflare` 14.3.1 source before committing code, since this wasn't found in Astro's own official docs page, only community sources + the 14.3.0 changelog's custom-entrypoint support):**
+**Architectural pivot from the original researched pattern (verified 2026-09-18, before writing any worker code):** the plan's original design — a custom worker entry combining `fetch` (via `@astrojs/cloudflare/handler`'s `handle` export) with a `scheduled()` handler in the same Worker — is **not viable** against the actually-installed `@astrojs/cloudflare` 14.3.1. Its `handler.js` imports a Vite virtual module (`virtual:astro-cloudflare:config`) that only resolves inside Astro's own build pipeline, and the adapter's `Options` type has no `workerEntryPoint` config to hook a custom entry into. Confirmed by reading the installed package source directly, per this plan's own "verify before writing code" instruction — the community pattern found via web search doesn't match this version.
 
-`@astrojs/cloudflare`'s default entrypoint only exports `fetch`. To add a `scheduled()` handler, create a custom worker entry file that imports the adapter's request handler and combines it with your own `scheduled` export, then point `wrangler.jsonc`'s `main` at that file instead of the adapter's default entry:
+**Resolution**: implemented the purge job as a **fully separate, independent Cloudflare Worker** at `workers/purge-job/`, deployed and scheduled on its own, rather than sharing the SSR app's Worker. Confirmed with the user (AskUserQuestion) before building, who selected this as the recommended option.
 
-```js
-// e.g. src/worker.ts — custom entry combining SSR fetch + the purge cron
-import { handle } from "@astrojs/cloudflare/handler";
+- [x] Confirmed the `handle` export / `workerEntryPoint` option does not exist for this adapter version — done 2026-09-18, led to the architectural pivot above.
+- [x] Wrote a Supabase migration (`supabase/migrations/20260918082739_phase_b_c_purge_and_access_log.sql`) creating `time_entries` (minimal placeholder schema — not the final FR-001–006 schema, just enough for the purge job to operate on: `id`, `link_id`, `project`, `started_at`, `ended_at`, `created_at`, indexed on `started_at`/`link_id`), `job_runs` (`id`, `job_name`, `started_at`, `finished_at`, `status` check-constrained to `running`/`success`/`error`, `rows_affected`, `error_message`, indexed on `job_name, started_at desc`), and `access_log` (see Phase C). Applied via `npx supabase db push`; confirmed applied both locally and remotely via `npx supabase migration list` (both show `20260918082739`).
+- [x] Created a standalone Worker at `workers/purge-job/` — `wrangler.jsonc` (`name: stopper-for-timecards-purge`, `main: src/index.ts`, `nodejs_compat`, `triggers.crons: ["0 3 * * *"]` for a daily 3am UTC run, observability enabled) and `src/index.ts` exporting only a `scheduled()` handler.
+- [x] Implemented the scheduled handler body: deletes `time_entries` rows older than 90 days (`PURGE_AFTER_DAYS = 90`) via `@supabase/supabase-js` using the service-role key, then writes one row to `job_runs` per invocation recording `started_at`/`finished_at`/`status`/`rows_affected`/`error_message`.
+- [x] Set `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` as Workers Secrets on this new Worker (separate secret store from the main app's Worker — same values, different Worker) and as local `workers/purge-job/.dev.vars` (gitignored, confirmed via `git check-ignore -v`) for dev-server parity.
+- [x] Deployed via `npx wrangler deploy --config wrangler.jsonc` from `workers/purge-job/`. Cron Trigger registered.
+- [x] Tested locally before relying on production timing: `wrangler dev --config wrangler.jsonc --test-scheduled --port 8799`, then `curl http://127.0.0.1:8799/cdn-cgi/local/scheduled?format=json` — got `{"outcome":"ok","noRetry":false}`, HTTP 200. (Windows note: repeated dev-server restarts left orphaned `workerd.exe` processes bound to the port; cleaned up via `netstat`/`Get-CimInstance Win32_Process` + `taskkill //F //T` on the root process before getting one clean listener.)
+- [x] Verified against a real invocation: queried the `job_runs` table directly via the Supabase REST API and got back `{"id":"98315bcf-406b-428e-b5bd-9f3e97541c55","job_name":"purge_time_entries","started_at":"2026-09-18T08:44:59.549+00:00","finished_at":"2026-09-18T08:45:00.509+00:00","status":"success","rows_affected":0,"error_message":null}` — `rows_affected: 0` is expected since `time_entries` is empty (placeholder schema, FR-001–006 not implemented yet).
 
-export default {
-  async fetch(request, env, ctx) {
-    return handle(request, env, ctx);
-  },
-  async scheduled(event, env, ctx) {
-    // purge job logic — see steps below
-  },
-};
+```bash
+# From workers/purge-job/ — always pass --config explicitly (wrangler otherwise
+# gets confused between this dir's config and .wrangler/deploy/config.json)
+npx wrangler secret put SUPABASE_URL --config wrangler.jsonc
+npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --config wrangler.jsonc
+npx wrangler deploy --config wrangler.jsonc
+
+# Local test
+npx wrangler dev --config wrangler.jsonc --test-scheduled --port 8799
+curl "http://127.0.0.1:8799/cdn-cgi/local/scheduled?format=json"
 ```
-
-Place the Cloudflare handler's `fetch` call first so bindings/locals stay available to the rest of the pipeline; don't keep the adapter's default entry alongside this custom one. **Verify the exact export name (`handle`) against `node_modules/@astrojs/cloudflare/handler` in this repo before writing code** — the community pattern is consistent across sources found, but wasn't confirmed against Astro's own official docs page for this specific version.
-
-- [ ] Confirm the `handle` export exists at `@astrojs/cloudflare/handler` in the installed `node_modules` (or its type definitions) before writing the custom entry.
-- [ ] Write a Supabase migration creating a `job_runs` table (columns: `id`, `job_name`, `started_at`, `finished_at`, `status`, `rows_affected`, `error_message`) — this doubles as the purge job's own outcome log per the risk register mitigation.
-  - **Edge case**: run migrations (`supabase db push` or equivalent) against the **direct** database connection string (port `5432`), not the transaction pooler (port `6543`) — Supavisor's transaction-pooling mode doesn't support the multi-statement transactions migrations need. This only affects the local CLI migration workflow, not the deployed Worker's runtime queries (those go through `@supabase/supabase-js`'s REST API over `SUPABASE_URL`, which isn't pooler-sensitive).
-- [ ] Create the custom worker entry (`src/worker.ts` or similar) combining `fetch` (via `@astrojs/cloudflare/handler`'s `handle`) and `scheduled`.
-- [ ] Implement the scheduled handler body: query and delete `time_entries` rows older than 3 months, write one row to `job_runs` per invocation (success or failure), using the Supabase service-role key (server-only secret from Phase A).
-- [ ] Point `wrangler.jsonc`'s `main` field at the new custom entry file.
-- [ ] Add the Cron Trigger to `wrangler.jsonc` (confirmed syntax, Cloudflare docs 2026-09-17): `{ "triggers": { "crons": ["0 3 * * *"] } }` for a daily 3am UTC run. Note: deploying replaces *all* previously-configured Cron Triggers with whatever is in this array — if a second scheduled job is ever added later, both must be listed together, not deployed as two separate single-cron updates.
-- [ ] Deploy (`npx wrangler deploy`).
-- [ ] Test locally before relying on production timing: `wrangler dev` exposes a `/cdn-cgi/local/scheduled` route for manually firing the handler — confirmed via Cloudflare's own docs. Example: `curl "http://localhost:8787/cdn-cgi/local/scheduled"` (add `?format=json` for structured output, or `?time=` to simulate a specific `scheduledTime`).
-- [ ] Verify against the live deployment: a row appears in `job_runs` with `status: success` and a plausible `rows_affected` count after the cron fires (or after the local-testing route is hit against the deployed Worker).
 
 ## 5. Phase C — Access-log table (scaffolded now, wired later)
 
-- [ ] Extend the same migration (or a follow-up one) with an `access_log` table (columns: `id`, `link_id`, `accessed_at`, `ip`, `user_agent`, `outcome`) per `infrastructure.md`'s Role-Rotation Check. Apply the same direct-connection-string edge case noted in Phase B.
-- [ ] Write a small `logAccess()` helper in `src/lib/` that inserts a row into `access_log` — built now, but **not called from anywhere yet**, since the private-link lookup route it should hook into (FR-007) doesn't exist.
-- [ ] Leave a `// TODO(FR-007): call logAccess() here` marker as a code comment at the point this plan describes — the actual call site is created when the private-link identity feature is implemented, tracked separately from this deploy plan.
+- [x] Extended the same migration with the `access_log` table (`id`, `link_id`, `accessed_at`, `ip`, `user_agent`, `outcome` check-constrained to `success`/`not_found`/`error`, indexed on `link_id, accessed_at desc`) per `infrastructure.md`'s Role-Rotation Check. Applied together with Phase B's migration.
+- [x] Wrote `src/lib/access-log.ts` with a `logAccess(linkId, request, outcome)` helper that inserts a row into `access_log` using the service-role key (added `SUPABASE_SERVICE_ROLE_KEY` to `astro.config.mjs`'s `env.schema` as `server`/`secret`/`optional` to support this) — built now, but **not called from anywhere yet**, since the private-link lookup route it should hook into (FR-007) doesn't exist.
+- [x] Left a `// TODO(FR-007): call this from the private-link lookup route once built.` marker in the helper's docstring — the actual call site is created when the private-link identity feature is implemented, tracked separately from this deploy plan.
+- [x] Type-checked the change: `npx astro check` — 59 files, 0 errors, 0 warnings, 0 hints. Confirms the new `SUPABASE_SERVICE_ROLE_KEY` env binding and `access-log.ts` are both sound.
 
 ## 6. Verification steps
 
@@ -203,12 +200,13 @@ Place the Cloudflare handler's `fetch` call first so bindings/locals stay availa
 - [ ] `/auth/signup` → `/auth/signin` flow works end-to-end against the real Supabase project. **Partially verified**: `/auth/signin` returns HTTP 200 and the "Supabase not configured" warning is gone after adding the `SUPABASE_URL`/`SUPABASE_KEY` secrets, but an actual signup→signin round-trip hasn't been exercised (would need a real email address/browser session) — do this manually before relying on it.
 - [x] Log visibility confirmed — not via `wrangler tail` (no live traffic to observe from this session), but indirectly via `wrangler deployments list`/`versions list` showing the deploy and both post-deploy secret changes as separate, timestamped versions.
 - [x] `npx wrangler secret list` shows all three Supabase secrets present (name only): `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. Verified 2026-09-17.
-- [ ] Cloudflare Builds shows a successful build/deploy triggered by the git connection. **Not done** — gate 4 (connect repo to Cloudflare Builds) is still outstanding; this deploy was via manual `wrangler deploy`, not the git-connected path.
-- [ ] A manually-triggered run of the Phase B scheduled handler produces a `job_runs` row with `status: success`. **Not done** — Phase B (purge job) hasn't been implemented yet, only planned.
-- [ ] `job_runs` and `access_log` tables both exist in Supabase with the expected schema. **Not done** — same as above, Phase C also not yet implemented.
+- [x] Cloudflare Builds shows a successful build/deploy triggered by the git connection. **Done 2026-09-18** — pushed commit `3e46e82` to `main`; the dashboard's Versions list shows version `1f10a4f2` updated in place with the commit message "Fix CI branch trigger, rename Worker, document first...", branch `main`, 0 errors, confirming the full git-push → Cloudflare Builds → `wrangler deploy` pipeline works end-to-end. (Note: the same version ID had shown as "Unknown (deployment)" right after connecting git in gate 4 — it was a placeholder created at connection time, filled in once the first real build completed, which is why polling for a *new* version ID via `wrangler deployments list` missed it; the dashboard's Versions view was the reliable signal here.)
+- [x] A manually-triggered run of the Phase B scheduled handler produces a `job_runs` row with `status: success`. **Verified 2026-09-18** — see the real row quoted in Phase B above (`rows_affected: 0`, expected since `time_entries` is empty).
+- [x] `job_runs` and `access_log` tables both exist in Supabase with the expected schema. **Verified 2026-09-18** via `npx supabase migration list` (migration `20260918082739` applied both locally and remotely) and the live `job_runs` row above.
 
 ## 7. Follow-up work (not in this deploy)
 
+- **Configure a real SMTP provider for Supabase Auth** (found 2026-09-18, during manual signup testing). `supabase/config.toml`'s `[auth.email.smtp]` is commented out — no custom provider (Resend/SendGrid/Postmark) is wired up, so the project relies on Supabase's built-in default email sender, which is testing-only and heavily throttled (a second confirmation email silently didn't arrive — likely hit that limit, not a code/config bug). Temporary workaround in use: wait out the hourly limit reset. Needs a real SMTP provider before this app can reliably onboard more than a couple of test users. Note this is distinct from FR-007's future private-link identity layer — email confirmation is part of the *current* default auth, which is still what's live.
 - Implement the private-link identity layer (replaces default email/password auth) — see `prd-v3.md` FR-007. Once built, wire its lookup route to call the `logAccess()` helper from Phase C.
 - Add basic rate limiting on private-link routes (per `infrastructure.md`'s risk register) before those routes carry real user links.
 - Clean up leftover bootstrap scaffold artifacts (`.bootstrap-scaffold/`, `*.scaffold` files) once confirmed safe to remove.
