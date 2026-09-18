@@ -6,7 +6,14 @@
       "Bash(npm audit *)",
       "Bash(powershell -Command \"New-Item -ItemType Directory -Path 'C:\\\\Users\\\\MAKGRU\\\\Source\\\\x10-dev--curse\\\\context\\\\changes\\\\bootstrap-verification' -Force | Out-Null; Write-Host 'Created bootstrap-verification directory'\")",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(git commit --amend -m ' *)",
+      "WebFetch(domain:render.com)",
+      "WebSearch",
+      "WebFetch(domain:developers.cloudflare.com)",
+      "WebFetch(domain:docs.railway.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.astro.build)"
     ]
   }
 }

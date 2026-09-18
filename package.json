@@ -22,7 +22,7 @@
     "@eslint/config-helpers": "^0.7.0",
     "@radix-ui/react-slot": "^1.1.2",
     "@supabase/ssr": "^0.12.7",
-    "@supabase/supabase-js": "^2.99.1",
+    "@supabase/supabase-js": "^2.116.0",
     "@tailwindcss/vite": "^4.2.4",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
