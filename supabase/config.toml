@@ -217,14 +217,18 @@ otp_length = 8
 otp_expiry = 3600
 
 # Use a production-ready SMTP server
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+[auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 587
+user = "resend"
+# DO NOT commit your Resend API key to git. Use environment variable substitution instead:
+pass = "env(RESEND_SMTP_PASS)"
+# Testing-only sender: Resend restricts onboarding@resend.dev to delivering only to the
+# account owner's own Resend email until a custom domain is verified. Real users' emails
+# will not arrive until a domain is added and verified in the Resend dashboard.
+admin_email = "onboarding@resend.dev"
+sender_name = "Stopper for Timecards"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]
