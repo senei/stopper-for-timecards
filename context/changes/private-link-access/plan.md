@@ -383,18 +383,18 @@ Every workspace load makes one indexed database read (`token_hash` is unique-ind
 
 #### Automated
 
-- [x] 3.1 No references to removed modules remain: a search for `auth/signin`, `api/auth`, `@supabase/ssr`, `locals.user` and `lib/supabase"` in `src/` and `scripts/` returns nothing
-- [x] 3.2 Linting passes: `npm run lint`
-- [x] 3.3 Type checking passes: `npx astro check`
-- [x] 3.4 Unit tests pass: `npm test -- --run`
-- [x] 3.5 Production build succeeds: `npm run build`
-- [x] 3.6 Smoke test (link flow plus 404s for removed routes) passes locally: `npm run smoke`
+- [x] 3.1 No references to removed modules remain: a search for `auth/signin`, `api/auth`, `@supabase/ssr`, `locals.user` and `lib/supabase"` in `src/` and `scripts/` returns nothing — d2e75d4
+- [x] 3.2 Linting passes: `npm run lint` — d2e75d4
+- [x] 3.3 Type checking passes: `npx astro check` — d2e75d4
+- [x] 3.4 Unit tests pass: `npm test -- --run` — d2e75d4
+- [x] 3.5 Production build succeeds: `npm run build` — d2e75d4
+- [x] 3.6 Smoke test (link flow plus 404s for removed routes) passes locally: `npm run smoke` — d2e75d4
 
 #### Manual
 
-- [x] 3.7 The landing page shows no Sign in / Sign up links
-- [x] 3.8 Visiting `/auth/signin`, `/auth/signup` and `/dashboard` shows the 404 page
-- [ ] 3.9 After pushing the branch, both GitHub Actions jobs (`ci` and `smoke`) are green, including the new database-test step
+- [x] 3.7 The landing page shows no Sign in / Sign up links — d2e75d4
+- [x] 3.8 Visiting `/auth/signin`, `/auth/signup` and `/dashboard` shows the 404 page — d2e75d4
+- [x] 3.9 After pushing the branch, both GitHub Actions jobs (`ci` and `smoke`) are green, including the new database-test step — d2e75d4
 
 ### Phase 4: Ship and verify in production
 

@@ -40,7 +40,7 @@ function storeCookies(response) {
 }
 
 // `withCookies: false` sends no cookies and ignores any Set-Cookie: a visitor with a fresh browser.
-async function request(path, { method = "GET", form, withCookies = true } = {}) {
+async function request(path, { method = "GET", form, json, withCookies = true } = {}) {
   const response = await fetch(BASE_URL + path, {
     method,
     redirect: "manual",
@@ -48,11 +48,13 @@ async function request(path, { method = "GET", form, withCookies = true } = {}) 
       ...(withCookies ? { Cookie: cookieHeader() } : {}),
       Origin: BASE_URL,
       ...(form ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
+      ...(json ? { "Content-Type": "application/json" } : {}),
     },
-    body: form ? new URLSearchParams(form).toString() : undefined,
+    body: form ? new URLSearchParams(form).toString() : json ? JSON.stringify(json) : undefined,
   });
+  const setsLinkCookie = response.headers.getSetCookie().some((c) => c.startsWith("stopper_link="));
   if (withCookies) storeCookies(response);
-  return { status: response.status, location: response.headers.get("location") ?? "" };
+  return { status: response.status, location: response.headers.get("location") ?? "", setsLinkCookie };
 }
 
 const createLinkForm = { "cf-turnstile-response": DUMMY_TURNSTILE_TOKEN };
@@ -98,6 +100,13 @@ check(
   describeResponse(r),
 );
 
+r = await request("/api/links", { method: "POST", json: {}, withCookies: false });
+check(
+  "a non-form body is refused with the verify message, not a server error",
+  r.status === 303 && r.location === "/?error=verify",
+  describeResponse(r),
+);
+
 r = await createLinkRequest();
 const token = WORKSPACE_LOCATION.exec(r.location)?.[1];
 check(
@@ -108,6 +117,9 @@ check(
 
 r = await request(`/w/${token}`);
 check("the workspace opens", r.status === 200, describeResponse(r));
+
+r = await request(`/w/${token}`, { withCookies: false });
+check("a browser with no link remembers the one it opens", r.status === 200 && r.setsLinkCookie, describeResponse(r));
 
 r = await createLinkRequest();
 check(
@@ -157,6 +169,15 @@ if (!hasServiceAccess) {
 
   r = await createLinkRequest(false);
   check("the 10th link is created", r.status === 303 && WORKSPACE_LOCATION.test(r.location), describeResponse(r));
+
+  // The browser in the jar already remembers the first link; opening another one must not replace it.
+  const otherToken = WORKSPACE_LOCATION.exec(r.location)?.[1];
+  r = await request(`/w/${otherToken}`);
+  check(
+    "opening someone else's link keeps the browser's own remembered link",
+    r.status === 200 && !r.setsLinkCookie && jar.get("stopper_link") === token,
+    describeResponse(r),
+  );
 
   r = await createLinkRequest(false);
   check("the 11th person sees the full message", r.status === 303 && r.location === "/?full=1", describeResponse(r));

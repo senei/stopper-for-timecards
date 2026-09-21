@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { logAccess } from "@/lib/access-log";
-import { setLinkCookie } from "@/lib/link-cookie";
+import { LINK_COOKIE, setLinkCookie } from "@/lib/link-cookie";
 import { isWellFormedToken } from "@/lib/link-token";
 import { findLinkByToken } from "@/lib/links";
 
@@ -35,7 +35,11 @@ if (unavailable) {
   return Astro.rewrite("/404");
 } else {
   await logAccess(link.id, Astro.request, "success");
-  setLinkCookie(Astro.cookies, token);
+  // Remember the link only for a browser that has none, so opening someone else's shared link
+  // never replaces the visitor's own.
+  if (!Astro.cookies.has(LINK_COOKIE)) {
+    setLinkCookie(Astro.cookies, token);
+  }
 }
 
 const workspaceUrl = Astro.url.href;

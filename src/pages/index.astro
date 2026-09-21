@@ -2,27 +2,12 @@
 import { LINK_CREATION_CLOSED, TURNSTILE_SITE_KEY } from "astro:env/server";
 import Layout from "@/layouts/Layout.astro";
 import { isCreationClosed } from "@/lib/creation-closed";
-import { clearLinkCookie, LINK_COOKIE } from "@/lib/link-cookie";
-import { isWellFormedToken } from "@/lib/link-token";
-import { findLinkByToken } from "@/lib/links";
+import { resolveCookieLink } from "@/lib/link-cookie";
 
 // A browser that already holds a valid link goes straight to its workspace.
-const cookieToken = Astro.cookies.get(LINK_COOKIE)?.value;
-if (cookieToken) {
-  let stale = !isWellFormedToken(cookieToken);
-  if (!stale) {
-    try {
-      if (await findLinkByToken(cookieToken)) {
-        return Astro.redirect(`/w/${cookieToken}`);
-      }
-      stale = true;
-    } catch {
-      // Lookup failed: show the create form and leave the cookie alone.
-    }
-  }
-  if (stale) {
-    clearLinkCookie(Astro.cookies);
-  }
+const linkedToken = await resolveCookieLink(Astro.cookies);
+if (linkedToken) {
+  return Astro.redirect(`/w/${linkedToken}`);
 }
 
 const params = Astro.url.searchParams;
