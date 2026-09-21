@@ -41,7 +41,7 @@ People who work across several projects a day don't capture time as it happens, 
 
 | ID   | Change ID                | Outcome (user can …)                                                     | Prerequisites | PRD refs                     | Status   |
 | ---- | ------------------------ | ------------------------------------------------------------------------ | ------------- | ---------------------------- | -------- |
-| S-01 | private-link-access      | create their own private link and open it to land in their own workspace | —             | FR-007, US-02                | ready    |
+| S-01 | private-link-access      | create their own private link and open it to land in their own workspace | —             | FR-007, US-02                | planning |
 | S-02 | first-timer-start        | add a project and pick it to start the timer instantly                   | S-01          | FR-001, FR-002, US-01, NFR   | proposed |
 | S-03 | timer-switch-rounding    | switch the running timer to another project with 15-min-rounded splits   | S-02          | FR-003                       | proposed |
 | S-04 | timer-stop-and-flags     | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                       | proposed |
@@ -89,7 +89,7 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Unknowns:**
   - Retire the starter's email/password pages, or keep them unlinked? — Owner: user. Block: no.
 - **Risk:** First because everything else is keyed to a person's link; the PRD's identity model differs from the starter's auth, so this is where the largest rework happens. Also the first call site for the access log.
-- **Status:** ready
+- **Status:** planning
 
 ### S-02: First timer start
 
