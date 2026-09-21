@@ -352,32 +352,32 @@ Every workspace load makes one indexed database read (`token_hash` is unique-ind
 
 #### Automated
 
-- [x] 1.1 Migrations apply cleanly to a fresh local database: `npx supabase db reset`
-- [x] 1.2 Database tests pass (cap boundary, RLS, execute privileges, null log link): `npx supabase test db`
-- [x] 1.3 Token unit tests pass: `npm test -- --run`
-- [x] 1.4 Linting passes: `npm run lint`
-- [x] 1.5 Type checking passes: `npx astro check`
+- [x] 1.1 Migrations apply cleanly to a fresh local database: `npx supabase db reset` — e59845d
+- [x] 1.2 Database tests pass (cap boundary, RLS, execute privileges, null log link): `npx supabase test db` — e59845d
+- [x] 1.3 Token unit tests pass: `npm test -- --run` — e59845d
+- [x] 1.4 Linting passes: `npm run lint` — e59845d
+- [x] 1.5 Type checking passes: `npx astro check` — e59845d
 
 ### Phase 2: Create and open a link
 
 #### Automated
 
-- [ ] 2.1 Linting passes: `npm run lint`
-- [ ] 2.2 Type checking passes: `npx astro check`
-- [ ] 2.3 Unit tests pass: `npm test -- --run`
-- [ ] 2.4 Production build succeeds: `npm run build`
-- [ ] 2.5 Smoke steps (Turnstile gate, link flow, throttle, cap, access-log and RLS assertions) pass against a local preview with local Supabase: `npm run smoke`
+- [x] 2.1 Linting passes: `npm run lint`
+- [x] 2.2 Type checking passes: `npx astro check`
+- [x] 2.3 Unit tests pass: `npm test -- --run`
+- [x] 2.4 Production build succeeds: `npm run build`
+- [x] 2.5 Smoke steps (Turnstile gate, link flow, throttle, cap, access-log and RLS assertions) pass against a local preview with local Supabase: `npm run smoke`
 
 #### Manual
 
-- [ ] 2.6 In a browser, "create my private link" lands on `/w/<token>` showing an empty workspace and the copyable link
-- [ ] 2.7 Opening that URL in a private window or another browser shows the same workspace with no login
-- [ ] 2.8 Changing one character of the token shows the 404 page, identical to a malformed token
-- [ ] 2.9 Returning to `/` in the browser that created the link redirects straight to the workspace
-- [ ] 2.10 With 10 links present (fill the first 9 with SQL and backdate their `created_at`, so the throttle does not apply), the next attempt in the browser shows the "full" message and creates nothing (check the `links` row count locally)
-- [ ] 2.11 `access_log` contains a `success` row for each open and a `not_found` row with a null link id for the altered token
-- [ ] 2.12 The landing page shows the Turnstile widget (test keys locally), and creating a link works only after it passes
-- [ ] 2.13 With `LINK_CREATION_CLOSED=1` in `.dev.vars`, the landing page shows the closed message, a direct `POST /api/links` redirects to it, and an existing link still opens its workspace
+- [x] 2.6 In a browser, "create my private link" lands on `/w/<token>` showing an empty workspace and the copyable link
+- [x] 2.7 Opening that URL in a private window or another browser shows the same workspace with no login
+- [x] 2.8 Changing one character of the token shows the 404 page, identical to a malformed token
+- [x] 2.9 Returning to `/` in the browser that created the link redirects straight to the workspace
+- [x] 2.10 With 10 links present (fill the first 9 with SQL and backdate their `created_at`, so the throttle does not apply), the next attempt in the browser shows the "full" message and creates nothing (check the `links` row count locally)
+- [x] 2.11 `access_log` contains a `success` row for each open and a `not_found` row with a null link id for the altered token
+- [x] 2.12 The landing page shows the Turnstile widget (test keys locally), and creating a link works only after it passes
+- [x] 2.13 With `LINK_CREATION_CLOSED=1` in `.dev.vars`, the landing page shows the closed message, a direct `POST /api/links` redirects to it, and an existing link still opens its workspace
 
 ### Phase 3: Retire the starter auth
 

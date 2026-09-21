@@ -1,8 +1,74 @@
 ---
-import Welcome from "@/components/Welcome.astro";
+import { LINK_CREATION_CLOSED, TURNSTILE_SITE_KEY } from "astro:env/server";
 import Layout from "@/layouts/Layout.astro";
+import { isCreationClosed } from "@/lib/creation-closed";
+import { clearLinkCookie, LINK_COOKIE } from "@/lib/link-cookie";
+import { isWellFormedToken } from "@/lib/link-token";
+import { findLinkByToken } from "@/lib/links";
+
+// A browser that already holds a valid link goes straight to its workspace.
+const cookieToken = Astro.cookies.get(LINK_COOKIE)?.value;
+if (cookieToken) {
+  let stale = !isWellFormedToken(cookieToken);
+  if (!stale) {
+    try {
+      if (await findLinkByToken(cookieToken)) {
+        return Astro.redirect(`/w/${cookieToken}`);
+      }
+      stale = true;
+    } catch {
+      // Lookup failed: show the create form and leave the cookie alone.
+    }
+  }
+  if (stale) {
+    clearLinkCookie(Astro.cookies);
+  }
+}
+
+const params = Astro.url.searchParams;
+const closed = isCreationClosed(LINK_CREATION_CLOSED) || params.get("closed") === "1";
+const full = params.get("full") === "1";
+
+const messages: Record<string, string> = {
+  "1": "Something went wrong creating your link. Please try again.",
+  busy: "Too many links were created just now; please try again in a few minutes.",
+  verify: "Verification failed; please try again.",
+};
+const error = messages[params.get("error") ?? ""];
 ---
 
-<Layout>
-  <Welcome />
+<Layout title="Stopper for Timecards">
+  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
+    <div class="w-full max-w-md rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl">
+      <h1 class="mb-4 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+        Stopper for Timecards
+      </h1>
+      <p class="text-blue-100/80">
+        Track your time across projects during the day and get it back as your weekly timesheet grid. There are no
+        accounts: your private link is your identity, so keep it safe.
+      </p>
+
+      {error && <p class="mt-4 rounded-lg border border-red-300/30 bg-red-500/10 p-3 text-sm text-red-100">{error}</p>}
+
+      {full ? (
+        <p class="mt-6 text-blue-100">All 10 spots are taken; no new links can be created.</p>
+      ) : closed ? (
+        <p class="mt-6 text-blue-100">New links are closed. If you already have a link, open it directly.</p>
+      ) : (
+        <form method="POST" action="/api/links" class="mt-6 flex flex-col items-center gap-4">
+          <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY}></div>
+          <button
+            type="submit"
+            class="inline-flex items-center justify-center rounded-lg bg-purple-600 px-6 py-3 text-base font-medium text-white transition-colors hover:bg-purple-500"
+          >
+            Create my private link
+          </button>
+        </form>
+      )}
+    </div>
+  </div>
+
+  {!full && !closed && (
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  )}
 </Layout>

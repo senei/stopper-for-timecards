@@ -1,0 +1,99 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { logAccess } from "@/lib/access-log";
+import { setLinkCookie } from "@/lib/link-cookie";
+import { isWellFormedToken } from "@/lib/link-token";
+import { findLinkByToken } from "@/lib/links";
+
+// Keep the token out of caches, referrers and search indexes.
+Astro.response.headers.set("Referrer-Policy", "no-referrer");
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("X-Robots-Tag", "noindex");
+
+const { token } = Astro.params;
+
+// Malformed tokens never reach the database or the access log.
+if (!isWellFormedToken(token)) {
+  return Astro.rewrite("/404");
+}
+
+let link: { id: string } | null = null;
+let unavailable = false;
+try {
+  link = await findLinkByToken(token);
+} catch {
+  unavailable = true;
+}
+
+// Awaited on purpose: a promise left running after the response can be cancelled on Workers,
+// which would silently drop audit rows.
+if (unavailable) {
+  await logAccess(null, Astro.request, "error");
+  Astro.response.status = 503;
+} else if (!link) {
+  await logAccess(null, Astro.request, "not_found");
+  return Astro.rewrite("/404");
+} else {
+  await logAccess(link.id, Astro.request, "success");
+  setLinkCookie(Astro.cookies, token);
+}
+
+const workspaceUrl = Astro.url.href;
+---
+
+<Layout title="Your workspace">
+  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
+    <div class="w-full max-w-xl rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
+      {unavailable ? (
+        <>
+          <h1 class="mb-4 text-2xl font-bold">Temporarily unavailable</h1>
+          <p class="text-blue-100/80">We could not load your workspace right now. Please try again in a moment.</p>
+        </>
+      ) : (
+        <>
+          <h1 class="mb-4 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+            Your workspace
+          </h1>
+          <p class="text-blue-100/80">No projects yet.</p>
+
+          <div class="mt-8 border-t border-white/10 pt-6">
+            <h2 class="mb-2 text-sm font-semibold tracking-wide text-blue-100/60 uppercase">Your private link</h2>
+            <div class="flex gap-2">
+              <input
+                type="text"
+                readonly
+                value={workspaceUrl}
+                data-link
+                class="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm text-white"
+              />
+              <button
+                type="button"
+                data-copy
+                class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
+              >
+                Copy
+              </button>
+            </div>
+            <p class="mt-3 text-sm text-blue-100/60">
+              Save this link now. It cannot be recovered, and anyone who has it can see and log your time.
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>("[data-copy]");
+  const input = document.querySelector<HTMLInputElement>("[data-link]");
+
+  button?.addEventListener("click", () => {
+    if (!input) {
+      return;
+    }
+    void navigator.clipboard.writeText(input.value).then(() => {
+      button.textContent = "Copied";
+    });
+  });
+</script>

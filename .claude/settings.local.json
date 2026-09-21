@@ -13,7 +13,12 @@
       "WebFetch(domain:developers.cloudflare.com)",
       "WebFetch(domain:docs.railway.com)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:docs.astro.build)"
+      "WebFetch(domain:docs.astro.build)",
+      "Bash(powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 4321 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id \\\\$_.OwningProcess -Force }\" 2>&1 | head -2; sleep 2; curl -s -o /dev/null -w \"preview after stop: %{http_code}\\\\n\" http://localhost:4321/ ; npx prettier --write src/pages/404.astro | tail -1; npm run build 2>&1 | grep -E \"Complete!|rror\" | head -2)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "cloudflare"
+  ]
 }
