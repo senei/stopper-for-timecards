@@ -46,7 +46,7 @@ git clone https://github.com/przeprogramowani/10x-astro-starter .bootstrap-scaff
 - npm install: ✓ Success (648 packages, 0 vulnerabilities, 44s)
 - .git deletion: ✓ Success
 - Conflict matrix merge: ✓ Success
-- Scaffold cleanup: ✓ Success
+- Scaffold cleanup: ✓ Success *(correction 2026-09-21: the `.bootstrap-scaffold/` temp folder was still present; see Follow-up below)*
 
 **Conflict resolution:**
 - `.gitignore`: Append-merged (existing lines preserved, scaffold lines added with separator)
@@ -100,6 +100,18 @@ Your project is scaffolded and verified. **What to do now:**
 5. **Watch the background-job gotcha** — The scheduled purge job should stay lightweight to respect Cloudflare edge-runtime limits. If you need heavy async work, use an external worker (e.g., Upstash, Inngest).
 
 6. **Continue the 10xDevs flow** — A future Lesson 4 skill ("Memory Architecture") will set up your agent context (CLAUDE.md, AGENTS.md) and CI workflow automation. For now, your project is ready to build.
+
+## Follow-up (2026-09-21)
+
+The scaffold leftovers this log describes were cleaned up afterwards, in commit `e03c158`:
+
+- **Temp folder:** `.bootstrap-scaffold/` (3.6 MB, untracked) had not been deleted despite the "Scaffold cleanup: ✓ Success" line above. Removed.
+- **`.scaffold` siblings:** 46 tracked files removed. A comparison before deletion showed 37 byte-identical to the real file, 7 that differed only because the project's own file had since evolved (`ci.yml`, `astro.config.mjs`, `CLAUDE.md`, `package.json`, `package-lock.json`, `supabase/config.toml`, `wrangler.jsonc`), and 2 without a counterpart (`README.md.scaffold`, `src/scripts.scaffold/smoke.mjs`).
+- **Nested copy:** the starter's original `.vscode/.vscode/` folder was removed; the project's own `.vscode/` files are unchanged.
+- **README:** the starter's `README.md.scaffold` described email/password auth and starter setup, so it was not promoted. A new project `README.md` was written instead.
+- **Effect:** `tsconfig.json` includes `**/*`, so `astro check` had been scanning the scaffold copies too (59 files); it now checks 33 files with 0 errors.
+- **Next steps 1 above** (review the `.scaffold` siblings) is therefore done.
+
 
 ---
 
