@@ -122,6 +122,19 @@ check("a well-formed unknown token is a 404", r.status === 404, describeResponse
 r = await request("/w/not-a-token", { withCookies: false });
 check("a malformed token is a 404", r.status === 404, describeResponse(r));
 
+// The starter's email/password flow is gone, including its public signup endpoint.
+for (const path of ["/auth/signin", "/auth/signup", "/dashboard"]) {
+  r = await request(path, { withCookies: false });
+  check(`${path} is gone (404)`, r.status === 404, describeResponse(r));
+}
+
+r = await request("/api/auth/signup", {
+  method: "POST",
+  form: { email: "smoke@example.com", password: "x" },
+  withCookies: false,
+});
+check("the starter signup endpoint is gone (404)", r.status === 404, describeResponse(r));
+
 if (!hasServiceAccess) {
   console.log("SKIP  cap, throttle, access-log and RLS steps (set SMOKE_SUPABASE_URL and SMOKE_SERVICE_ROLE_KEY)");
 } else {

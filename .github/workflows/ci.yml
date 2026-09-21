@@ -39,17 +39,22 @@ jobs:
       - name: Start local Supabase
         run: |
           supabase start -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,realtime,storage-api,postgres-meta,supavisor
-          supabase status -o env | grep -E '^(API_URL|ANON_KEY)=' > supabase.env
+          supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=' > supabase.env
+      - name: Run database tests
+        run: npx supabase test db
       - name: Configure secrets for build and preview
         run: |
           source supabase.env
-          printf 'SUPABASE_URL=%s\nSUPABASE_KEY=%s\n' "$API_URL" "$ANON_KEY" > .env
+          # Cloudflare's documented dummy Turnstile keys: they always pass and accept the dummy token.
+          printf 'SUPABASE_URL=%s\nSUPABASE_KEY=%s\nSUPABASE_SERVICE_ROLE_KEY=%s\nTURNSTILE_SITE_KEY=%s\nTURNSTILE_SECRET_KEY=%s\n' \
+            "$API_URL" "$ANON_KEY" "$SERVICE_ROLE_KEY" "1x00000000000000000000AA" "1x0000000000000000000000000000000AA" > .env
           cp .env .dev.vars
       - run: npm run build
       - name: Run smoke test against production preview
         run: |
+          source supabase.env
           npm run preview -- --port 4321 &
           for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:4321/ && break; sleep 1; done
-          BASE_URL=http://localhost:4321 npm run smoke
+          BASE_URL=http://localhost:4321 SMOKE_SUPABASE_URL="$API_URL" SMOKE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" SMOKE_ANON_KEY="$ANON_KEY" npm run smoke
       - if: always()
         run: supabase stop --no-backup

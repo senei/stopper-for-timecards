@@ -21,16 +21,7 @@ const { title = "Stopper for Timecards" } = Astro.props;
   <body>
     {missingConfigs.map((cfg) => (
       <Banner variant="error">
-        <strong>Uwaga:</strong> {cfg.message}
-        {cfg.docsUrl && (
-          <>
-            {" "}
-            <a href={cfg.docsUrl} target="_blank" rel="noopener noreferrer">
-              {cfg.docsLabel ?? "Dokumentacja"}
-            </a>
-            .
-          </>
-        )}
+        <strong>Warning:</strong> {cfg.message}
       </Banner>
     ))}
     <slot />
