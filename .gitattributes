@@ -1,0 +1,11 @@
+# Keep line endings identical on every machine and in CI: LF in the repo and in the working tree.
+* text=auto eol=lf
+
+# Binary files: never touch.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
