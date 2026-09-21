@@ -1,5 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-import { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } from "astro:env/server";
+import { createAdminClient } from "./supabase-admin";
 
 export type AccessOutcome = "success" | "not_found" | "error";
 
@@ -9,26 +8,30 @@ export type AccessOutcome = "success" | "not_found" | "error";
  * Security audit trail per infrastructure.md's Role-Rotation Check: since
  * the private-link identity model has no accounts/passwords, this is the
  * only way to reconstruct "who accessed this link, when, from where" if a
- * leak is ever suspected. Not yet called from anywhere — the private-link
- * lookup route it should hook into (FR-007) doesn't exist yet.
+ * leak is ever suspected. `linkId` is null for a miss (unknown token).
  *
- * // TODO(FR-007): call this from the private-link lookup route once built.
+ * Never throws: a logging failure must not break the request being logged.
  */
-export async function logAccess(
-  linkId: string,
-  request: Request,
-  outcome: AccessOutcome
-): Promise<void> {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    return;
+export async function logAccess(linkId: string | null, request: Request, outcome: AccessOutcome): Promise<void> {
+  try {
+    const supabase = createAdminClient();
+    if (!supabase) {
+      return;
+    }
+
+    const { error } = await supabase.from("access_log").insert({
+      link_id: linkId,
+      ip: request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for"),
+      user_agent: request.headers.get("user-agent"),
+      outcome,
+    });
+
+    if (error) {
+      // eslint-disable-next-line no-console
+      console.error("logAccess failed:", error.message);
+    }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("logAccess failed:", err);
   }
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-  await supabase.from("access_log").insert({
-    link_id: linkId,
-    ip: request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for"),
-    user_agent: request.headers.get("user-agent"),
-    outcome,
-  });
 }

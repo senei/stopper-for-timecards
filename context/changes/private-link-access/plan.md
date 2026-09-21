@@ -352,11 +352,11 @@ Every workspace load makes one indexed database read (`token_hash` is unique-ind
 
 #### Automated
 
-- [ ] 1.1 Migrations apply cleanly to a fresh local database: `npx supabase db reset`
-- [ ] 1.2 Database tests pass (cap boundary, RLS, execute privileges, null log link): `npx supabase test db`
-- [ ] 1.3 Token unit tests pass: `npm test -- --run`
-- [ ] 1.4 Linting passes: `npm run lint`
-- [ ] 1.5 Type checking passes: `npx astro check`
+- [x] 1.1 Migrations apply cleanly to a fresh local database: `npx supabase db reset`
+- [x] 1.2 Database tests pass (cap boundary, RLS, execute privileges, null log link): `npx supabase test db`
+- [x] 1.3 Token unit tests pass: `npm test -- --run`
+- [x] 1.4 Linting passes: `npm run lint`
+- [x] 1.5 Type checking passes: `npx astro check`
 
 ### Phase 2: Create and open a link
 
