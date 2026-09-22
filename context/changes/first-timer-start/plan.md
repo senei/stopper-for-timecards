@@ -295,14 +295,14 @@ Replace the static "No projects yet." body with the real add/pick/tracking state
 
 #### Automated
 
-- [ ] 2.1 `npm run test` passes (`project-name.test.ts`)
-- [ ] 2.2 `npm run lint` passes
-- [ ] 2.3 `npx astro check` passes
+- [x] 2.1 `npm run test` passes (`project-name.test.ts`)
+- [x] 2.2 `npm run lint` passes
+- [x] 2.3 `npx astro check` passes
 
 #### Manual
 
-- [ ] 2.4 `curl` POST to `/api/w/<token>/timer/start` creates a project + open entry and redirects
-- [ ] 2.5 Repeating the request for the same link does not create a second open entry
+- [x] 2.4 `curl` POST to `/api/w/<token>/timer/start` creates a project + open entry and redirects
+- [x] 2.5 Repeating the request for the same link does not create a second open entry
 
 ### Phase 3: Workspace UI & smoke test
 
