@@ -332,7 +332,7 @@ Every workspace load makes one indexed database read (`token_hash` is unique-ind
 - The migration is additive except two deliberate changes to existing tables: RLS enabled (server-side service-role access, including the purge worker, is unaffected) and `access_log.link_id` made nullable.
 - Apply the migration to production before deploying the new code, because the new routes call `create_link`.
 - Follow-up outside this change: set `enable_signup = false` for Supabase Auth on the remote project via `supabase config push`, since the project's auth endpoint stays reachable with the anon key even though the app no longer uses it.
-- Turnstile hostname outcome (fill in during Phase 4): _pending_.
+- Turnstile hostname outcome: accepted. The widget was created for `stopper-for-timecards.senei-web.workers.dev` and confirmed rendering and passing on the live site 2026-09-22.
 - The Turnstile keys are stored with `wrangler secret put`, matching how the Supabase values are stored (the site key is public, but it is declared like the other `astro:env` server values).
 
 ## References
@@ -405,10 +405,10 @@ Every workspace load makes one indexed database read (`token_hash` is unique-ind
 
 #### Manual
 
-- [ ] 4.3 The Cloudflare Builds deploy for the merge succeeds and the live site serves the new landing page
-- [ ] 4.4 On the live site, creating the owner's link lands on `/w/<token>`; the same URL opens in a private window
-- [ ] 4.5 A malformed and an altered token both show the 404 page on the live site
-- [ ] 4.6 The live `access_log` table holds the `success` and `not_found` rows from those checks
-- [ ] 4.7 Reading `links` from the live REST endpoint with the anon key returns no rows
-- [ ] 4.8 The Turnstile widget renders on the live landing page and a real creation succeeds, or the hostname is rejected and the outcome is written into Migration Notes
+- [x] 4.3 The Cloudflare Builds deploy for the merge succeeds and the live site serves the new landing page
+- [x] 4.4 On the live site, creating the owner's link lands on `/w/<token>`; the same URL opens in a private window
+- [x] 4.5 A malformed and an altered token both show the 404 page on the live site
+- [x] 4.6 The live `access_log` table holds the `success` and `not_found` rows from those checks
+- [x] 4.7 Reading `links` from the live REST endpoint with the anon key returns no rows
+- [x] 4.8 The Turnstile widget renders on the live landing page and a real creation succeeds, or the hostname is rejected and the outcome is written into Migration Notes
 - [ ] 4.9 Setting `LINK_CREATION_CLOSED` to `1` on the live Worker makes the landing page show the closed message while an existing link still opens; the secret is then deleted or left in place as you decide
