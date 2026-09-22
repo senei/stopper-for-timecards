@@ -400,8 +400,8 @@ Every workspace load makes one indexed database read (`token_hash` is unique-ind
 
 #### Automated
 
-- [ ] 4.1 The migration is applied both locally and remotely: `npx supabase migration list`
-- [ ] 4.2 Worker secrets `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` are present: `npx wrangler secret list`
+- [x] 4.1 The migration is applied both locally and remotely: `npx supabase migration list`
+- [x] 4.2 Worker secrets `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` are present: `npx wrangler secret list`
 
 #### Manual
 
