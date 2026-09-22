@@ -1,16 +1,8 @@
-import { createAdminClient } from "./supabase-admin";
+import { adminOrThrow } from "./supabase-admin";
 
 export interface Project {
   id: string;
   name: string;
-}
-
-function adminOrThrow() {
-  const admin = createAdminClient();
-  if (!admin) {
-    throw new Error("Supabase is not configured");
-  }
-  return admin;
 }
 
 /** A link's projects, ordered by name, for the pick list. */

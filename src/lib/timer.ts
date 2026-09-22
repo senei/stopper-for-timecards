@@ -1,4 +1,4 @@
-import { createAdminClient } from "./supabase-admin";
+import { adminOrThrow } from "./supabase-admin";
 
 export interface StartTimerResult {
   entryId: string;
@@ -14,14 +14,6 @@ export class TimerAlreadyRunningError extends Error {
     super("A timer is already running for this link");
     this.name = "TimerAlreadyRunningError";
   }
-}
-
-function adminOrThrow() {
-  const admin = createAdminClient();
-  if (!admin) {
-    throw new Error("Supabase is not configured");
-  }
-  return admin;
 }
 
 /**

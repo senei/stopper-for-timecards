@@ -261,6 +261,15 @@ Replace the static "No projects yet." body with the real add/pick/tracking state
 2. Reload and cross-browser open → tracking state persists
 3. (DB-assisted) clear the open entry → form reappears, previously-used project is one click away
 
+## Related Changes
+
+During implementation, a review against the course's grading checklist (access control, CRUD, business logic, context docs, tests) surfaced two gaps unrelated to this plan's own scope: no user-initiated delete anywhere in the PRD, and no `test-plan.md`. These were addressed in a separate commit (`01a214a`, `docs(foundation): add test-plan.md, FR-009/FR-010 delete requirements, owner-only deletion note`), not folded into this plan's phases:
+
+- `context/foundation/test-plan.md` (new) — the risk register this plan's own References/Testing Strategy sections cite (R-01, R-02).
+- `context/foundation/prd.md` bumped v3 → v4 (pre-edit v3 snapshotted to `prd-v3.md`) — added FR-009 (delete a project, blocked if used) and FR-010 (self-service delete-all-data + link, supersedes FR-007's old "no removal mechanism" note).
+- `context/foundation/roadmap.md` — added slices S-09 (`delete-project`) and S-10 (`delete-account`), both `proposed`.
+- `context/foundation/infrastructure.md` — documented an owner-only, service-role SQL procedure for support-driven data deletion, explicitly not an app feature (a real in-app admin role would reverse the PRD's locked no-admin/no-accounts model).
+
 ## Migration Notes
 
 `time_entries` currently has no production rows (the table has never been written to by shipped code), so this migration alters it in place rather than migrating existing data.

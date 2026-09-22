@@ -1,15 +1,7 @@
 import { generateToken, hashToken } from "./link-token";
-import { createAdminClient } from "./supabase-admin";
+import { adminOrThrow } from "./supabase-admin";
 
 export type CreateLinkResult = { status: "created"; id: string; token: string } | { status: "full" };
-
-function adminOrThrow() {
-  const admin = createAdminClient();
-  if (!admin) {
-    throw new Error("Supabase is not configured");
-  }
-  return admin;
-}
 
 /** Creates a link through the capped database function. `full` means the 10-person cap is reached. */
 export async function createLink(): Promise<CreateLinkResult> {

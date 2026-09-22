@@ -56,6 +56,13 @@ if (unavailable) {
 
 const workspaceUrl = Astro.url.href;
 const startAction = `/api/w/${token}/timer/start`;
+
+/** UTC HH:MM fallback for `currentTimer.startedAt`; the client script replaces this with local
+ * time once it can. Parses defensively rather than assuming a fixed ISO string layout. */
+function formatUtcTime(iso: string): string {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? "—" : date.toISOString().slice(11, 16);
+}
 ---
 
 <Layout title="Your workspace">
@@ -74,7 +81,7 @@ const startAction = `/api/w/${token}/timer/start`;
           {currentTimer ? (
             <p class="text-blue-100/80">
               Currently tracking <span class="font-semibold text-white">{currentTimer.projectName}</span> — started at{" "}
-              <span data-started-at={currentTimer.startedAt}>{currentTimer.startedAt.slice(11, 16)}</span>
+              <span data-started-at={currentTimer.startedAt}>{formatUtcTime(currentTimer.startedAt)}</span>
             </p>
           ) : (
             <div>

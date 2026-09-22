@@ -21,7 +21,10 @@ create table if not exists projects (
 );
 
 -- Case-insensitive per-person uniqueness: retyping an existing project's name
--- (in any case) must reuse it rather than create a duplicate.
+-- (in any case) must reuse it rather than create a duplicate. lower() is
+-- locale/collation-dependent server-side; fine for this app's single-tenant,
+-- Latin-script usage, but a non-default collation could in theory fold two
+-- names together (or apart) differently than expected.
 create unique index if not exists projects_link_id_lower_name_idx
   on projects (link_id, lower(name));
 

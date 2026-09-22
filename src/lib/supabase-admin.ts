@@ -11,3 +11,12 @@ export function createAdminClient() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
+
+/** The service-role client, or throws if Supabase isn't configured. */
+export function adminOrThrow() {
+  const admin = createAdminClient();
+  if (!admin) {
+    throw new Error("Supabase is not configured");
+  }
+  return admin;
+}
