@@ -1,0 +1,17 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+// Unknown /w/<token> requests are rewritten here, so the token must stay out of caches, referrers and indexes.
+Astro.response.headers.set("Referrer-Policy", "no-referrer");
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("X-Robots-Tag", "noindex");
+---
+
+<Layout title="Page not found">
+  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
+    <div class="w-full max-w-md rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl">
+      <h1 class="mb-4 text-3xl font-bold">Page not found</h1>
+      <p class="text-blue-100/80">There is nothing here.</p>
+    </div>
+  </div>
+</Layout>

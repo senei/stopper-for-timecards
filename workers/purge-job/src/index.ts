@@ -14,10 +14,7 @@ export default {
     const startedAt = new Date().toISOString();
     const cutoff = new Date(Date.now() - PURGE_AFTER_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
-    const { error, count } = await supabase
-      .from("time_entries")
-      .delete({ count: "exact" })
-      .lt("started_at", cutoff);
+    const { error, count } = await supabase.from("time_entries").delete({ count: "exact" }).lt("started_at", cutoff);
 
     const finishedAt = new Date().toISOString();
 

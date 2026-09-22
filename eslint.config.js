@@ -67,18 +67,22 @@ const astroConfig = defineConfig({
     "astro/no-set-html-directive": "error",
     "astro/no-unused-css-selector": "warn",
     "astro/prefer-class-list-directive": "warn",
+    // The rule crashes on the top-level `return Astro.redirect(...)` that Astro frontmatter relies on.
+    "@typescript-eslint/no-misused-promises": "off",
   },
 });
 
 const scriptsConfig = defineConfig({
   files: ["scripts/**/*.mjs"],
   extends: [tseslint.configs.disableTypeChecked],
-  languageOptions: { globals: { console: true, process: true, fetch: true, URLSearchParams: true } },
+  languageOptions: { globals: { console: true, process: true, fetch: true, URL: true, URLSearchParams: true } },
   rules: { "no-console": "off" },
 });
 
 export default defineConfig(
   includeIgnoreFile(gitignorePath),
+  // Agent skills under .claude/ ship their own scripts and tests; they are not project code.
+  { ignores: [".claude/**"] },
   baseConfig,
   reactConfig,
   eslintPluginAstro.configs["flat/recommended"],
