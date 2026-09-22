@@ -74,7 +74,7 @@ const startAction = `/api/w/${token}/timer/start`;
           {currentTimer ? (
             <p class="text-blue-100/80">
               Currently tracking <span class="font-semibold text-white">{currentTimer.projectName}</span> — started at{" "}
-              {currentTimer.startedAt.slice(11, 16)}
+              <span data-started-at={currentTimer.startedAt}>{currentTimer.startedAt.slice(11, 16)}</span>
             </p>
           ) : (
             <div>
@@ -154,4 +154,15 @@ const startAction = `/api/w/${token}/timer/start`;
       button.textContent = "Copied";
     });
   });
+
+  // The server renders started_at in UTC (it can't know the viewer's timezone); replace it with
+  // the viewer's local time once the browser can compute it.
+  const startedAt = document.querySelector<HTMLElement>("[data-started-at]");
+  const startedAtIso = startedAt?.dataset.startedAt;
+  if (startedAt && startedAtIso) {
+    const date = new Date(startedAtIso);
+    if (!Number.isNaN(date.getTime())) {
+      startedAt.textContent = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+  }
 </script>
