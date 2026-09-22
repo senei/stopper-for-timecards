@@ -1,10 +1,10 @@
 ---
 change_id: first-timer-start
 title: First timer start
-status: impl_reviewed
+status: archived
 created: 2026-09-22
 updated: 2026-09-22
-archived_at: null
+archived_at: 2026-09-22T15:17:42Z
 ---
 
 ## Notes
