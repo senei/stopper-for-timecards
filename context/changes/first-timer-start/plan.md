@@ -308,12 +308,12 @@ Replace the static "No projects yet." body with the real add/pick/tracking state
 
 #### Automated
 
-- [x] 3.1 `npm run smoke` passes against a fresh local database
-- [x] 3.2 `npm run lint` and `npx astro check` pass
+- [x] 3.1 `npm run smoke` passes against a fresh local database — c92348a
+- [x] 3.2 `npm run lint` and `npx astro check` pass — c92348a
 
 #### Manual
 
-- [x] 3.3 Fresh workspace shows the add/pick UI, not "No projects yet."
-- [x] 3.4 Adding a project starts its timer and shows the tracking state
-- [x] 3.5 Reload and cross-browser open both show the same tracking state
-- [x] 3.6 Clearing the open entry brings back the form with the project available for one-click reuse
+- [x] 3.3 Fresh workspace shows the add/pick UI, not "No projects yet." — c92348a
+- [x] 3.4 Adding a project starts its timer and shows the tracking state — c92348a
+- [x] 3.5 Reload and cross-browser open both show the same tracking state — c92348a
+- [x] 3.6 Clearing the open entry brings back the form with the project available for one-click reuse — c92348a
