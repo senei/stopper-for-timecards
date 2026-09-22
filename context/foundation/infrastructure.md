@@ -87,6 +87,15 @@ Walking the decision through three team perspectives surfaced one finding not ca
 - **Secrets**: Supabase URL and anon key can ship client-side; the Supabase **service-role key** and any other server-only secret go through `wrangler secret put <NAME>` — encrypted at rest, write-only after creation. Local dev uses a gitignored `.dev.vars`. Non-secret config lives in `wrangler.jsonc` `vars`.
 - **Rollback**: `wrangler rollback [<version-id>]` reverts Worker code to a prior version in seconds. Caveat: this does not revert KV state or the Cron Trigger schedule active at deploy time — a deploy that also changed cron cadence needs a follow-up deploy, not just a rollback. Supabase-side schema changes (migrations) are a separate rollback surface entirely, outside Cloudflare's control.
 - **Approval**: Routine deploys (`wrangler deploy`) and secret rotation via `wrangler secret put` for non-primary secrets may run agent-driven. Domain/DNS delegation to Cloudflare, rotating the Supabase service-role key, and any change to the Cron Trigger schedule are human-reviewed given their blast radius (schedule changes silently alter when user data gets purged).
+- **Owner-only data deletion (support tooling, not a product feature)**: the app itself has no admin role and no way to identify "the owner" versus any other link-holder — that's a deliberate PRD decision (see `prd.md`'s Non-Goals and Access Control), not a gap. When the project owner personally needs to remove a specific person's data (e.g. a support request, a mistaken test link), do it directly against Supabase with the service-role key — never build this into the app's UI or auth model:
+  ```sql
+  -- Given the person's link id (look it up by token_hash if only the URL is known):
+  delete from time_entries where link_id = '<link-id>';
+  delete from projects where link_id = '<link-id>';
+  delete from access_log where link_id = '<link-id>';
+  delete from links where id = '<link-id>';
+  ```
+  Run via `npx supabase db execute` against the linked remote project, or the Supabase Studio SQL editor. This is always a human-initiated, human-reviewed action — never automate or expose it as a callable route, since doing so would recreate the admin/no-admin conflict the PRD explicitly closed. If this need becomes routine rather than exceptional, that's a signal to properly plan S-10 (self-service `delete-account`) instead of growing ad hoc tooling around it.
 - **Logs**: `wrangler tail --format pretty` streams live request logs read-only from the terminal — this is the only log visibility on the free tier (no persistent retention without paid Logpush). Given the Pre-Mortem finding above, treat wiring up *some* persistent log capture (even a lightweight one, e.g. logging cron outcomes to a Supabase table) as a near-term follow-up, not an optional nice-to-have. The same table pattern doubles as the private-link access audit trail flagged in the Role-Rotation Check — one Supabase table, two purposes (operational debugging and security audit).
 
 ## Risk Register

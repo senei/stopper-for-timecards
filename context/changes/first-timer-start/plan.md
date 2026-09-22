@@ -213,9 +213,11 @@ Replace the static "No projects yet." body with the real add/pick/tracking state
 
 **File**: `scripts/smoke.mjs`
 
-**Intent**: Extend the existing local-only smoke script to cover starting a timer on a freshly created link.
+**Intent**: Extend the existing local-only smoke script to cover starting a timer on a freshly created link, verifying the two risks `context/foundation/test-plan.md` assigns to this slice (R-01: wrong project attribution, R-02: two concurrent timers) from outside the app, the way a person's browser would exercise it.
 
-**Contract**: After creating a link (existing flow), `POST` to `/api/w/<token>/timer/start` with a project name, assert the redirect lands back on the workspace, and (when `hasServiceAccess`) assert via `rest()` that exactly one `projects` row and one open `time_entries` row now exist for that link.
+**Contract**: After creating a link (existing flow), `POST` to `/api/w/<token>/timer/start` with a project name, assert the redirect lands back on the workspace, and (when `hasServiceAccess`) assert via `rest()`:
+- exactly one `projects` row and one open `time_entries` row now exist for that link, and the entry's `project_name` equals the name that was submitted (R-01 — catches a mix-up, not just a missing row)
+- a second `POST` with a different project name to the same link does not create a second open `time_entries` row, and the original entry's `project_name` is unchanged (R-02)
 
 ### Success Criteria:
 
@@ -244,10 +246,14 @@ Replace the static "No projects yet." body with the real add/pick/tracking state
 
 ### Integration Tests (pgTAP):
 
-- New-name start creates project + open entry
-- Re-typed existing name (any case/whitespace) reuses the project, no duplicate
-- Second start while one is running is rejected
+- New-name start creates project + open entry (R-01)
+- Re-typed existing name (any case/whitespace) reuses the project, no duplicate (R-01)
+- Second start while one is running is rejected (R-02)
 - RLS/grant checks on `projects` and `start_timer`
+
+### User-Perspective Verification (test-plan.md risks):
+
+- R-01 (wrong project attribution) and R-02 (two concurrent timers) each get a database-level pgTAP assertion (Phase 1) **and** a black-box HTTP assertion via the extended smoke script (Phase 3) — the pgTAP suite proves the invariant exists, the smoke script proves a real request through the app actually hits it.
 
 ### Manual Testing Steps:
 
@@ -263,6 +269,7 @@ Replace the static "No projects yet." body with the real add/pick/tracking state
 
 - Roadmap slice: `context/foundation/roadmap.md` (S-02: First timer start)
 - PRD: `context/foundation/prd.md` (FR-001, FR-002, US-01)
+- Test plan: `context/foundation/test-plan.md` (R-01: wrong project attribution, R-02: two concurrent timers — both traced to this slice's pgTAP suite and its Phase 3 smoke-test extension)
 - Prior slice's plan (reference shape for phases/migrations/lib modules): `context/archive/2026-09-21-private-link-access/plan.md`
 - Prior slice's review, finding F1 (why `time_entries.link_id` has no FK yet): `context/archive/2026-09-21-private-link-access/reviews/impl-review.md`
 - Cap/atomicity pattern to follow: `supabase/migrations/20260921120000_private_links.sql:16-34`
@@ -276,13 +283,13 @@ Replace the static "No projects yet." body with the real add/pick/tracking state
 
 #### Automated
 
-- [x] 1.1 `npx supabase db reset` applies the new migration cleanly
-- [x] 1.2 `npx supabase test db` — full pgTAP suite passes (updated + new tests)
+- [x] 1.1 `npx supabase db reset` applies the new migration cleanly — b30eaf3
+- [x] 1.2 `npx supabase test db` — full pgTAP suite passes (updated + new tests) — b30eaf3
 
 #### Manual
 
-- [x] 1.3 `start_timer` called twice with differently-cased names reuses the same project
-- [x] 1.4 A third `start_timer` call for the same link fails with a unique-violation
+- [x] 1.3 `start_timer` called twice with differently-cased names reuses the same project — b30eaf3
+- [x] 1.4 A third `start_timer` call for the same link fails with a unique-violation — b30eaf3
 
 ### Phase 2: API route & lib helpers
 

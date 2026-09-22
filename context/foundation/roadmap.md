@@ -4,7 +4,7 @@ version: 1
 status: draft
 created: 2026-09-21
 updated: 2026-09-22
-prd_version: 3
+prd_version: 4
 main_goal: speed
 top_blocker: capacity
 milestone_id: core-timecard-flow
@@ -14,7 +14,7 @@ milestone_status: open
 
 # Roadmap: Stopper for Timecards
 
-> Derived from `context/foundation/prd.md` (v3) + auto-researched codebase baseline.
+> Derived from `context/foundation/prd.md` (v4) + auto-researched codebase baseline.
 > Edit-in-place; archive when superseded.
 > Slices below are listed in dependency order. The "At a glance" table is the index.
 
@@ -23,9 +23,9 @@ milestone_status: open
 **M-01: Core timecard flow** — Status: open
 
 - **Intent:** A person opens their own private link, tracks time across projects during the day at 15-minute precision, and reads off a weekly grid they can copy into the company timesheet.
-- **Source materials:** `context/foundation/prd.md` (v3)
+- **Source materials:** `context/foundation/prd.md` (v4)
 - **Done when:** every F-NN and S-NN below is `done`.
-- **Scope anchors:** FR-001 – FR-008, US-01, US-02 (all must-have FRs of PRD v3).
+- **Scope anchors:** FR-001 – FR-010, US-01, US-02 (all must-have FRs of PRD v4; FR-009/FR-010 added 2026-09-22 to satisfy CRUD-completeness — see `context/foundation/prd-v3.md` for the pre-amendment version).
 
 ## Vision recap
 
@@ -49,6 +49,8 @@ People who work across several projects a day don't capture time as it happens, 
 | S-06 | weekly-grid-summary      | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001               | proposed |
 | S-07 | link-regeneration        | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02                | proposed |
 | S-08 | time-entry-purge-verified| have entries older than 3 months purged automatically                    | S-02          | FR-008                       | proposed |
+| S-09 | delete-project            | delete a project from their list, blocked if it has any logged time      | S-02          | FR-009                       | proposed |
+| S-10 | delete-account            | permanently delete all their own data and their link, freeing their slot | S-02          | FR-010, FR-007               | proposed |
 
 ## Streams
 
@@ -60,6 +62,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | B      | Day-end handling    | `S-04` → `S-05`                      | Branches from Stream A at `S-02`; `S-05` also needs `S-03` from Stream A. |
 | C      | Link security       | `S-07`                               | Only needs `S-01`; parallel with everything after it.                     |
 | D      | Retention           | `S-08`                               | Only needs the real time-entry data from `S-02`; parallel with the rest.  |
+| E      | Data ownership       | `S-09`, `S-10`                       | CRUD-completeness (delete); both only need `S-02`, parallel with the rest. |
 
 ## Baseline
 
@@ -179,6 +182,33 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Risk:** The purge worker already exists but targets a placeholder table; this slice re-points it at the real entry model and verifies it end to end in production, including that projects are untouched.
 - **Status:** proposed
 
+### S-09: Delete a project
+
+- **Outcome:** user can delete a project from their list; a project with any logged time entries against it is protected from deletion instead of silently destroying history.
+- **Change ID:** delete-project
+- **PRD refs:** FR-009
+- **Prerequisites:** S-02
+- **Parallel with:** S-03, S-04, S-05, S-06, S-07, S-08, S-10
+- **Blockers:** —
+- **Unknowns:**
+  - Exact protection mechanism — reuse the existing FK (`time_entries.project_id references projects(id)`, default `ON DELETE NO ACTION`) as the enforcement, surfaced as a friendly error, vs. a pre-check in application code? — Owner: implementer at plan time. Block: no (both satisfy FR-009; this is an implementation-detail choice, not a product one).
+- **Risk:** Low — the FK added in S-02's migration already makes "can't delete a used project" the database's default behavior; this slice is mostly UI + a friendly error message, not new data-integrity work.
+- **Status:** proposed
+
+### S-10: Delete all data (self-service account removal)
+
+- **Outcome:** user can permanently delete all of their own data — every project and logged time entry — and their private link itself, in one explicit confirmed action; this frees their slot in the 10-person cap.
+- **Change ID:** delete-account
+- **PRD refs:** FR-010, FR-007 (supersedes the "no removal mechanism" note)
+- **Prerequisites:** S-02
+- **Parallel with:** S-03, S-04, S-05, S-06, S-07, S-08, S-09
+- **Blockers:** —
+- **Unknowns:**
+  - Exact confirmation UX (typed phrase vs. two-step confirm) — Owner: user. Block: no.
+  - Whether this needs its own audit-log entry (mirroring `access_log`) given it's irreversible and self-service — Owner: user. Block: no.
+- **Risk:** Fully irreversible, no-admin, no-recovery action — the highest-consequence single click in the app. Confirmation UX needs real scrutiny at plan time; a careless implementation here is the one mistake in this codebase with no undo path at all.
+- **Status:** proposed
+
 ## Backlog Handoff
 
 GitHub issues created 2026-09-21 in `senei/stopper-for-timecards`.
@@ -193,6 +223,8 @@ GitHub issues created 2026-09-21 in `senei/stopper-for-timecards`.
 | S-06 | weekly-grid-summary | Weekly Project/Task/Type/Work Type × Mon–Sun table | no | [#6](https://github.com/senei/stopper-for-timecards/issues/6) | Needs S-03, S-04 |
 | S-07 | link-regeneration | Regenerate own private link | no | [#7](https://github.com/senei/stopper-for-timecards/issues/7) | Needs S-01 |
 | S-08 | time-entry-purge-verified | Verify automatic purge of entries older than 3 months | no | [#8](https://github.com/senei/stopper-for-timecards/issues/8) | Needs S-02 |
+| S-09 | delete-project | Delete a project (blocked if it has logged time) | no | not filed | Needs S-02; added 2026-09-22 for CRUD-completeness |
+| S-10 | delete-account | Delete all own data and the link itself | no | not filed | Needs S-02; added 2026-09-22 for CRUD-completeness |
 
 ## Open Roadmap Questions
 

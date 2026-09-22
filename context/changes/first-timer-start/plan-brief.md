@@ -1,6 +1,7 @@
 # First Timer Start — Plan Brief
 
 > Full plan: `context/changes/first-timer-start/plan.md`
+> Test plan: `context/foundation/test-plan.md`
 
 ## What & Why
 
@@ -24,6 +25,7 @@ Opening the workspace with no timer running shows a name field plus a list of pr
 | Repeated project name | Case-insensitive match reuses the existing project (no duplicate, no error) | Matches how projects are actually used — the same code typed daily | Plan |
 | Task/Type/Work Type snapshotting | Denormalized onto each `time_entries` row at creation | Satisfies the PRD's requirement that project edits never change past weeks, without extra machinery later | Plan |
 | One running timer per link | Database-level partial unique index, not just UI logic | Same belt-and-suspenders style as the existing link cap; safe under races/double-submits | Plan |
+| Test coverage | Two named risks (R-01 wrong project, R-02 concurrent timers) each get a pgTAP assertion *and* a black-box smoke-script assertion | DB tests prove the invariant exists; smoke tests prove a real HTTP request actually hits it, from the user's perspective | Plan |
 
 ## Scope
 
@@ -56,3 +58,4 @@ One Postgres function, `start_timer(link_id, name)`, handles both "new name" and
 - Picking or typing a project name starts its timer with no separate confirmation step (FR-002, US-01).
 - The tracking state is consistent across reloads and devices, proving it's driven by the database, not browser state.
 - Retyping an already-used project name never creates a duplicate project.
+- `test-plan.md`'s R-01 (wrong project) and R-02 (concurrent timers) risks each have a passing database test and a passing black-box HTTP test.

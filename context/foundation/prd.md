@@ -1,6 +1,6 @@
 ---
 project: "Stopper for Timecards"
-version: 3
+version: 4
 status: draft
 created: 2026-09-14
 context_type: greenfield
@@ -77,8 +77,12 @@ Coworkers are explicitly in scope alongside the primary persona: each coworker a
   > Socrates: Counter-argument considered: "viewing totals on-screen isn't enough if the shape doesn't match the submission format." Resolution: revised — the table's layout is required to mirror the submission grid, not just show totals.
 - FR-007: A first-time visitor can self-create their own private access link, which identifies them with no account or password needed, up to a maximum of 10 total users; past that cap, a new visitor sees a clear "full" message and no link is created. A person can regenerate their own existing link at any time, invalidating the old one without affecting anyone else's. Priority: must-have
   > Socrates: Counter-argument considered: "a leaked or forwarded link would let someone else log time as that person, with no way to detect it after the fact." Resolution: revised — added self-service link regeneration so a suspected leak can be invalidated by the affected person alone, without an admin and without touching anyone else's link.
-  > Socrates: Counter-argument considered: "with no admin and a hard cap, an 11th coworker has no way in even if an earlier person left the team." Resolution: accepted for MVP — a clear "full" message with no removal mechanism; freeing a slot would require an admin role, which contradicts the flat, no-admin decision already locked in.
+  > Socrates: Counter-argument considered: "with no admin and a hard cap, an 11th coworker has no way in even if an earlier person left the team." Resolution: **superseded by FR-010** — self-service full-account deletion (added later) frees a slot without needing an admin role, so this is no longer a locked-in MVP limitation.
 - FR-008: System automatically purges logged time entries older than 3 months. Priority: must-have
+- FR-009: User can delete a project from their list, but only when it has no logged time entries against it; a project with any logged time is protected from deletion, with a clear message explaining why. Priority: must-have
+  > Socrates: Counter-argument considered: "blocking deletion of a used project could trap a mistakenly-created duplicate forever." Resolution: accepted; a never-used project can always be deleted, and this protects the accuracy of any already-produced weekly grid — the same protection this schema already gives history via FR-001's snapshot decision.
+- FR-010: User can permanently delete all of their own data — every project and logged time entry — and their private link itself, in one explicit confirmed action. Priority: must-have
+  > Socrates: Counter-argument considered: "this is fully irreversible with no accounts, no admin and no recovery — one accidental confirm permanently locks someone out and destroys their history." Resolution: accepted; the action requires an explicit, hard-to-misclick confirmation step (e.g. typing a confirmation phrase), not a single click. This also finally gives a self-service way to free a slot in the 10-person cap, resolving the limitation FR-007 previously accepted as impossible for MVP.
 
 ## Non-Functional Requirements
 
