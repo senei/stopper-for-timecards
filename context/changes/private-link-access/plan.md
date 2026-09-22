@@ -400,15 +400,15 @@ Every workspace load makes one indexed database read (`token_hash` is unique-ind
 
 #### Automated
 
-- [x] 4.1 The migration is applied both locally and remotely: `npx supabase migration list`
-- [x] 4.2 Worker secrets `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` are present: `npx wrangler secret list`
+- [x] 4.1 The migration is applied both locally and remotely: `npx supabase migration list` — b4afea7
+- [x] 4.2 Worker secrets `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` are present: `npx wrangler secret list` — b4afea7
 
 #### Manual
 
-- [x] 4.3 The Cloudflare Builds deploy for the merge succeeds and the live site serves the new landing page
-- [x] 4.4 On the live site, creating the owner's link lands on `/w/<token>`; the same URL opens in a private window
-- [x] 4.5 A malformed and an altered token both show the 404 page on the live site
-- [x] 4.6 The live `access_log` table holds the `success` and `not_found` rows from those checks
-- [x] 4.7 Reading `links` from the live REST endpoint with the anon key returns no rows
-- [x] 4.8 The Turnstile widget renders on the live landing page and a real creation succeeds, or the hostname is rejected and the outcome is written into Migration Notes
-- [x] 4.9 Setting `LINK_CREATION_CLOSED` to `1` on the live Worker makes the landing page show the closed message while an existing link still opens; the secret is then deleted or left in place as you decide
+- [x] 4.3 The Cloudflare Builds deploy for the merge succeeds and the live site serves the new landing page — c2280e9
+- [x] 4.4 On the live site, creating the owner's link lands on `/w/<token>`; the same URL opens in a private window — c2280e9
+- [x] 4.5 A malformed and an altered token both show the 404 page on the live site — c2280e9
+- [x] 4.6 The live `access_log` table holds the `success` and `not_found` rows from those checks — c2280e9
+- [x] 4.7 Reading `links` from the live REST endpoint with the anon key returns no rows — c2280e9
+- [x] 4.8 The Turnstile widget renders on the live landing page and a real creation succeeds, or the hostname is rejected and the outcome is written into Migration Notes — c2280e9
+- [x] 4.9 Setting `LINK_CREATION_CLOSED` to `1` on the live Worker makes the landing page show the closed message while an existing link still opens; the secret is then deleted or left in place as you decide — cf6be65
