@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(10);
+select plan(12);
 
 -- Cap boundary: nine links, then the 10th succeeds and the 11th returns null.
 select create_link('hash-' || g) from generate_series(1, 9) g;
@@ -62,6 +62,18 @@ select is(
   (select count(*) from access_log where link_id is null),
   1::bigint,
   'null link_id row is stored'
+);
+
+select throws_ok(
+  $$ insert into access_log (link_id, outcome) values ('00000000-0000-0000-0000-000000000000', 'success') $$,
+  '23503',
+  null,
+  'access_log rejects a link_id that does not exist in links'
+);
+
+select lives_ok(
+  $$ insert into access_log (link_id, outcome) select id, 'success' from links limit 1 $$,
+  'access_log still accepts a link_id that does exist in links'
 );
 
 select * from finish();
