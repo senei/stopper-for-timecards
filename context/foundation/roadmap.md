@@ -46,7 +46,7 @@ People who work across several projects a day don't capture time as it happens, 
 | S-03 | timer-switch-rounding    | switch the running timer to another project with 15-min-rounded splits   | S-02          | FR-003                       | proposed |
 | S-04 | timer-stop-and-flags     | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                       | proposed |
 | S-05 | time-corrections         | correct logged time at end of day or start of next day                   | S-03, S-04    | FR-005                       | proposed |
-| S-06 | weekly-grid-summary      | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001               | blocked  |
+| S-06 | weekly-grid-summary      | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001               | proposed |
 | S-07 | link-regeneration        | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02                | proposed |
 | S-08 | time-entry-purge-verified| have entries older than 3 months purged automatically                    | S-02          | FR-008                       | proposed |
 
@@ -99,8 +99,8 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Prerequisites:** S-01
 - **Parallel with:** S-07
 - **Blockers:** —
-- **Unknowns:**
-  - Do projects carry Task/Type/Work Type when added, or is that chosen elsewhere? — Owner: user. Block: no (start with project name only; see Open Roadmap Question 1).
+- **Unknowns:** —
+- **Data model (resolved 2026-09-22):** adding a project only requires a name. Task, Type and Work Type are editable fields on the project — Task is optional free text (nice-to-have, may be left blank); Type defaults to `"Regular"`; Work Type defaults to `""`. Defaults are expected to cover ~99% of real usage, but both remain user-editable per project, not hardcoded. See Open Roadmap Questions for the full resolution.
 - **Risk:** North star; sets the real time-entry data model that replaces the placeholder table, so mistakes here propagate to every later slice.
 - **Status:** proposed
 
@@ -151,10 +151,9 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Parallel with:** S-05, S-07, S-08
 - **Blockers:** —
 - **Unknowns:**
-  - Where do Task, Type and Work Type values come from for each project or entry? The PRD defines the grid columns but no way to capture them. — Owner: user. Block: yes.
   - Which time zone defines the Mon–Sun day boundaries? — Owner: user. Block: no.
-- **Risk:** This slice is the product's differentiator (output shaped like the company grid), and it is blocked by the PRD gap above.
-- **Status:** blocked
+- **Risk:** This slice is the product's differentiator (output shaped like the company grid). Unblocked 2026-09-22 — see S-02's data model and Open Roadmap Questions for the resolution (Task optional per project, Type fixed to "Regular", Work Type blank).
+- **Status:** proposed
 
 ### S-07: Regenerate own link
 
@@ -191,13 +190,14 @@ GitHub issues created 2026-09-21 in `senei/stopper-for-timecards`.
 | S-03 | timer-switch-rounding | Switch timer between projects with 15-min rounding | no | [#3](https://github.com/senei/stopper-for-timecards/issues/3) | Needs S-02 |
 | S-04 | timer-stop-and-flags | Stop timer and flag long-running timers | no | [#4](https://github.com/senei/stopper-for-timecards/issues/4) | Needs S-02 |
 | S-05 | time-corrections | Correct logged time | no | [#5](https://github.com/senei/stopper-for-timecards/issues/5) | Needs S-03, S-04 |
-| S-06 | weekly-grid-summary | Weekly Project/Task/Type/Work Type × Mon–Sun table | no | [#6](https://github.com/senei/stopper-for-timecards/issues/6) | Blocked on Task/Type/Work Type source unknown |
+| S-06 | weekly-grid-summary | Weekly Project/Task/Type/Work Type × Mon–Sun table | no | [#6](https://github.com/senei/stopper-for-timecards/issues/6) | Needs S-03, S-04 |
 | S-07 | link-regeneration | Regenerate own private link | no | [#7](https://github.com/senei/stopper-for-timecards/issues/7) | Needs S-01 |
 | S-08 | time-entry-purge-verified | Verify automatic purge of entries older than 3 months | no | [#8](https://github.com/senei/stopper-for-timecards/issues/8) | Needs S-02 |
 
 ## Open Roadmap Questions
 
 1. **Where do Task, Type and Work Type come from for the weekly grid?** The PRD lists them as grid columns but no requirement captures them. — Owner: user. Block: S-06 (and shapes S-02's project model).
+   **RESOLVED 2026-09-22:** adding a project (FR-001) requires only a name. Task, Type and Work Type are editable fields on the project, not hardcoded — Task is optional free text (nice-to-have, may be left blank); Type defaults to `"Regular"`; Work Type defaults to `""` (blank). Defaults are expected to cover ~99% of real usage, but the user can change either per project when needed. This is not a PRD change — FR-001/FR-006 are silent on these fields, so the resolution lives here until/unless a future PRD revision makes it explicit. S-02 and S-06 updated to reflect this; S-06 is unblocked.
 
 ## Parked
 
