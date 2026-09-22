@@ -1,9 +1,9 @@
 ---
 change_id: private-link-access
 title: Private link creation and access with 10-user cap
-status: implementing
+status: implemented
 created: 2026-09-21
-updated: 2026-09-21
+updated: 2026-09-22
 archived_at: null
 ---
 

@@ -411,4 +411,4 @@ Every workspace load makes one indexed database read (`token_hash` is unique-ind
 - [x] 4.6 The live `access_log` table holds the `success` and `not_found` rows from those checks
 - [x] 4.7 Reading `links` from the live REST endpoint with the anon key returns no rows
 - [x] 4.8 The Turnstile widget renders on the live landing page and a real creation succeeds, or the hostname is rejected and the outcome is written into Migration Notes
-- [ ] 4.9 Setting `LINK_CREATION_CLOSED` to `1` on the live Worker makes the landing page show the closed message while an existing link still opens; the secret is then deleted or left in place as you decide
+- [x] 4.9 Setting `LINK_CREATION_CLOSED` to `1` on the live Worker makes the landing page show the closed message while an existing link still opens; the secret is then deleted or left in place as you decide
