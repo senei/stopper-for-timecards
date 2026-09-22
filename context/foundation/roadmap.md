@@ -42,7 +42,7 @@ People who work across several projects a day don't capture time as it happens, 
 | ID   | Change ID                | Outcome (user can …)                                                     | Prerequisites | PRD refs                     | Status   |
 | ---- | ------------------------ | ------------------------------------------------------------------------ | ------------- | ---------------------------- | -------- |
 | S-01 | private-link-access      | create their own private link and open it to land in their own workspace | —             | FR-007, US-02                | done        |
-| S-02 | first-timer-start        | add a project and pick it to start the timer instantly                   | S-01          | FR-001, FR-002, US-01, NFR   | proposed |
+| S-02 | first-timer-start        | add a project and pick it to start the timer instantly                   | S-01          | FR-001, FR-002, US-01, NFR   | in-progress |
 | S-03 | timer-switch-rounding    | switch the running timer to another project with 15-min-rounded splits   | S-02          | FR-003                       | proposed |
 | S-04 | timer-stop-and-flags     | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                       | proposed |
 | S-05 | time-corrections         | correct logged time at end of day or start of next day                   | S-03, S-04    | FR-005                       | proposed |
@@ -102,7 +102,7 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Unknowns:** —
 - **Data model (resolved 2026-09-22):** adding a project only requires a name. Task, Type and Work Type are editable fields on the project — Task is optional free text (nice-to-have, may be left blank); Type defaults to `"Regular"`; Work Type defaults to `""`. Defaults are expected to cover ~99% of real usage, but both remain user-editable per project, not hardcoded. See Open Roadmap Questions for the full resolution.
 - **Risk:** North star; sets the real time-entry data model that replaces the placeholder table, so mistakes here propagate to every later slice.
-- **Status:** proposed
+- **Status:** in-progress
 
 ### S-03: Switch timer between projects
 

@@ -35,8 +35,10 @@ select is(
 );
 
 -- Rows exist in every table, then anon must see none of them.
-insert into time_entries (link_id, project, started_at)
-  select id, 'p', now() from links limit 1;
+insert into projects (id, link_id, name)
+  select gen_random_uuid(), id, 'p' from links limit 1;
+insert into time_entries (link_id, project_id, project_name, started_at)
+  select p.link_id, p.id, p.name, now() from projects p limit 1;
 insert into access_log (link_id, outcome) select id, 'success' from links limit 1;
 insert into job_runs (job_name, started_at, status) values ('purge', now(), 'success');
 
@@ -46,9 +48,10 @@ select is(
   (select count(*) from links)
     + (select count(*) from access_log)
     + (select count(*) from time_entries)
-    + (select count(*) from job_runs),
+    + (select count(*) from job_runs)
+    + (select count(*) from projects),
   0::bigint,
-  'anon sees zero rows from links, access_log, time_entries, job_runs even when rows exist'
+  'anon sees zero rows from links, access_log, time_entries, job_runs, projects even when rows exist'
 );
 
 reset role;
