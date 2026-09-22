@@ -4,6 +4,10 @@ import { logAccess } from "@/lib/access-log";
 import { LINK_COOKIE, setLinkCookie } from "@/lib/link-cookie";
 import { isWellFormedToken } from "@/lib/link-token";
 import { findLinkByToken } from "@/lib/links";
+import type { Project } from "@/lib/projects";
+import { listProjects } from "@/lib/projects";
+import type { CurrentTimer } from "@/lib/timer";
+import { getCurrentTimer } from "@/lib/timer";
 
 // Keep the token out of caches, referrers and search indexes.
 Astro.response.headers.set("Referrer-Policy", "no-referrer");
@@ -25,6 +29,9 @@ try {
   unavailable = true;
 }
 
+let currentTimer: CurrentTimer = null;
+let projects: Project[] = [];
+
 // Awaited on purpose: a promise left running after the response can be cancelled on Workers,
 // which would silently drop audit rows.
 if (unavailable) {
@@ -40,9 +47,15 @@ if (unavailable) {
   if (!Astro.cookies.has(LINK_COOKIE)) {
     setLinkCookie(Astro.cookies, token);
   }
+  // Read-only: this page only shows state. Starting a timer happens through the form's POST
+  // to /api/w/[token]/timer/start, which re-derives the link itself rather than trusting this one.
+  const [timer, projectList] = await Promise.all([getCurrentTimer(link.id), listProjects(link.id)]);
+  currentTimer = timer;
+  projects = projectList;
 }
 
 const workspaceUrl = Astro.url.href;
+const startAction = `/api/w/${token}/timer/start`;
 ---
 
 <Layout title="Your workspace">
@@ -58,7 +71,48 @@ const workspaceUrl = Astro.url.href;
           <h1 class="mb-4 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
             Your workspace
           </h1>
-          <p class="text-blue-100/80">No projects yet.</p>
+          {currentTimer ? (
+            <p class="text-blue-100/80">
+              Currently tracking <span class="font-semibold text-white">{currentTimer.projectName}</span> — started at{" "}
+              {currentTimer.startedAt.slice(11, 16)}
+            </p>
+          ) : (
+            <div>
+              <form method="post" action={startAction} class="flex gap-2">
+                <input
+                  type="text"
+                  name="projectName"
+                  placeholder="New project name"
+                  required
+                  maxlength="200"
+                  class="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-blue-100/40"
+                />
+                <button
+                  type="submit"
+                  class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm whitespace-nowrap transition-colors hover:bg-white/20"
+                >
+                  Start
+                </button>
+              </form>
+              {projects.length > 0 && (
+                <ul class="mt-4 space-y-2">
+                  {projects.map((project) => (
+                    <li>
+                      <form method="post" action={startAction}>
+                        <input type="hidden" name="projectName" value={project.name} />
+                        <button
+                          type="submit"
+                          class="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-left text-sm text-white transition-colors hover:bg-white/20"
+                        >
+                          {project.name}
+                        </button>
+                      </form>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
 
           <div class="mt-8 border-t border-white/10 pt-6">
             <h2 class="mb-2 text-sm font-semibold tracking-wide text-blue-100/60 uppercase">Your private link</h2>

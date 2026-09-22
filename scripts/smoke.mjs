@@ -128,6 +128,63 @@ check(
   describeResponse(r),
 );
 
+// Starting a timer on the freshly created link, exercised through the same HTTP route a
+// person's browser would hit (R-01: wrong project attribution, R-02: two concurrent timers).
+r = await request(`/api/w/${token}/timer/start`, { method: "POST", form: { projectName: "Acme Widgets" } });
+check(
+  "starting a timer redirects back to the workspace",
+  r.status === 303 && r.location === `/w/${token}`,
+  describeResponse(r),
+);
+
+if (!hasServiceAccess) {
+  console.log("SKIP  timer attribution and concurrency checks (set SMOKE_SUPABASE_URL and SMOKE_SERVICE_ROLE_KEY)");
+} else {
+  const { json: linkRows } = await rest("links?select=id&order=created_at.desc&limit=1");
+  const linkId = linkRows[0]?.id;
+
+  const { json: projectsAfterStart } = await rest(`projects?select=id,name&link_id=eq.${linkId}`);
+  check(
+    "exactly one project row exists for the link after starting a timer",
+    projectsAfterStart.length === 1,
+    `${projectsAfterStart.length} project(s)`,
+  );
+
+  const { json: openEntriesAfterStart } = await rest(
+    `time_entries?select=id,project_name&link_id=eq.${linkId}&ended_at=is.null`,
+  );
+  check(
+    "exactly one open time entry exists, attributed to the project name that was submitted",
+    openEntriesAfterStart.length === 1 && openEntriesAfterStart[0].project_name === "Acme Widgets",
+    JSON.stringify(openEntriesAfterStart),
+  );
+
+  // R-02: a second start while one is already running must not open a second entry or
+  // reattribute the running one.
+  r = await request(`/api/w/${token}/timer/start`, { method: "POST", form: { projectName: "Other Project" } });
+  check(
+    "a second start while a timer runs still redirects to the workspace",
+    r.status === 303 && r.location === `/w/${token}`,
+    describeResponse(r),
+  );
+
+  const { json: openEntriesAfterSecondStart } = await rest(
+    `time_entries?select=id,project_name&link_id=eq.${linkId}&ended_at=is.null`,
+  );
+  check(
+    "the second start does not open a second entry and leaves the running project unchanged",
+    openEntriesAfterSecondStart.length === 1 && openEntriesAfterSecondStart[0].project_name === "Acme Widgets",
+    JSON.stringify(openEntriesAfterSecondStart),
+  );
+
+  const { json: projectsAfterSecondStart } = await rest(`projects?select=id,name&link_id=eq.${linkId}`);
+  check(
+    "the second start does not create a second project row either",
+    projectsAfterSecondStart.length === 1,
+    `${projectsAfterSecondStart.length} project(s)`,
+  );
+}
+
 r = await request(`/w/${"A".repeat(43)}`, { withCookies: false });
 check("a well-formed unknown token is a 404", r.status === 404, describeResponse(r));
 

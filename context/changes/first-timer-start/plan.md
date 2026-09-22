@@ -295,25 +295,25 @@ Replace the static "No projects yet." body with the real add/pick/tracking state
 
 #### Automated
 
-- [x] 2.1 `npm run test` passes (`project-name.test.ts`)
-- [x] 2.2 `npm run lint` passes
-- [x] 2.3 `npx astro check` passes
+- [x] 2.1 `npm run test` passes (`project-name.test.ts`) — 6fe7915
+- [x] 2.2 `npm run lint` passes — 6fe7915
+- [x] 2.3 `npx astro check` passes — 6fe7915
 
 #### Manual
 
-- [x] 2.4 `curl` POST to `/api/w/<token>/timer/start` creates a project + open entry and redirects
-- [x] 2.5 Repeating the request for the same link does not create a second open entry
+- [x] 2.4 `curl` POST to `/api/w/<token>/timer/start` creates a project + open entry and redirects — 6fe7915
+- [x] 2.5 Repeating the request for the same link does not create a second open entry — 6fe7915
 
 ### Phase 3: Workspace UI & smoke test
 
 #### Automated
 
-- [ ] 3.1 `npm run smoke` passes against a fresh local database
-- [ ] 3.2 `npm run lint` and `npx astro check` pass
+- [x] 3.1 `npm run smoke` passes against a fresh local database
+- [x] 3.2 `npm run lint` and `npx astro check` pass
 
 #### Manual
 
-- [ ] 3.3 Fresh workspace shows the add/pick UI, not "No projects yet."
-- [ ] 3.4 Adding a project starts its timer and shows the tracking state
-- [ ] 3.5 Reload and cross-browser open both show the same tracking state
-- [ ] 3.6 Clearing the open entry brings back the form with the project available for one-click reuse
+- [x] 3.3 Fresh workspace shows the add/pick UI, not "No projects yet."
+- [x] 3.4 Adding a project starts its timer and shows the tracking state
+- [x] 3.5 Reload and cross-browser open both show the same tracking state
+- [x] 3.6 Clearing the open entry brings back the form with the project available for one-click reuse
