@@ -6,13 +6,21 @@ export interface StartTimerResult {
   projectName: string;
   startedAt: string;
 }
-export type CurrentTimer = { projectName: string; startedAt: string } | null;
+export type CurrentTimer = { projectId: string; projectName: string; startedAt: string } | null;
 
 /** Thrown when `start_timer` hits the one-running-timer-per-link unique violation (`23505`). */
 export class TimerAlreadyRunningError extends Error {
   constructor() {
     super("A timer is already running for this link");
     this.name = "TimerAlreadyRunningError";
+  }
+}
+
+/** Thrown when `switch_timer` finds no open entry to close (`P0001`). */
+export class NoActiveTimerError extends Error {
+  constructor() {
+    super("No timer is running for this link");
+    this.name = "NoActiveTimerError";
   }
 }
 
@@ -60,13 +68,59 @@ export async function startTimer(linkId: string, projectName: string): Promise<S
   throw new Error("start_timer returned an unexpected row");
 }
 
+/**
+ * Switches the running timer to a different project through the atomic `switch_timer`
+ * function: closes the link's open entry, then finds-or-creates the target project and opens a
+ * new entry for it, following the same shape as `startTimer`. `NoActiveTimerError` means the
+ * link had no open entry to switch away from (`P0001`) — a race backstop, same philosophy as
+ * `TimerAlreadyRunningError`.
+ */
+export async function switchTimer(linkId: string, projectName: string): Promise<StartTimerResult> {
+  const admin = adminOrThrow();
+
+  const response = await admin.rpc("switch_timer", { p_link_id: linkId, p_project_name: projectName });
+  if (response.error) {
+    if (response.error.code === "P0001") {
+      throw new NoActiveTimerError();
+    }
+    throw new Error(`switch_timer failed: ${response.error.message}`);
+  }
+
+  const rows: unknown = response.data;
+  if (!Array.isArray(rows) || rows.length !== 1) {
+    throw new Error("switch_timer returned an unexpected value");
+  }
+
+  const row: unknown = rows[0];
+  if (
+    typeof row === "object" &&
+    row !== null &&
+    "entry_id" in row &&
+    typeof row.entry_id === "string" &&
+    "project_id" in row &&
+    typeof row.project_id === "string" &&
+    "project_name" in row &&
+    typeof row.project_name === "string" &&
+    "started_at" in row &&
+    typeof row.started_at === "string"
+  ) {
+    return {
+      entryId: row.entry_id,
+      projectId: row.project_id,
+      projectName: row.project_name,
+      startedAt: row.started_at,
+    };
+  }
+  throw new Error("switch_timer returned an unexpected row");
+}
+
 /** The link's currently open (`ended_at is null`) time entry, if any. */
 export async function getCurrentTimer(linkId: string): Promise<CurrentTimer> {
   const admin = adminOrThrow();
 
   const response = await admin
     .from("time_entries")
-    .select("project_name, started_at")
+    .select("project_id, project_name, started_at")
     .eq("link_id", linkId)
     .is("ended_at", null)
     .maybeSingle();
@@ -80,12 +134,14 @@ export async function getCurrentTimer(linkId: string): Promise<CurrentTimer> {
   }
   if (
     typeof row === "object" &&
+    "project_id" in row &&
+    typeof row.project_id === "string" &&
     "project_name" in row &&
     typeof row.project_name === "string" &&
     "started_at" in row &&
     typeof row.started_at === "string"
   ) {
-    return { projectName: row.project_name, startedAt: row.started_at };
+    return { projectId: row.project_id, projectName: row.project_name, startedAt: row.started_at };
   }
   throw new Error("current timer lookup returned an unexpected row");
 }

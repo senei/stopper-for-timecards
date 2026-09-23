@@ -31,7 +31,7 @@ Defines the risks this project's tests exist to catch, derived from the PRD's ow
 
 - **Source:** PRD Guardrails — "Time calculation must be accurate to 15-minute precision — miscalculated durations make the weekly table untrustworthy."
 - **Why it matters:** The product's entire value proposition is an accurate weekly grid; rounding errors compound silently across a week of entries.
-- **Status:** Not yet implemented — owned by S-03 (`timer-switch-rounding`) and S-06 (`weekly-grid-summary`). A test suite should be added here when those slices are planned.
+- **Status:** Not yet implemented — owned by S-03 (`timer-switch-rounding`) and S-06 (`weekly-grid-summary`). A test suite should be added here when those slices are planned. The rounding rule itself was decided 2026-09-23 as part of `timer-switch-rounding`/S-03's planning: round each project's total tracked time *per day* (not per segment), always rounding up to the next 15-minute increment. Still not implemented — the "day" boundary depends on S-06's still-open Mon–Sun timezone decision, so building the aggregation is deferred to S-06.
 
 ### R-04: A project with logged time gets deleted, destroying its history
 
