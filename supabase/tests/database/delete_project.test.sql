@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(9);
+select plan(12);
 
 -- Fixed link ids, distinct from projects_and_timer.test.sql's, so later
 -- throws_ok/is literals don't need interpolation and can't collide if tests
@@ -81,14 +81,45 @@ select is(
   'the project scoped to the wrong link still exists'
 );
 
--- Grants: only service_role may touch projects at all (no policies for
--- anon/authenticated) — already proven in projects_and_timer.test.sql; this
--- confirms it still holds for a delete specifically, since delete is a new
--- operation this slice introduces against this table.
+-- RLS: only service_role can actually delete a row from projects.
+-- projects_and_timer.test.sql already proves the analogous SELECT case (anon/
+-- authenticated see zero rows). The same must hold for DELETE, but
+-- has_table_privilege is the wrong tool to prove it: anon/authenticated hold
+-- the table-level DELETE grant by default in this project, same as SELECT —
+-- RLS-with-no-policies is what makes the delete affect zero rows, not a
+-- missing grant. So this proves the actual behavior (zero rows affected, row
+-- survives), the same way the SELECT case is proven by observed row count.
+set local role anon;
+with deleted as (
+  delete from projects where id = 'b0000000-0000-0000-0000-000000000002' returning id
+)
 select is(
-  has_table_privilege('service_role', 'public.projects', 'DELETE'),
-  true,
-  'service_role can delete from projects'
+  (select count(*) from deleted),
+  0::bigint,
+  'anon''s delete affects zero rows despite a matching row existing'
+);
+reset role;
+
+set local role authenticated;
+with deleted as (
+  delete from projects where id = 'b0000000-0000-0000-0000-000000000002' returning id
+)
+select is(
+  (select count(*) from deleted),
+  0::bigint,
+  'authenticated''s delete affects zero rows despite a matching row existing'
+);
+reset role;
+
+select is(
+  (select count(*) from projects where id = 'b0000000-0000-0000-0000-000000000002'),
+  1::bigint,
+  'the project survives both blocked delete attempts'
+);
+
+select lives_ok(
+  $$ delete from projects where id = 'b0000000-0000-0000-0000-000000000002' $$,
+  'service_role can actually delete the row'
 );
 
 select * from finish();

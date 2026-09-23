@@ -89,7 +89,7 @@ export async function deleteProject(linkId: string, projectId: string): Promise<
     if (response.error.code === "23503") {
       throw new ProjectInUseError();
     }
-    throw new Error(`deleteProject failed: ${response.error.message}`);
+    throw new Error(`project delete failed: ${response.error.message}`);
   }
 
   return response.data.length > 0;
