@@ -271,28 +271,28 @@ Add the switch affordance to the tracking view and extend the smoke test to cove
 
 #### Automated
 
-- [x] 1.1 `npx supabase db reset` applies the new migration cleanly
-- [x] 1.2 `npx supabase test db` — full pgTAP suite passes, including new `switch_timer.test.sql`
-- [x] 1.3 Unit tests pass: `npm run test`
-- [x] 1.4 Lint passes: `npm run lint`
-- [x] 1.5 Type check passes: `npx astro check`
+- [x] 1.1 `npx supabase db reset` applies the new migration cleanly — c619b72
+- [x] 1.2 `npx supabase test db` — full pgTAP suite passes, including new `switch_timer.test.sql` — c619b72
+- [x] 1.3 Unit tests pass: `npm run test` — c619b72
+- [x] 1.4 Lint passes: `npm run lint` — c619b72
+- [x] 1.5 Type check passes: `npx astro check` — c619b72
 
 #### Manual
 
-- [x] 1.6 `start_timer` then `switch_timer` for the same link closes the first entry and opens exactly one new one
-- [x] 1.7 `switch_timer` with no running timer fails with `P0001`
+- [x] 1.6 `start_timer` then `switch_timer` for the same link closes the first entry and opens exactly one new one — c619b72
+- [x] 1.7 `switch_timer` with no running timer fails with `P0001` — c619b72
 
 ### Phase 2: API route
 
 #### Automated
 
-- [ ] 2.1 Lint passes: `npm run lint`
-- [ ] 2.2 Type check passes: `npx astro check`
+- [x] 2.1 Lint passes: `npm run lint`
+- [x] 2.2 Type check passes: `npx astro check`
 
 #### Manual
 
-- [ ] 2.3 `curl` POST to `/api/w/<token>/timer/switch` while tracking closes the old entry, opens a new one, redirects
-- [ ] 2.4 Same request with no running timer redirects unchanged, no new entry
+- [x] 2.3 `curl` POST to `/api/w/<token>/timer/switch` while tracking closes the old entry, opens a new one, redirects
+- [x] 2.4 Same request with no running timer redirects unchanged, no new entry
 
 ### Phase 3: UI & smoke test
 
