@@ -259,28 +259,28 @@ None — no schema change. The FK added in S-02's migration (`supabase/migration
 
 #### Automated
 
-- [x] 1.1 Unit tests pass: `npm run test` (new `project-id.test.ts`)
-- [x] 1.2 Lint passes: `npm run lint`
-- [x] 1.3 Type check passes: `npx astro check`
-- [x] 1.4 `npx supabase test db` — full pgTAP suite passes, including new `delete_project.test.sql`
+- [x] 1.1 Unit tests pass: `npm run test` (new `project-id.test.ts`) — 52a22e5
+- [x] 1.2 Lint passes: `npm run lint` — 52a22e5
+- [x] 1.3 Type check passes: `npx astro check` — 52a22e5
+- [x] 1.4 `npx supabase test db` — full pgTAP suite passes, including new `delete_project.test.sql` — 52a22e5
 
 #### Manual
 
-- [x] 1.5 Directly-inserted unused project deletes successfully via the delete path
-- [x] 1.6 A project with a `start_timer`-created entry fails deletion with `23503`, row unchanged
+- [x] 1.5 Directly-inserted unused project deletes successfully via the delete path — 52a22e5
+- [x] 1.6 A project with a `start_timer`-created entry fails deletion with `23503`, row unchanged — 52a22e5
 
 ### Phase 2: Routes & UI
 
 #### Automated
 
-- [ ] 2.1 Unit tests pass: `npm run test` (new `status-messages.test.ts`)
-- [ ] 2.2 Lint passes: `npm run lint`
-- [ ] 2.3 Type check passes: `npx astro check`
-- [ ] 2.4 `npm run smoke` passes against a freshly reset local database
+- [x] 2.1 Unit tests pass: `npm run test` (new `status-messages.test.ts`)
+- [x] 2.2 Lint passes: `npm run lint`
+- [x] 2.3 Type check passes: `npx astro check`
+- [x] 2.4 `npm run smoke` passes against a freshly reset local database
 
 #### Manual
 
-- [ ] 2.5 Deleting a used project is blocked with a clear message; project remains listed
-- [ ] 2.6 Deleting an unused project (DB-inserted) succeeds; "Project deleted." shown, project no longer listed
-- [ ] 2.7 Cancel from the confirm page makes no change
-- [ ] 2.8 A tampered/foreign `projectId` on the confirm URL 404s
+- [x] 2.5 Deleting a used project is blocked with a clear message; project remains listed
+- [x] 2.6 Deleting an unused project (DB-inserted) succeeds; "Project deleted." shown, project no longer listed
+- [x] 2.7 Cancel from the confirm page makes no change
+- [x] 2.8 A tampered/foreign `projectId` on the confirm URL 404s

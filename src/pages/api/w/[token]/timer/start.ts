@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { isWellFormedToken } from "@/lib/link-token";
 import { findLinkByToken } from "@/lib/links";
 import { isValidProjectName } from "@/lib/project-name";
+import { ERROR_GENERIC, ERROR_INVALID_NAME } from "@/lib/status-messages";
 import { startTimer, TimerAlreadyRunningError } from "@/lib/timer";
 
 /**
@@ -37,7 +38,7 @@ export const POST: APIRoute = async ({ params, request, redirect, rewrite }) => 
     // Left as null: the check below refuses it.
   }
   if (!isValidProjectName(rawName)) {
-    return redirect(`/w/${token}?error=invalid-name`, 303);
+    return redirect(`/w/${token}?error=${ERROR_INVALID_NAME}`, 303);
   }
 
   try {
@@ -50,7 +51,7 @@ export const POST: APIRoute = async ({ params, request, redirect, rewrite }) => 
     }
     // eslint-disable-next-line no-console
     console.error("timer start failed:", err);
-    return redirect(`/w/${token}?error=1`, 303);
+    return redirect(`/w/${token}?error=${ERROR_GENERIC}`, 303);
   }
 
   return redirect(`/w/${token}`, 303);

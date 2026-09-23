@@ -6,6 +6,7 @@ import { isWellFormedToken } from "@/lib/link-token";
 import { findLinkByToken } from "@/lib/links";
 import type { Project } from "@/lib/projects";
 import { listProjects } from "@/lib/projects";
+import { errorMessage, statusMessage } from "@/lib/status-messages";
 import type { CurrentTimer } from "@/lib/timer";
 import { getCurrentTimer } from "@/lib/timer";
 
@@ -56,6 +57,8 @@ if (unavailable) {
 
 const workspaceUrl = Astro.url.href;
 const startAction = `/api/w/${token}/timer/start`;
+const bannerError = errorMessage(Astro.url.searchParams.get("error"));
+const bannerStatus = statusMessage(Astro.url.searchParams.get("status"));
 
 /** UTC HH:MM fallback for `currentTimer.startedAt`; the client script replaces this with local
  * time once it can. Parses defensively rather than assuming a fixed ISO string layout. */
@@ -78,6 +81,16 @@ function formatUtcTime(iso: string): string {
           <h1 class="mb-4 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
             Your workspace
           </h1>
+          {bannerError && (
+            <p class="mb-4 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-100">
+              {bannerError}
+            </p>
+          )}
+          {bannerStatus && (
+            <p class="mb-4 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-100">
+              {bannerStatus}
+            </p>
+          )}
           {currentTimer ? (
             <p class="text-blue-100/80">
               Currently tracking <span class="font-semibold text-white">{currentTimer.projectName}</span> — started at{" "}
@@ -104,8 +117,8 @@ function formatUtcTime(iso: string): string {
               {projects.length > 0 && (
                 <ul class="mt-4 space-y-2">
                   {projects.map((project) => (
-                    <li>
-                      <form method="post" action={startAction}>
+                    <li class="flex items-center gap-2">
+                      <form method="post" action={startAction} class="flex-1">
                         <input type="hidden" name="projectName" value={project.name} />
                         <button
                           type="submit"
@@ -114,6 +127,12 @@ function formatUtcTime(iso: string): string {
                           {project.name}
                         </button>
                       </form>
+                      <a
+                        href={`/w/${token}/projects/${project.id}/delete`}
+                        class="rounded-lg px-3 py-2 text-xs whitespace-nowrap text-blue-100/50 transition-colors hover:text-red-200"
+                      >
+                        Delete
+                      </a>
                     </li>
                   ))}
                 </ul>

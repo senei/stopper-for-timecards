@@ -183,6 +183,45 @@ if (!hasServiceAccess) {
     projectsAfterSecondStart.length === 1,
     `${projectsAfterSecondStart.length} project(s)`,
   );
+
+  // R-04: a project with logged time must not be deletable through the real HTTP route.
+  const usedProjectId = projectsAfterSecondStart[0]?.id;
+  r = await request(`/api/w/${token}/projects/${usedProjectId}/delete`, { method: "POST" });
+  check(
+    "deleting a project with logged time redirects with the in-use error",
+    r.status === 303 && r.location === `/w/${token}?error=project-in-use`,
+    describeResponse(r),
+  );
+
+  const { json: usedProjectAfterAttempt } = await rest(`projects?select=id&id=eq.${usedProjectId}`);
+  check(
+    "the used project row still exists after the blocked delete attempt",
+    usedProjectAfterAttempt.length === 1,
+    `${usedProjectAfterAttempt.length} row(s)`,
+  );
+
+  // R-04: an unused project (no time_entries rows) can be deleted through the real HTTP route.
+  // Inserted directly, since the app has no way yet to create a project without also starting a
+  // timer for it (see plan's Key Discoveries). The default Prefer setting returns no body on
+  // insert, so the new row's id is fetched back with a follow-up select, same as other rest()
+  // calls in this file.
+  await rest("projects", { method: "POST", body: { link_id: linkId, name: "UnusedProject" } });
+  const { json: insertedUnused } = await rest(`projects?select=id&link_id=eq.${linkId}&name=eq.UnusedProject`);
+  const unusedProjectId = insertedUnused[0]?.id;
+
+  r = await request(`/api/w/${token}/projects/${unusedProjectId}/delete`, { method: "POST" });
+  check(
+    "deleting an unused project redirects with the deleted status",
+    r.status === 303 && r.location === `/w/${token}?status=project-deleted`,
+    describeResponse(r),
+  );
+
+  const { json: unusedProjectAfterDelete } = await rest(`projects?select=id&id=eq.${unusedProjectId}`);
+  check(
+    "the unused project row is gone after the successful delete",
+    unusedProjectAfterDelete.length === 0,
+    `${unusedProjectAfterDelete.length} row(s)`,
+  );
 }
 
 r = await request(`/w/${"A".repeat(43)}`, { withCookies: false });

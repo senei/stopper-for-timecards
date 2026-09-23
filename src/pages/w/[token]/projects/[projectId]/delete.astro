@@ -1,0 +1,84 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { isWellFormedToken } from "@/lib/link-token";
+import { findLinkByToken } from "@/lib/links";
+import { isWellFormedId } from "@/lib/project-id";
+import type { Project } from "@/lib/projects";
+import { getProject } from "@/lib/projects";
+
+// Keep the token out of caches, referrers and search indexes.
+Astro.response.headers.set("Referrer-Policy", "no-referrer");
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("X-Robots-Tag", "noindex");
+
+const { token, projectId } = Astro.params;
+
+// Malformed tokens never reach the database.
+if (!isWellFormedToken(token)) {
+  return Astro.rewrite("/404");
+}
+
+let link: { id: string } | null = null;
+let unavailable = false;
+try {
+  link = await findLinkByToken(token);
+} catch {
+  unavailable = true;
+}
+
+let project: Project | null = null;
+
+if (unavailable) {
+  Astro.response.status = 503;
+} else if (!link) {
+  return Astro.rewrite("/404");
+} else if (!isWellFormedId(projectId)) {
+  return Astro.rewrite("/404");
+} else {
+  project = await getProject(link.id, projectId);
+  if (!project) {
+    return Astro.rewrite("/404");
+  }
+}
+
+const cancelUrl = `/w/${token}`;
+const deleteAction = `/api/w/${token}/projects/${projectId}/delete`;
+---
+
+<Layout title="Delete project">
+  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
+    <div class="w-full max-w-xl rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
+      {unavailable ? (
+        <>
+          <h1 class="mb-4 text-2xl font-bold">Temporarily unavailable</h1>
+          <p class="text-blue-100/80">We could not load your workspace right now. Please try again in a moment.</p>
+        </>
+      ) : (
+        <>
+          <h1 class="mb-4 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+            Delete project
+          </h1>
+          <p class="text-blue-100/80">
+            Delete <span class="font-semibold text-white">{project?.name}</span>? This can't be undone.
+          </p>
+          <div class="mt-6 flex gap-2">
+            <form method="post" action={deleteAction}>
+              <button
+                type="submit"
+                class="rounded-lg border border-red-400/30 bg-red-500/20 px-4 py-2 text-sm whitespace-nowrap text-red-100 transition-colors hover:bg-red-500/30"
+              >
+                Confirm delete
+              </button>
+            </form>
+            <a
+              href={cancelUrl}
+              class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm whitespace-nowrap text-white transition-colors hover:bg-white/20"
+            >
+              Cancel
+            </a>
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+</Layout>
