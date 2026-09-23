@@ -3,7 +3,7 @@ project: "Stopper for Timecards"
 version: 1
 status: draft
 created: 2026-09-21
-updated: 2026-09-22
+updated: 2026-09-23
 prd_version: 4
 main_goal: speed
 top_blocker: capacity
@@ -49,7 +49,7 @@ People who work across several projects a day don't capture time as it happens, 
 | S-06 | weekly-grid-summary      | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001               | proposed |
 | S-07 | link-regeneration        | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02                | proposed |
 | S-08 | time-entry-purge-verified| have entries older than 3 months purged automatically                    | S-02          | FR-008                       | proposed |
-| S-09 | delete-project            | delete a project from their list, blocked if it has any logged time      | S-02          | FR-009                       | proposed |
+| S-09 | delete-project            | delete a project from their list, blocked if it has any logged time      | S-02          | FR-009                       | done |
 | S-10 | delete-account            | permanently delete all their own data and their link, freeing their slot | S-02          | FR-010, FR-007               | proposed |
 
 ## Streams
@@ -193,7 +193,7 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Unknowns:**
   - Exact protection mechanism — reuse the existing FK (`time_entries.project_id references projects(id)`, default `ON DELETE NO ACTION`) as the enforcement, surfaced as a friendly error, vs. a pre-check in application code? — Owner: implementer at plan time. Block: no (both satisfy FR-009; this is an implementation-detail choice, not a product one).
 - **Risk:** Low — the FK added in S-02's migration already makes "can't delete a used project" the database's default behavior; this slice is mostly UI + a friendly error message, not new data-integrity work.
-- **Status:** proposed
+- **Status:** done
 
 ### S-10: Delete all data (self-service account removal)
 
@@ -243,3 +243,4 @@ GitHub issues created 2026-09-21 in `senei/stopper-for-timecards`.
 
 - **S-01: create their own private link and open it to land in their own workspace** — Archived 2026-09-22 → `context/archive/2026-09-21-private-link-access/`. Lesson: —.
 - **S-02: add a project and pick it to start its timer instantly, with no separate start step** — Archived 2026-09-22 → `context/archive/2026-09-22-first-timer-start/`. Lesson: —.
+- **S-09: delete a project from their list; a project with any logged time entries against it is protected from deletion instead of silently destroying history** — Archived 2026-09-23 → `context/archive/2026-09-23-delete-project/`. Lesson: —.
