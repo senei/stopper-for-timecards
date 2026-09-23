@@ -33,7 +33,16 @@ Defines the risks this project's tests exist to catch, derived from the PRD's ow
 - **Why it matters:** The product's entire value proposition is an accurate weekly grid; rounding errors compound silently across a week of entries.
 - **Status:** Not yet implemented — owned by S-03 (`timer-switch-rounding`) and S-06 (`weekly-grid-summary`). A test suite should be added here when those slices are planned.
 
+### R-04: A project with logged time gets deleted, destroying its history
+
+- **Source:** PRD FR-009 — "User can delete a project from their list, but only when it has no logged time entries against it; a project with any logged time is protected from deletion, with a clear message explaining why."
+- **Why it matters:** Silently allowing a used project to be deleted would destroy the history behind any already-produced weekly grid, with no way to reconstruct it afterward.
+- **Covered by:**
+  - `supabase/tests/database/delete_project.test.sql` (S-09, this phase) — proves an unused project deletes cleanly while a project with any `time_entries` row (open or closed) is rejected with `23503` and remains intact.
+  - Smoke test addition planned for S-09 Phase 2 (not yet built) — exercises the block and the success path through the real HTTP delete route.
+
 ## Status
 
 - R-01, R-02: covered as of S-02 (`first-timer-start`).
 - R-03: open, tracked against S-03/S-06 on the roadmap.
+- R-04: covered as of S-09 (delete-project).
