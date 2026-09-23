@@ -273,14 +273,14 @@ None — no schema change. The FK added in S-02's migration (`supabase/migration
 
 #### Automated
 
-- [x] 2.1 Unit tests pass: `npm run test` (new `status-messages.test.ts`)
-- [x] 2.2 Lint passes: `npm run lint`
-- [x] 2.3 Type check passes: `npx astro check`
-- [x] 2.4 `npm run smoke` passes against a freshly reset local database
+- [x] 2.1 Unit tests pass: `npm run test` (new `status-messages.test.ts`) — a407e46
+- [x] 2.2 Lint passes: `npm run lint` — a407e46
+- [x] 2.3 Type check passes: `npx astro check` — a407e46
+- [x] 2.4 `npm run smoke` passes against a freshly reset local database — a407e46
 
 #### Manual
 
-- [x] 2.5 Deleting a used project is blocked with a clear message; project remains listed
-- [x] 2.6 Deleting an unused project (DB-inserted) succeeds; "Project deleted." shown, project no longer listed
-- [x] 2.7 Cancel from the confirm page makes no change
-- [x] 2.8 A tampered/foreign `projectId` on the confirm URL 404s
+- [x] 2.5 Deleting a used project is blocked with a clear message; project remains listed — a407e46
+- [x] 2.6 Deleting an unused project (DB-inserted) succeeds; "Project deleted." shown, project no longer listed — a407e46
+- [x] 2.7 Cancel from the confirm page makes no change — a407e46
+- [x] 2.8 A tampered/foreign `projectId` on the confirm URL 404s — a407e46
