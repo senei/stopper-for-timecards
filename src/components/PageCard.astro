@@ -1,0 +1,29 @@
+---
+interface Props {
+  /** Widest the card grows: `md` for small notices, `xl` for the workspace. */
+  width?: "md" | "xl";
+  /** Render only the card, without the full-height page wrapper (for pages that stack several, like the kitchen sink). */
+  embedded?: boolean;
+  class?: string;
+}
+
+const { width = "xl", embedded = false, class: className } = Astro.props;
+const widths = { md: "max-w-md", xl: "max-w-xl" } as const;
+const cardClasses = [
+  "w-full rounded-xl border border-border bg-card p-8 text-card-foreground shadow-sm",
+  widths[width],
+  className,
+];
+---
+
+{embedded ? (
+  <div class:list={cardClasses}>
+    <slot />
+  </div>
+) : (
+  <div class="flex min-h-screen items-center justify-center bg-linear-to-b from-background to-background-end p-4">
+    <div class:list={cardClasses}>
+      <slot />
+    </div>
+  </div>
+)}

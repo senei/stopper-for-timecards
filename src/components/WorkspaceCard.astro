@@ -1,0 +1,214 @@
+---
+import PageCard from "@/components/PageCard.astro";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import type { Project } from "@/lib/projects";
+import type { CurrentTimer } from "@/lib/timer";
+import { headingAtIndex, headingForDate } from "@/lib/workspace-headings";
+
+interface Props {
+  unavailable?: boolean;
+  bannerError?: string | null;
+  bannerStatus?: string | null;
+  currentTimer: CurrentTimer;
+  projects: Project[];
+  token: string;
+  startAction: string;
+  switchAction: string;
+  workspaceUrl: string;
+  /** Pins the daily heading to this index and turns the browser-side date correction off (kitchen sink, screenshots). */
+  headingIndex?: number;
+  /** Render only the card, without the full-height page wrapper. */
+  embedded?: boolean;
+}
+
+const {
+  unavailable = false,
+  bannerError = null,
+  bannerStatus = null,
+  currentTimer,
+  projects,
+  token,
+  startAction,
+  switchAction,
+  workspaceUrl,
+  headingIndex,
+  embedded = false,
+} = Astro.props;
+
+// The running project is left out of the switch list by id (not name), so switching to it can't happen from here.
+const otherProjects = currentTimer ? projects.filter((project) => project.id !== currentTimer.projectId) : [];
+
+// The server picks by its own date (UTC); the script below corrects it to the viewer's local date.
+const pair = headingIndex === undefined ? headingForDate(new Date()) : headingAtIndex(headingIndex);
+const heading = currentTimer ? pair.tracking : pair.idle;
+
+// The four action buttons share one fixed width so they line up in a column down the card.
+const actionWidth = "w-21";
+
+/** UTC HH:MM fallback for `currentTimer.startedAt`; the client script replaces this with local
+ * time once it can. Parses defensively rather than assuming a fixed ISO string layout. */
+function formatUtcTime(iso: string): string {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? "—" : date.toISOString().slice(11, 16);
+}
+---
+
+<PageCard embedded={embedded}>
+  <div data-workspace-card>
+    {unavailable ? (
+      <>
+        <h1 class="mb-4 text-2xl font-bold text-heading">Temporarily unavailable</h1>
+        <p class="text-muted-foreground">We could not load your workspace right now. Please try again in a moment.</p>
+      </>
+    ) : (
+      <>
+        <h1
+          class="mb-4 text-3xl font-bold text-heading"
+          data-heading
+          data-tracking={currentTimer ? "true" : "false"}
+          data-heading-fixed={headingIndex === undefined ? undefined : ""}
+        >
+          {heading}
+        </h1>
+        {bannerError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{bannerError}</AlertDescription>
+          </Alert>
+        )}
+        {bannerStatus && (
+          <Alert variant="success" role="status" className="mb-4">
+            <AlertDescription>{bannerStatus}</AlertDescription>
+          </Alert>
+        )}
+        {currentTimer ? (
+          <div>
+            <p class="text-muted-foreground">
+              Currently tracking <span class="font-semibold text-card-foreground">{currentTimer.projectName}</span> —
+              started at <span data-started-at={currentTimer.startedAt}>{formatUtcTime(currentTimer.startedAt)}</span>
+            </p>
+            <div class="mt-6">
+              <h2 class="mb-2 text-sm font-semibold tracking-wide text-heading uppercase">
+                Switch to a different project
+              </h2>
+              <form method="post" action={switchAction} class="flex gap-2">
+                <Input
+                  type="text"
+                  name="projectName"
+                  aria-label="Project to switch to"
+                  placeholder="New project name"
+                  required
+                  maxLength={200}
+                />
+                <Button type="submit" className={actionWidth}>
+                  Switch
+                </Button>
+              </form>
+              {otherProjects.length > 0 && (
+                <ul class="mt-4 space-y-2">
+                  {otherProjects.map((project) => (
+                    <li>
+                      <form method="post" action={switchAction}>
+                        <input type="hidden" name="projectName" value={project.name} />
+                        <Button
+                          type="submit"
+                          variant="outline"
+                          className="w-full justify-start border-input font-normal"
+                        >
+                          {project.name}
+                        </Button>
+                      </form>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div>
+            <form method="post" action={startAction} class="flex gap-2">
+              <Input type="text" name="projectName" placeholder="New project name" required maxLength={200} />
+              <Button type="submit" className={actionWidth}>
+                Start
+              </Button>
+            </form>
+            {projects.length > 0 && (
+              <ul class="mt-4 space-y-2">
+                {projects.map((project) => (
+                  <li class="flex items-center gap-2">
+                    <form method="post" action={startAction} class="flex-1">
+                      <input type="hidden" name="projectName" value={project.name} />
+                      <Button type="submit" variant="outline" className="w-full justify-start border-input font-normal">
+                        {project.name}
+                      </Button>
+                    </form>
+                    <a
+                      href={`/w/${token}/projects/${project.id}/delete`}
+                      class:list={cn(buttonVariants({ variant: "secondary" }), actionWidth)}
+                    >
+                      Delete
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        <div class="mt-8 border-t border-border pt-6">
+          <h2 class="mb-2 text-sm font-semibold tracking-wide text-heading uppercase">Your private link</h2>
+          <div class="flex gap-2">
+            <Input type="text" readOnly value={workspaceUrl} data-link />
+            <Button type="button" variant="secondary" className={actionWidth} data-copy>
+              Copy
+            </Button>
+          </div>
+          <p class="mt-3 text-sm text-muted-foreground">
+            Save this link now. It cannot be recovered, and anyone who has it can see and log your time.
+          </p>
+        </div>
+      </>
+    )}
+  </div>
+</PageCard>
+
+<script>
+  import { headingForDate } from "@/lib/workspace-headings";
+
+  for (const card of document.querySelectorAll<HTMLElement>("[data-workspace-card]")) {
+    const button = card.querySelector<HTMLButtonElement>("[data-copy]");
+    const input = card.querySelector<HTMLInputElement>("[data-link]");
+
+    button?.addEventListener("click", () => {
+      if (!input) {
+        return;
+      }
+      void navigator.clipboard.writeText(input.value).then(() => {
+        button.textContent = "Copied";
+      });
+    });
+
+    // The server renders started_at in UTC (it can't know the viewer's timezone); replace it with
+    // the viewer's local time once the browser can compute it.
+    const startedAt = card.querySelector<HTMLElement>("[data-started-at]");
+    const startedAtIso = startedAt?.dataset.startedAt;
+    if (startedAt && startedAtIso) {
+      const date = new Date(startedAtIso);
+      if (!Number.isNaN(date.getTime())) {
+        startedAt.textContent = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      }
+    }
+
+    // The server picks today's heading by UTC date; use the viewer's local date instead, unless the heading is pinned.
+    const heading = card.querySelector<HTMLElement>("[data-heading]");
+    if (heading && heading.dataset.headingFixed === undefined) {
+      const pair = headingForDate(new Date());
+      const text = heading.dataset.tracking === "true" ? pair.tracking : pair.idle;
+      if (heading.textContent.trim() !== text) {
+        heading.textContent = text;
+      }
+    }
+  }
+</script>

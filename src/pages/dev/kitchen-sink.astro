@@ -1,0 +1,104 @@
+---
+import WorkspaceCard from "@/components/WorkspaceCard.astro";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Layout from "@/layouts/Layout.astro";
+import type { Project } from "@/lib/projects";
+import type { CurrentTimer } from "@/lib/timer";
+
+// Dev-only: this route ships in the Workers bundle, so outside development it answers 404 like any unknown path.
+if (!import.meta.env.DEV) {
+  return Astro.rewrite("/404");
+}
+Astro.response.headers.set("X-Robots-Tag", "noindex");
+
+const projects: Project[] = [
+  { id: "00000000-0000-4000-8000-000000000001", name: "Acme Widgets" },
+  { id: "00000000-0000-4000-8000-000000000002", name: "Beta Corp" },
+];
+const running: CurrentTimer = {
+  projectId: "00000000-0000-4000-8000-000000000001",
+  projectName: "Acme Widgets",
+  startedAt: "2026-09-24T10:57:00.000Z",
+};
+
+// The heading index is pinned so screenshots do not change from day to day.
+const shared = {
+  token: "kitchen-sink-token",
+  startAction: "/dev/kitchen-sink",
+  switchAction: "/dev/kitchen-sink",
+  workspaceUrl: "http://localhost:4321/w/kitchen-sink-token",
+  embedded: true,
+  headingIndex: 0,
+};
+
+const cardStates = [
+  { name: "default, with projects", props: { currentTimer: null, projects } },
+  { name: "default, empty (no projects)", props: { currentTimer: null, projects: [] } },
+  { name: "tracking", props: { currentTimer: running, projects } },
+  { name: "error message", props: { currentTimer: null, projects, bannerError: "That project name isn't valid." } },
+  { name: "status message", props: { currentTimer: null, projects, bannerStatus: "Project deleted." } },
+  { name: "unavailable", props: { currentTimer: null, projects: [], unavailable: true } },
+];
+---
+
+<Layout title="Kitchen sink">
+  <main class="min-h-screen bg-linear-to-b from-background to-background-end p-6 text-foreground">
+    <h1 class="mb-1 text-xl font-bold">Kitchen sink: workspace states</h1>
+    <p class="mb-6 text-sm">Development only. Every state of the workspace card, then the control states.</p>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      {cardStates.map((state) => (
+        <section>
+          <h2 class="mb-2 text-sm font-semibold">{state.name}</h2>
+          <WorkspaceCard {...shared} {...state.props} />
+        </section>
+      ))}
+    </div>
+
+    <section class="mt-8 max-w-4xl rounded-xl border border-border bg-card p-6 text-card-foreground shadow-sm">
+      <h2 class="mb-4 text-sm font-semibold tracking-wide text-heading uppercase">Control states</h2>
+      <div class="space-y-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="w-20 text-xs">Primary</span>
+          <Button>Default</Button>
+          <Button className="bg-primary-hover">Hover</Button>
+          <Button className="border-ring ring-[3px] ring-ring/50">Focus</Button>
+          <Button disabled>Disabled</Button>
+          <Button disabled aria-busy="true">
+            Working…
+          </Button>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="w-20 text-xs">Secondary</span>
+          <Button variant="secondary">Default</Button>
+          <Button variant="secondary" className="bg-accent">
+            Hover
+          </Button>
+          <Button variant="secondary" className="border-ring ring-[3px] ring-ring/50">
+            Focus
+          </Button>
+          <Button variant="secondary" disabled>
+            Disabled
+          </Button>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="w-20 text-xs">Destructive</span>
+          <Button variant="destructive">Default</Button>
+          <Button variant="destructive" className="bg-destructive-hover">
+            Hover
+          </Button>
+          <Button variant="destructive" disabled>
+            Disabled
+          </Button>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2">
+          <Input placeholder="Default" />
+          <Input placeholder="Focus" className="border-ring ring-[3px] ring-ring/50" />
+          <Input placeholder="Disabled" disabled />
+          <Input value="Invalid" aria-invalid="true" readOnly />
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>

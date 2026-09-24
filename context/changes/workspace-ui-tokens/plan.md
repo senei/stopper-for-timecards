@@ -397,33 +397,33 @@ The kitchen-sink route ships in the Workers bundle and answers 404 outside devel
 
 #### Automated
 
-- [x] 2.1 Lint and type check pass: `npm run lint`, `npx astro check`
-- [x] 2.2 Build passes with the new components: `npm run build`
-- [x] 2.3 `src/components/ui/` contains `button.tsx`, `input.tsx`, `alert.tsx`
-- [x] 2.4 No hex literal or `text-white` remains in `src/components/ui/`
-- [x] 2.6 `config-status.ts` is gone and nothing references it
+- [x] 2.1 Lint and type check pass: `npm run lint`, `npx astro check` — e9b56b6
+- [x] 2.2 Build passes with the new components: `npm run build` — e9b56b6
+- [x] 2.3 `src/components/ui/` contains `button.tsx`, `input.tsx`, `alert.tsx` — e9b56b6
+- [x] 2.4 No hex literal or `text-white` remains in `src/components/ui/` — e9b56b6
+- [x] 2.6 `config-status.ts` is gone and nothing references it — e9b56b6
 
 #### Manual
 
-- [x] 2.5 A throwaway render of each new variant on the light-gray page is legible
+- [x] 2.5 A throwaway render of each new variant on the light-gray page is legible — e9b56b6
 
 ### Phase 3: View migration and kitchen sink
 
 #### Automated
 
-- [ ] 3.1 Lint and type check pass: `npm run lint`, `npx astro check`
-- [ ] 3.2 Build passes: `npm run build`
-- [ ] 3.3 No color literal, `backdrop-blur` or `rounded-2xl` remains in the view or card
-- [ ] 3.4 Smoke still passes against a locally running dev server with a freshly reset database
-- [ ] 3.5 Kitchen sink is dev-only: `GET /dev/kitchen-sink` returns 404 on the production build
-- [ ] 3.9 Heading rotation unit tests pass
+- [x] 3.1 Lint and type check pass: `npm run lint`, `npx astro check`
+- [x] 3.2 Build passes: `npm run build`
+- [x] 3.3 No color literal, `backdrop-blur` or `rounded-2xl` remains in the view or card
+- [x] 3.4 Smoke still passes against a locally running dev server with a freshly reset database
+- [x] 3.5 Kitchen sink is dev-only: `GET /dev/kitchen-sink` returns 404 on the production build
+- [x] 3.9 Heading rotation unit tests pass
 
 #### Manual
 
-- [ ] 3.6 The real workspace page keeps the "before" layout in the default and tracking states, with solid surfaces and tighter corners
-- [ ] 3.7 Start, pick a project and Delete still work end to end through the real page
-- [ ] 3.8 `/dev/kitchen-sink` in dev renders every state listed in the Contract
-- [ ] 3.10 The workspace heading is today's pair, stable across a reload, and the kitchen sink shows a fixed pair
+- [x] 3.6 The real workspace page keeps the "before" layout in the default and tracking states, with solid surfaces and tighter corners
+- [x] 3.7 Start, pick a project and Delete still work end to end through the real page
+- [x] 3.8 `/dev/kitchen-sink` in dev renders every state listed in the Contract
+- [x] 3.10 The workspace heading is today's pair, stable across a reload, and the kitchen sink shows a fixed pair
 
 ### Phase 4: States, accessibility and gate
 
