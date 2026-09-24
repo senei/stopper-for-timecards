@@ -298,12 +298,12 @@ Add the switch affordance to the tracking view and extend the smoke test to cove
 
 #### Automated
 
-- [x] 3.1 `npm run smoke` passes against a freshly reset local database
-- [x] 3.2 `npm run lint` and `npx astro check` pass
+- [x] 3.1 `npm run smoke` passes against a freshly reset local database — c020648
+- [x] 3.2 `npm run lint` and `npx astro check` pass — c020648
 
 #### Manual
 
-- [x] 3.3 Tracking view shows "Switch to a different project" with every other project listed, current one excluded
-- [x] 3.4 Switching to a new name closes the old segment and starts the new one, no confirmation step
-- [x] 3.5 Reload persists the new tracking state
-- [x] 3.6 Switching back to the original project by name reuses it correctly
+- [x] 3.3 Tracking view shows "Switch to a different project" with every other project listed, current one excluded — c020648
+- [x] 3.4 Switching to a new name closes the old segment and starts the new one, no confirmation step — c020648
+- [x] 3.5 Reload persists the new tracking state — c020648
+- [x] 3.6 Switching back to the original project by name reuses it correctly — c020648
