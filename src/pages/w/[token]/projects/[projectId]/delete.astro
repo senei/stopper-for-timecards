@@ -6,8 +6,9 @@ import { isWellFormedId } from "@/lib/project-id";
 import type { Project } from "@/lib/projects";
 import { getProject } from "@/lib/projects";
 
-// Keep the token out of caches, referrers and search indexes.
-Astro.response.headers.set("Referrer-Policy", "no-referrer");
+// Keep the token out of caches, referrers and search indexes. `strict-origin` sends only the site origin, never the
+// path; `no-referrer` would make browsers send `Origin: null` on this page's form, which Astro's origin check rejects.
+Astro.response.headers.set("Referrer-Policy", "strict-origin");
 Astro.response.headers.set("Cache-Control", "no-store");
 Astro.response.headers.set("X-Robots-Tag", "noindex");
 

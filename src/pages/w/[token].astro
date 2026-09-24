@@ -10,8 +10,9 @@ import { errorMessage, statusMessage } from "@/lib/status-messages";
 import type { CurrentTimer } from "@/lib/timer";
 import { getCurrentTimer } from "@/lib/timer";
 
-// Keep the token out of caches, referrers and search indexes.
-Astro.response.headers.set("Referrer-Policy", "no-referrer");
+// Keep the token out of caches, referrers and search indexes. `strict-origin` sends only the site origin, never the
+// path; `no-referrer` would make browsers send `Origin: null` on this page's forms, which Astro's origin check rejects.
+Astro.response.headers.set("Referrer-Policy", "strict-origin");
 Astro.response.headers.set("Cache-Control", "no-store");
 Astro.response.headers.set("X-Robots-Tag", "noindex");
 

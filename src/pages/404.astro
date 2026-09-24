@@ -2,7 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 
 // Unknown /w/<token> requests are rewritten here, so the token must stay out of caches, referrers and indexes.
-Astro.response.headers.set("Referrer-Policy", "no-referrer");
+Astro.response.headers.set("Referrer-Policy", "strict-origin");
 Astro.response.headers.set("Cache-Control", "no-store");
 Astro.response.headers.set("X-Robots-Tag", "noindex");
 ---

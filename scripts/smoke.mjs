@@ -54,7 +54,12 @@ async function request(path, { method = "GET", form, json, withCookies = true } 
   });
   const setsLinkCookie = response.headers.getSetCookie().some((c) => c.startsWith("stopper_link="));
   if (withCookies) storeCookies(response);
-  return { status: response.status, location: response.headers.get("location") ?? "", setsLinkCookie };
+  return {
+    status: response.status,
+    location: response.headers.get("location") ?? "",
+    referrerPolicy: response.headers.get("referrer-policy") ?? "",
+    setsLinkCookie,
+  };
 }
 
 const createLinkForm = { "cf-turnstile-response": DUMMY_TURNSTILE_TOKEN };
@@ -117,6 +122,13 @@ check(
 
 r = await request(`/w/${token}`);
 check("the workspace opens", r.status === 200, describeResponse(r));
+// A real browser sends `Origin: null` on same-origin form posts from a page served with `no-referrer`, and Astro's
+// origin check answers those with a 403. This test sets Origin itself, so it can only guard the header, not the post.
+check(
+  "the workspace keeps the token out of the referrer without breaking its forms (strict-origin, not no-referrer)",
+  r.referrerPolicy === "strict-origin",
+  r.referrerPolicy || "(no Referrer-Policy header)",
+);
 
 r = await request(`/w/${token}`, { withCookies: false });
 check("a browser with no link remembers the one it opens", r.status === 200 && r.setsLinkCookie, describeResponse(r));
