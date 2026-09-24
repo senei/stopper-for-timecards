@@ -57,3 +57,6 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
+
+# Backups made by scripts/smoke-local.mjs
+*.smoke-bak

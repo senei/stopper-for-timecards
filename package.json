@@ -11,6 +11,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "smoke": "node scripts/smoke.mjs",
+    "smoke:local": "node scripts/smoke-local.mjs",
     "test": "vitest",
     "test:ui": "vitest --ui"
   },
