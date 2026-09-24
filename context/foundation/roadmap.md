@@ -3,7 +3,7 @@ project: "Stopper for Timecards"
 version: 1
 status: draft
 created: 2026-09-21
-updated: 2026-09-23
+updated: 2026-09-24
 prd_version: 4
 main_goal: speed
 top_blocker: capacity
@@ -43,7 +43,7 @@ People who work across several projects a day don't capture time as it happens, 
 | ---- | ------------------------ | ------------------------------------------------------------------------ | ------------- | ---------------------------- | -------- |
 | S-01 | private-link-access      | create their own private link and open it to land in their own workspace | —             | FR-007, US-02                | done        |
 | S-02 | first-timer-start        | add a project and pick it to start the timer instantly                   | S-01          | FR-001, FR-002, US-01, NFR   | done |
-| S-03 | timer-switch-rounding    | switch the running timer to another project with 15-min-rounded splits   | S-02          | FR-003                       | in-progress |
+| S-03 | timer-switch-rounding    | switch the running timer to another project with 15-min-rounded splits   | S-02          | FR-003                       | done |
 | S-04 | timer-stop-and-flags     | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                       | proposed |
 | S-05 | time-corrections         | correct logged time at end of day or start of next day                   | S-03, S-04    | FR-005                       | proposed |
 | S-06 | weekly-grid-summary      | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001               | proposed |
@@ -118,7 +118,7 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Unknowns:** —
 - **Rounding rule (resolved 2026-09-23):** round each project's tracked time *per day* — not per individual segment — always rounding up to the next 15-minute increment. Implementation is deferred to S-06: the "day" boundary this rule depends on isn't defined yet, since S-06's Mon–Sun timezone question (see its Unknowns) is still open. This slice only records the rule and stores exact raw timestamps.
 - **Risk:** Correctness guardrail (15-minute precision, right project) lives here, so it is sequenced right after the first timer.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-04: Stop timer and flag long-running timers
 
@@ -244,3 +244,4 @@ GitHub issues created 2026-09-21 in `senei/stopper-for-timecards`.
 - **S-01: create their own private link and open it to land in their own workspace** — Archived 2026-09-22 → `context/archive/2026-09-21-private-link-access/`. Lesson: —.
 - **S-02: add a project and pick it to start its timer instantly, with no separate start step** — Archived 2026-09-22 → `context/archive/2026-09-22-first-timer-start/`. Lesson: —.
 - **S-09: delete a project from their list; a project with any logged time entries against it is protected from deletion instead of silently destroying history** — Archived 2026-09-23 → `context/archive/2026-09-23-delete-project/`. Lesson: —.
+- **S-03: user can switch the active timer to another project mid-day, with time split between projects at 15-minute precision** — Archived 2026-09-24 → `context/archive/2026-09-23-timer-switch-rounding/`. Lesson: —.
