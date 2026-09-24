@@ -411,38 +411,38 @@ The kitchen-sink route ships in the Workers bundle and answers 404 outside devel
 
 #### Automated
 
-- [x] 3.1 Lint and type check pass: `npm run lint`, `npx astro check`
-- [x] 3.2 Build passes: `npm run build`
-- [x] 3.3 No color literal, `backdrop-blur` or `rounded-2xl` remains in the view or card
-- [x] 3.4 Smoke still passes against a locally running dev server with a freshly reset database
-- [x] 3.5 Kitchen sink is dev-only: `GET /dev/kitchen-sink` returns 404 on the production build
-- [x] 3.9 Heading rotation unit tests pass
+- [x] 3.1 Lint and type check pass: `npm run lint`, `npx astro check` — 6bf6edf
+- [x] 3.2 Build passes: `npm run build` — 6bf6edf
+- [x] 3.3 No color literal, `backdrop-blur` or `rounded-2xl` remains in the view or card — 6bf6edf
+- [x] 3.4 Smoke still passes against a locally running dev server with a freshly reset database — 6bf6edf
+- [x] 3.5 Kitchen sink is dev-only: `GET /dev/kitchen-sink` returns 404 on the production build — 6bf6edf
+- [x] 3.9 Heading rotation unit tests pass — 6bf6edf
 
 #### Manual
 
-- [x] 3.6 The real workspace page keeps the "before" layout in the default and tracking states, with solid surfaces and tighter corners
-- [x] 3.7 Start, pick a project and Delete still work end to end through the real page
-- [x] 3.8 `/dev/kitchen-sink` in dev renders every state listed in the Contract
-- [x] 3.10 The workspace heading is today's pair, stable across a reload, and the kitchen sink shows a fixed pair
+- [x] 3.6 The real workspace page keeps the "before" layout in the default and tracking states, with solid surfaces and tighter corners — 6bf6edf
+- [x] 3.7 Start, pick a project and Delete still work end to end through the real page — 6bf6edf
+- [x] 3.8 `/dev/kitchen-sink` in dev renders every state listed in the Contract — 6bf6edf
+- [x] 3.10 The workspace heading is today's pair, stable across a reload, and the kitchen sink shows a fixed pair — 6bf6edf
 
 ### Phase 4: States, accessibility and gate
 
 #### Automated
 
-- [ ] 4.1 Lint and type check pass: `npm run lint`, `npx astro check`
-- [ ] 4.2 Build passes: `npm run build`
-- [ ] 4.3 Unit tests pass: `npm run test -- --run`
-- [ ] 4.4 Smoke passes against a locally running dev server with a freshly reset database
+- [x] 4.1 Lint and type check pass: `npm run lint`, `npx astro check`
+- [x] 4.2 Build passes: `npm run build`
+- [x] 4.3 Unit tests pass: `npm run test -- --run`
+- [x] 4.4 Smoke passes against a locally running dev server with a freshly reset database
 
 #### Manual
 
-- [ ] 4.5 Kitchen-sink screenshots at desktop and one mobile width show all seven states
-- [ ] 4.6 Tabbing through the real workspace page shows a visible focus ring on every control
-- [ ] 4.7 Measured contrast is at least 4.5:1 for text and 3:1 for the focus ring and control boundaries, recorded in `tokens.md`
-- [ ] 4.8 Submitting Start disables the button in flight, and Back leaves it enabled
-- [ ] 4.9 With the clipboard blocked, Copy shows the failure message
-- [ ] 4.10 The unavailable state shows the message and a working "Try again" link
-- [ ] 4.11 The mobile screenshot shows no horizontal scroll and no clipped controls
+- [x] 4.5 Kitchen-sink screenshots at desktop and one mobile width show all seven states
+- [x] 4.6 Tabbing through the real workspace page shows a visible focus ring on every control
+- [x] 4.7 Measured contrast is at least 4.5:1 for text and 3:1 for the focus ring and control boundaries, recorded in `tokens.md`
+- [x] 4.8 Submitting Start disables the button in flight, and Back leaves it enabled
+- [x] 4.9 With the clipboard blocked, Copy shows the failure message
+- [x] 4.10 The unavailable state shows the message and a working "Try again" link
+- [x] 4.11 The mobile screenshot shows no horizontal scroll and no clipped controls
 
 ### Phase 5: Other pages
 

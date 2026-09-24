@@ -39,6 +39,9 @@ const cardStates = [
   { name: "error message", props: { currentTimer: null, projects, bannerError: "That project name isn't valid." } },
   { name: "status message", props: { currentTimer: null, projects, bannerStatus: "Project deleted." } },
   { name: "unavailable", props: { currentTimer: null, projects: [], unavailable: true } },
+  { name: "submit in flight (loading, disabled)", props: { currentTimer: null, projects, busy: true } },
+  { name: "copy: copied", props: { currentTimer: null, projects, copyState: "copied" as const } },
+  { name: "copy: failed", props: { currentTimer: null, projects, copyState: "failed" as const } },
 ];
 ---
 

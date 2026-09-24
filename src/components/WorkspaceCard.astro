@@ -22,6 +22,10 @@ interface Props {
   headingIndex?: number;
   /** Render only the card, without the full-height page wrapper. */
   embedded?: boolean;
+  /** Renders the primary submit button as in flight (disabled, aria-busy). For the kitchen sink. */
+  busy?: boolean;
+  /** Renders the Copy button and its message in this state. For the kitchen sink; the page always starts idle. */
+  copyState?: "idle" | "copied" | "failed";
 }
 
 const {
@@ -36,6 +40,8 @@ const {
   workspaceUrl,
   headingIndex,
   embedded = false,
+  busy = false,
+  copyState = "idle",
 } = Astro.props;
 
 // The running project is left out of the switch list by id (not name), so switching to it can't happen from here.
@@ -48,6 +54,10 @@ const heading = currentTimer ? pair.tracking : pair.idle;
 // The four action buttons share one fixed width so they line up in a column down the card.
 const actionWidth = "w-21";
 
+const COPY_FAILED = "Couldn't copy — select the link and copy it manually.";
+const COPY_DONE = "Link copied to the clipboard.";
+const copyStatus = copyState === "failed" ? COPY_FAILED : copyState === "copied" ? COPY_DONE : "";
+
 /** UTC HH:MM fallback for `currentTimer.startedAt`; the client script replaces this with local
  * time once it can. Parses defensively rather than assuming a fixed ISO string layout. */
 function formatUtcTime(iso: string): string {
@@ -57,11 +67,14 @@ function formatUtcTime(iso: string): string {
 ---
 
 <PageCard embedded={embedded}>
-  <div data-workspace-card>
+  <div data-workspace-card data-copy-failed={COPY_FAILED} data-copy-done={COPY_DONE}>
     {unavailable ? (
       <>
         <h1 class="mb-4 text-2xl font-bold text-heading">Temporarily unavailable</h1>
         <p class="text-muted-foreground">We could not load your workspace right now. Please try again in a moment.</p>
+        <a href={Astro.url.pathname} class:list={cn(buttonVariants({ variant: "secondary" }), "mt-4")}>
+          Try again
+        </a>
       </>
     ) : (
       <>
@@ -102,7 +115,7 @@ function formatUtcTime(iso: string): string {
                   required
                   maxLength={200}
                 />
-                <Button type="submit" className={actionWidth}>
+                <Button type="submit" className={actionWidth} disabled={busy} aria-busy={busy ? "true" : undefined}>
                   Switch
                 </Button>
               </form>
@@ -129,12 +142,19 @@ function formatUtcTime(iso: string): string {
         ) : (
           <div>
             <form method="post" action={startAction} class="flex gap-2">
-              <Input type="text" name="projectName" placeholder="New project name" required maxLength={200} />
-              <Button type="submit" className={actionWidth}>
+              <Input
+                type="text"
+                name="projectName"
+                aria-label="New project name"
+                placeholder="New project name"
+                required
+                maxLength={200}
+              />
+              <Button type="submit" className={actionWidth} disabled={busy} aria-busy={busy ? "true" : undefined}>
                 Start
               </Button>
             </form>
-            {projects.length > 0 && (
+            {projects.length > 0 ? (
               <ul class="mt-4 space-y-2">
                 {projects.map((project) => (
                   <li class="flex items-center gap-2">
@@ -146,13 +166,19 @@ function formatUtcTime(iso: string): string {
                     </form>
                     <a
                       href={`/w/${token}/projects/${project.id}/delete`}
-                      class:list={cn(buttonVariants({ variant: "secondary" }), actionWidth)}
+                      class:list={cn(
+                        buttonVariants({ variant: "secondary" }),
+                        actionWidth,
+                        "hover:text-destructive-text",
+                      )}
                     >
                       Delete
                     </a>
                   </li>
                 ))}
               </ul>
+            ) : (
+              <p class="mt-4 text-sm text-muted-foreground">No projects yet</p>
             )}
           </div>
         )}
@@ -160,11 +186,22 @@ function formatUtcTime(iso: string): string {
         <div class="mt-8 border-t border-border pt-6">
           <h2 class="mb-2 text-sm font-semibold tracking-wide text-heading uppercase">Your private link</h2>
           <div class="flex gap-2">
-            <Input type="text" readOnly value={workspaceUrl} data-link />
+            <Input type="text" readOnly value={workspaceUrl} aria-label="Your private link" data-link />
             <Button type="button" variant="secondary" className={actionWidth} data-copy>
-              Copy
+              {copyState === "copied" ? "Copied" : "Copy"}
             </Button>
           </div>
+          <p
+            role="status"
+            aria-live="polite"
+            data-copy-status
+            class:list={[
+              "text-sm not-empty:mt-2",
+              copyState === "failed" ? "text-destructive-text" : "text-muted-foreground",
+            ]}
+          >
+            {copyStatus}
+          </p>
           <p class="mt-3 text-sm text-muted-foreground">
             Save this link now. It cannot be recovered, and anyone who has it can see and log your time.
           </p>
@@ -177,18 +214,59 @@ function formatUtcTime(iso: string): string {
 <script>
   import { headingForDate } from "@/lib/workspace-headings";
 
+  const COPIED_LABEL_MS = 2000;
+
+  async function copyText(value: string): Promise<boolean> {
+    try {
+      await navigator.clipboard.writeText(value);
+      return true;
+    } catch {
+      // No clipboard access (blocked, or an insecure context): the caller shows the manual fallback.
+      return false;
+    }
+  }
+
   for (const card of document.querySelectorAll<HTMLElement>("[data-workspace-card]")) {
     const button = card.querySelector<HTMLButtonElement>("[data-copy]");
     const input = card.querySelector<HTMLInputElement>("[data-link]");
+    const status = card.querySelector<HTMLElement>("[data-copy-status]");
+    let resetTimer: number | undefined;
 
     button?.addEventListener("click", () => {
-      if (!input) {
+      if (!input || !status) {
         return;
       }
-      void navigator.clipboard.writeText(input.value).then(() => {
-        button.textContent = "Copied";
+      window.clearTimeout(resetTimer);
+      status.textContent = "";
+      void copyText(input.value).then((copied) => {
+        status.classList.toggle("text-destructive-text", !copied);
+        status.classList.toggle("text-muted-foreground", copied);
+        if (copied) {
+          button.textContent = "Copied";
+          status.textContent = card.dataset.copyDone ?? "";
+          resetTimer = window.setTimeout(() => {
+            button.textContent = "Copy";
+            status.textContent = "";
+          }, COPIED_LABEL_MS);
+        } else {
+          // Leave the link selected so the visitor can copy it by hand.
+          input.focus();
+          input.select();
+          status.textContent = card.dataset.copyFailed ?? "";
+        }
       });
     });
+
+    // Disable the submit button while its form posts, so a second click cannot send it twice.
+    for (const form of card.querySelectorAll<HTMLFormElement>("form")) {
+      form.addEventListener("submit", () => {
+        const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+        if (submit) {
+          submit.disabled = true;
+          submit.setAttribute("aria-busy", "true");
+        }
+      });
+    }
 
     // The server renders started_at in UTC (it can't know the viewer's timezone); replace it with
     // the viewer's local time once the browser can compute it.
@@ -211,4 +289,18 @@ function formatUtcTime(iso: string): string {
       }
     }
   }
+
+  // Coming back with the Back button can restore the page from the back/forward cache with its buttons still
+  // disabled; re-enable them then.
+  window.addEventListener("pageshow", (event) => {
+    if (!event.persisted) {
+      return;
+    }
+    for (const submit of document.querySelectorAll<HTMLButtonElement>(
+      '[data-workspace-card] button[aria-busy="true"]',
+    )) {
+      submit.disabled = false;
+      submit.removeAttribute("aria-busy");
+    }
+  });
 </script>

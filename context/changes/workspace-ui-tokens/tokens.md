@@ -70,32 +70,40 @@ The blue-to-purple heading gradient is dropped: headings are one solid orange (`
 - Buttons: default variant is `--primary` (dark gray, Start and Switch); `secondary` is `bg-secondary` with `border-border` (Copy and Delete); its hover uses `--accent` (a solid step, not an alpha).
 - The page and the card differ by only 1.10:1, so the card edge relies on `--border` and a soft shadow, not on color contrast alone.
 
-## Computed contrast (from these token values, not browser-measured)
+## Measured contrast (browser, 2026-09-24)
 
-Computed with the WCAG relative-luminance formula from the `oklch` values above. Phase 4 replaces this with a browser-measured table.
+Measured in headless Chrome against the running app: the kitchen sink for text and control boundaries (real computed colors, alpha composited over the real background) and the real workspace page for the focus indicator (real Tab key presses). Replaces the design-time estimates that were computed from the token values; every text pair matched them.
 
-| Pair | Ratio | Needs |
-| --- | --- | --- |
-| `--foreground` on `--background` (page top) | 16.13 | 4.5 |
-| `--foreground` on `--background-end` (page bottom) | 14.35 | 4.5 |
-| `--card-foreground` on `--card` | 17.75 | 4.5 |
-| `--muted-foreground` on `--card` | 7.56 | 4.5 |
-| `--muted-foreground` on `--secondary` (Copy, Delete) | 6.87 | 4.5 |
-| `--secondary-foreground` on `--secondary` | 16.13 | 4.5 |
-| `--heading` on `--card` | 5.23 | 4.5 (small uppercase headings) |
-| `--heading` on `--background` (page) | 4.75 | 4.5 |
-| `--primary-foreground` on `--primary` (Start, Switch) | 14.68 | 4.5 |
-| `--destructive-foreground` on `--destructive` | 4.76 | 4.5 |
-| `--primary-foreground` on `--primary-hover` | 17.75 | 4.5 |
-| `--destructive-foreground` on `--destructive-hover` | 6.42 | 4.5 |
-| `--destructive-text` on `--card` | 10.06 | 4.5 |
-| `--destructive-text` on the 10% destructive tint (error `Alert`) | 9.26 | 4.5 |
-| `--success-foreground` on `--card` | 9.69 | 4.5 |
-| `--warning-foreground` on `--card` | 9.09 | 4.5 |
-| `--ring` on `--card` | 5.26 | 3 |
-| `--input` (field border) on `--card` | 4.84 | 3 |
-| `--border` on `--card` | 1.47 | none: decorative edge only |
-| `--card` on `--background` | 1.10 | none: card edge uses border and shadow |
+| Pair | Foreground on background | Ratio | Needs | Result |
+| --- | --- | --- | --- | --- |
+| Heading (h1, orange) | `#ca3500` on `#ffffff` | 5.22 | 4.5 | Pass |
+| Section heading (h2, uppercase orange) | `#ca3500` on `#ffffff` | 5.22 | 4.5 | Pass |
+| Muted note text | `#4a5565` on `#ffffff` | 7.56 | 4.5 | Pass |
+| Empty-state text (No projects yet) | `#4a5565` on `#ffffff` | 7.56 | 4.5 | Pass |
+| Start button (primary) | `#ffffff` on `#1e2939` | 14.67 | 4.5 | Pass |
+| Copy button (secondary) | `#101828` on `#f3f4f6` | 16.13 | 4.5 | Pass |
+| Delete link (secondary) | `#101828` on `#f3f4f6` | 16.13 | 4.5 | Pass |
+| Project pick button (outline) | `#101828` on `#ffffff` | 17.75 | 4.5 | Pass |
+| Input text (private link) | `#101828` on `#ffffff` | 17.75 | 4.5 | Pass |
+| Input placeholder | `#4a5565` on `#ffffff` | 7.56 | 4.5 | Pass |
+| Error alert text | `#82181a` on `#fce5e6` | 8.35 | 4.5 | Pass |
+| Success alert text | `#004f3b` on `#e5f4ef` | 8.49 | 4.5 | Pass |
+| Copy-failed message | `#82181a` on `#ffffff` | 10.03 | 4.5 | Pass |
+| Delete link on hover (destructive-text on accent) (hover state, from tokens) | `#82181a` on `#e5e7eb` | 8.10 | 4.5 | Pass |
+| Primary button on hover (primary-foreground on primary-hover) (hover state, from tokens) | `#ffffff` on `#101828` | 17.75 | 4.5 | Pass |
+| Text field border | `#6a7282` on `#ffffff` | 4.84 | 3 | Pass |
+| Project pick button border (outline) | `#6a7282` on `#ffffff` | 4.84 | 3 | Pass |
+| Copy button border (secondary) (label identifies the control) | `#d1d5dc` on `#ffffff` | 1.47 | 3 | n/a (the label identifies the control) |
+| Focus border (`border-ring`) | `#155dfc` on `#ffffff` | 5.25 | 3 | Pass |
+| Focus halo (3px, `ring-ring/50`) | `#8aaefe` on `#ffffff` | 2.20 | 3 | Below on its own; the focus border above carries the indicator |
+
+Tab order on the real workspace page (idle): New project name → Start → Acme Widgets → Delete → Beta Corp → Delete → Your private link → Copy. All 8 stops show a focus ring (8/8) and match `:focus-visible`, in DOM order, including both Delete links and Copy.
+
+Horizontal overflow at 390px: the workspace page and the kitchen sink both have `scrollWidth` 390 (no overflow) and no element outside the viewport.
+
+Two findings, for the review: (1) the secondary buttons' border (`--border`) is 1.47:1, which is fine because their text label identifies them (text is 16.13:1), but it is below 3:1 if a border alone were meant to identify them; (2) the 50% focus halo alone is about 2.20:1, while the focus border that appears with it is 5.25:1. Making the halo solid (`ring-ring`) would lift it to about 5.25:1; that is a change to `button.tsx` and `input.tsx`, not the view.
+
+Decision (user, 2026-09-24): leave the halo and the secondary button borders as they are. The focus border is the indicator that meets 3:1, all 8 tab stops show it, and the buttons are identified by their text.
 
 ## Dark layer (`.dark`), inactive
 
