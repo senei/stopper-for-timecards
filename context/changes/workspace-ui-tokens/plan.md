@@ -2,7 +2,7 @@
 
 ## Overview
 
-Make the workspace view (`src/pages/w/[token].astro`) read semantic tokens and repo components instead of literal colors and hand-rolled controls. The look was changed by the user on 2026-09-24 (chosen from `screenshots/palette-light-gray.png`; a dark navy first draft and a blue-page second draft, `palette-options.png`, were rejected as too dark and too blue): a light-gray page with white solid cards, dark-gray primary buttons (Start, Switch), bordered secondary buttons (Copy, Delete), orange headings, a blue focus ring, no glass, and small corners (2px controls, 3px cards). The tokens and components are extended inside the existing Tailwind v4 + shadcn system; nothing is initialized twice. The view is then audited against the seven states and gated with a kitchen-sink page screenshotted at desktop and one mobile width.
+Make the workspace view (`src/pages/w/[token].astro`) read semantic tokens and repo components instead of literal colors and hand-rolled controls. The look was changed by the user on 2026-09-24 (chosen from `screenshots/palette-light-gray.png`; a dark navy first draft and a blue-page second draft were rejected as too dark and too blue; their mocks were removed from the folder): a light-gray page with white solid cards, dark-gray primary buttons (Start, Switch), bordered secondary buttons (Copy, Delete), orange headings, a blue focus ring, no glass, and small corners (2px controls, 3px cards). The tokens and components are extended inside the existing Tailwind v4 + shadcn system; nothing is initialized twice. The view is then audited against the seven states and gated with a kitchen-sink page screenshotted at desktop and one mobile width.
 
 **Prerequisite for every phase:** `timer-switch-rounding` Phase 3 has merged. It rewrites the tracking state of the same view file (`context/changes/timer-switch-rounding/plan.md:202-206`), and we migrate the whole file once, afterwards.
 
@@ -35,7 +35,7 @@ The workspace view and the shell around it (`Layout`) take every color, radius a
 - Restyling `index.astro`, `404.astro` and `delete.astro` was first deferred; the user decided on 2026-09-24 that **all pages adopt the light-gray look**, so they are restyled in Phase 5 (their routes, redirects and logic are untouched).
 - No `Card` component (the repeated card wrapper stays a token-based class string in `WorkspaceCard.astro`).
 - Until Phase 5 lands, index, 404 and delete keep their dark navy look (`bg-cosmic`, kept as a legacy utility) and their translucent cards; only their radii shrink with the tokens.
-- No shared Banner: `Banner.astro` and its use in `Layout.astro` are removed (user decision, 2026-09-24), so charge C5 is closed by removal. `src/lib/config-status.ts` loses its only consumer and is left in place, flagged as dead code for a follow-up.
+- No shared Banner: `Banner.astro` and its use in `Layout.astro` are removed (user decision, 2026-09-24), so charge C5 is closed by removal. `src/lib/config-status.ts` lost its only consumer and is deleted in Phase 2 (user decision, 2026-09-24).
 - No layout reordering, notably not moving the "Your private link" block (`[token].astro:143-164`). Layout is judged after the view is built from tokens, in the `/10x-impl-review` loop.
 - No shared "Temporarily unavailable" component for `delete.astro`; its duplicate copy (`delete.astro:51-55`) is deferred.
 - No new timer behavior, no stop action, no changes to routes or the database. The one `src/lib` addition is the daily heading list and its pure function (Phase 3).
@@ -90,7 +90,7 @@ Express the chosen palette (light-gray page, white cards, dark-gray buttons, ora
 
 **Intent**: The config-warning strip is not needed (user decision, 2026-09-24), so charge C5 is closed by removal instead of tokenization.
 
-**Contract**: Delete `Banner.astro`. `Layout.astro` no longer imports it or `missingConfigs` and renders only `<slot />` in the body. `src/lib/config-status.ts` now has no consumer and is left in place, flagged as dead code.
+**Contract**: Delete `Banner.astro`. `Layout.astro` no longer imports it or `missingConfigs` and renders only `<slot />` in the body. `src/lib/config-status.ts` now has no consumer and is deleted in Phase 2.
 
 ### Success Criteria:
 
@@ -126,15 +126,23 @@ Add the two missing shared components through the stack's own path and make `But
 
 **Intent**: Replace hand-rolled inputs and banners with the shadcn-owned versions.
 
-**Contract**: Add with `npx shadcn add input alert` (`components.json` already configures `new-york`, `@/components/ui`). Do not run `shadcn init`. `Alert` gains `success` and `warning` variants alongside `default` and `destructive`, using `--success`, `--warning` and their foregrounds; its `destructive` variant reads `--destructive` and `--destructive-foreground`. `Alert` renders `role="alert"` for error and warning use; the status usage passes `role="status"` explicitly.
+**Contract**: Add with `npx shadcn add input alert` (`components.json` already configures `new-york`, `@/components/ui`). Do not run `shadcn init`. `Alert` gains `success` and `warning` variants alongside `default` and `destructive`, using `--success`, `--warning` and their foregrounds; its `destructive` variant is a soft tint like the other two (user decision, 2026-09-24): `--destructive` for the border and tint, and a new `--destructive-text` role (Tailwind `red-900`, added to `global.css` in this phase and recorded in `tokens.md`) for the text. `Alert` renders `role="alert"` for error and warning use; the status usage passes `role="status"` explicitly.
 
 #### 2. Button
 
 **File**: `src/components/ui/button.tsx`
 
-**Intent**: Give `Button` a solid secondary look from tokens (no `bg-white/10`-style translucency, no blur) with a visible border and a hover step, and remove the literal `text-white`.
+**Intent**: Give `Button` a solid secondary look from tokens (no `bg-white/10`-style translucency, no blur) with a visible border and a hover step, remove the literal `text-white`, and make every hover a solid step (the default and destructive hovers use two new tokens, `--primary-hover` gray-900 and `--destructive-hover` red-700, added to `global.css` and `tokens.md` in this phase, instead of the stock alpha steps; user decision, 2026-09-24).
 
 **Contract**: The destructive variant (`:14`) uses `text-destructive-foreground` instead of `text-white`. The look the view needs for Start, Copy, project buttons and Switch is expressed by an existing variant (`secondary` or `outline`) adjusted in place, not by a second Button or per-call class strings.
+
+#### 3. Dead code removed
+
+**File**: `src/lib/config-status.ts` (deleted)
+
+**Intent**: Removing the shared Banner in Phase 1 left this module with no consumer; delete it (user decision, 2026-09-24) instead of leaving dead code.
+
+**Contract**: Delete `src/lib/config-status.ts`; nothing in `src` references it.
 
 ### Success Criteria:
 
@@ -144,6 +152,7 @@ Add the two missing shared components through the stack's own path and make `But
 - Build passes with the new components: `npm run build`
 - `src/components/ui/` contains `button.tsx`, `input.tsx`, `alert.tsx`: `ls src/components/ui`
 - No hex literal or `text-white` remains in `src/components/ui/`: `grep -rnE "#[0-9a-fA-F]{3,8}|text-white" src/components/ui` returns no matches
+- `config-status.ts` is gone and nothing references it: `grep -rn "config-status" src` returns no matches
 
 #### Manual Verification:
 
@@ -175,7 +184,7 @@ Extract the workspace card into a props-driven component, move it onto tokens an
 
 **Intent**: Keep all loading, headers, redirects and status codes exactly as they are; delegate rendering to the card.
 
-**Contract**: Frontmatter (`:1-69`, plus whatever Phase 3 of `timer-switch-rounding` added) is unchanged. The template becomes `<Layout><WorkspaceCard … /></Layout>`. Every `<input>`, `<button>`, banner `<p>` and color literal inside the card is replaced by `Input`, `Button`/`buttonVariants`, `Alert` and token classes (`bg-card`, `border-border`, `text-card-foreground`, `text-muted-foreground`, `text-heading`, `rounded-xl` for the card, …). The page wrapper uses `bg-background` instead of `bg-cosmic`. Start and Switch use the default (dark-gray primary) `Button`; Copy and each project's Delete use the bordered secondary variant, the Delete as `buttonVariants({ variant: "secondary", size: "sm" })` on the existing `<a>`. The four action buttons (Start, Switch, Delete, Copy) share one fixed width (about 84px, e.g. `w-21` or `w-[84px]`) with centered text, so the buttons line up in one column down the card. The delete link keeps its route and text.
+**Contract**: Frontmatter (`:1-69`, plus whatever Phase 3 of `timer-switch-rounding` added) is unchanged. The template becomes `<Layout><WorkspaceCard … /></Layout>`. Every `<input>`, `<button>`, banner `<p>` and color literal inside the card is replaced by `Input`, `Button`/`buttonVariants`, `Alert` and token classes (`bg-card`, `border-border`, `text-card-foreground`, `text-muted-foreground`, `text-heading`, `rounded-xl` for the card, …). The page wrapper uses `bg-background` instead of `bg-cosmic`. Start and Switch use the default (dark-gray primary) `Button`; Copy and each project's Delete use the bordered secondary variant, the Delete as `buttonVariants({ variant: "secondary" })` on the existing `<a>` (default size, so it is the same height as Start and Copy). The four action buttons (Start, Switch, Delete, Copy) share one fixed width (about 84px, e.g. `w-21` or `w-[84px]`) with centered text, so the buttons line up in one column down the card. The delete link keeps its route and text.
 
 #### 3. Kitchen sink
 
@@ -372,30 +381,31 @@ The kitchen-sink route ships in the Workers bundle and answers 404 outside devel
 
 #### Automated
 
-- [x] 1.1 Lint and type check pass: `npm run lint`, `npx astro check`
-- [x] 1.2 Unit tests pass: `npm run test -- --run`
-- [x] 1.3 No hex color literal remains in the token file
-- [x] 1.9 `Banner.astro` is gone and nothing references it
+- [x] 1.1 Lint and type check pass: `npm run lint`, `npx astro check` — 1e3d53a
+- [x] 1.2 Unit tests pass: `npm run test -- --run` — 1e3d53a
+- [x] 1.3 No hex color literal remains in the token file — 1e3d53a
+- [x] 1.9 `Banner.astro` is gone and nothing references it — 1e3d53a
 
 #### Manual
 
-- [x] 1.4 "Before" screenshots of the real workspace page (desktop and one mobile width) exist and were taken before the CSS edit
-- [x] 1.5 `tokens.md` lists every new and changed role with its source, `oklch` value and the source line
-- [x] 1.6 Index, 404 and delete pages look the same as before at a glance apart from the smaller corners
-- [x] 1.8 The active layer (`:root`) has no translucent surface roles
+- [x] 1.4 "Before" screenshots of the real workspace page (desktop and one mobile width) exist and were taken before the CSS edit — 1e3d53a
+- [x] 1.5 `tokens.md` lists every new and changed role with its source, `oklch` value and the source line — 1e3d53a
+- [x] 1.6 Index, 404 and delete pages look the same as before at a glance apart from the smaller corners — 1e3d53a
+- [x] 1.8 The active layer (`:root`) has no translucent surface roles — 1e3d53a
 
 ### Phase 2: Components
 
 #### Automated
 
-- [ ] 2.1 Lint and type check pass: `npm run lint`, `npx astro check`
-- [ ] 2.2 Build passes with the new components: `npm run build`
-- [ ] 2.3 `src/components/ui/` contains `button.tsx`, `input.tsx`, `alert.tsx`
-- [ ] 2.4 No hex literal or `text-white` remains in `src/components/ui/`
+- [x] 2.1 Lint and type check pass: `npm run lint`, `npx astro check`
+- [x] 2.2 Build passes with the new components: `npm run build`
+- [x] 2.3 `src/components/ui/` contains `button.tsx`, `input.tsx`, `alert.tsx`
+- [x] 2.4 No hex literal or `text-white` remains in `src/components/ui/`
+- [x] 2.6 `config-status.ts` is gone and nothing references it
 
 #### Manual
 
-- [ ] 2.5 A throwaway render of each new variant on the light-gray page is legible
+- [x] 2.5 A throwaway render of each new variant on the light-gray page is legible
 
 ### Phase 3: View migration and kitchen sink
 

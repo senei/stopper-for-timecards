@@ -47,7 +47,7 @@ The view and its shell (`Layout`) read `global.css` roles and `components/ui` pr
 
 **Out of scope:**
 - The `Card` shadcn component, light/dark toggle, layout reordering, screenshot-test tooling (the line below is the replacement)
-- Timer behavior, routes, database, other `src/lib` code (`config-status.ts` is left as dead code)
+- Timer behavior, routes, database, other `src/lib` code
 
 ## Architecture / Approach
 
@@ -72,7 +72,7 @@ Contract before pixels: tokens (global) → components that read them → the on
 - "3px and 2px for buttons" was read as a 3px card and 2px buttons and fields; both are single tokens if that is wrong.
 - Contrast in `tokens.md` is computed from the token values; it is browser-measured in Phase 4, and fixes go at the token layer.
 - The submit guard is a small behavior addition; if it is struck, disabled and loading remain component-level fixtures only.
-- `src/lib/config-status.ts` has no consumer after the banner removal and should be deleted in a follow-up.
+- `src/lib/config-status.ts` lost its only consumer with the banner and is deleted in Phase 2.
 - The `.dark` layer is the stock shadcn set and is unused; there is no theme toggle.
 - The heading text is new copy with jokes: it can be reworded in one file, and the daily choice can briefly swap at load for viewers whose local date differs from UTC.
 - The card differs from the page by only 1.10:1, so its edge relies on the border and a soft shadow.

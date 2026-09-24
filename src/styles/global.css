@@ -24,6 +24,7 @@
   --popover-foreground: oklch(0.21 0.034 264.665);
   --primary: oklch(0.278 0.033 256.848);
   --primary-foreground: oklch(1 0 0);
+  --primary-hover: oklch(0.21 0.034 264.665);
   --secondary: oklch(0.967 0.003 264.542);
   --secondary-foreground: oklch(0.21 0.034 264.665);
   --muted: oklch(0.967 0.003 264.542);
@@ -32,7 +33,9 @@
   --accent-foreground: oklch(0.21 0.034 264.665);
   --heading: oklch(0.553 0.195 38.402);
   --destructive: oklch(0.577 0.245 27.325);
+  --destructive-hover: oklch(0.505 0.213 27.518);
   --destructive-foreground: oklch(1 0 0);
+  --destructive-text: oklch(0.396 0.141 25.723);
   --success: oklch(0.596 0.145 163.225);
   --success-foreground: oklch(0.378 0.077 168.94);
   --warning: oklch(0.769 0.188 70.08);
@@ -66,6 +69,7 @@
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
+  --primary-hover: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -74,7 +78,9 @@
   --accent-foreground: oklch(0.985 0 0);
   --heading: oklch(0.646 0.222 41.116);
   --destructive: oklch(0.704 0.191 22.216);
+  --destructive-hover: oklch(0.637 0.237 25.331);
   --destructive-foreground: oklch(0.936 0.032 17.717);
+  --destructive-text: oklch(0.936 0.032 17.717);
   --success: oklch(0.765 0.177 163.223);
   --success-foreground: oklch(0.95 0.052 163.051);
   --warning: oklch(0.828 0.189 84.429);
@@ -114,6 +120,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -122,7 +129,9 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-heading: var(--heading);
   --color-destructive: var(--destructive);
+  --color-destructive-hover: var(--destructive-hover);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-text: var(--destructive-text);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
