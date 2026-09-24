@@ -58,6 +58,9 @@ if (unavailable) {
 
 const workspaceUrl = Astro.url.href;
 const startAction = `/api/w/${token}/timer/start`;
+const switchAction = `/api/w/${token}/timer/switch`;
+// The running project is left out of the switch list by id (not name), so switching to it can't happen from here.
+const otherProjects = currentTimer ? projects.filter((project) => project.id !== currentTimer.projectId) : [];
 const bannerError = errorMessage(Astro.url.searchParams.get("error"));
 const bannerStatus = statusMessage(Astro.url.searchParams.get("status"));
 
@@ -93,10 +96,51 @@ function formatUtcTime(iso: string): string {
             </p>
           )}
           {currentTimer ? (
-            <p class="text-blue-100/80">
-              Currently tracking <span class="font-semibold text-white">{currentTimer.projectName}</span> — started at{" "}
-              <span data-started-at={currentTimer.startedAt}>{formatUtcTime(currentTimer.startedAt)}</span>
-            </p>
+            <div>
+              <p class="text-blue-100/80">
+                Currently tracking <span class="font-semibold text-white">{currentTimer.projectName}</span> — started at{" "}
+                <span data-started-at={currentTimer.startedAt}>{formatUtcTime(currentTimer.startedAt)}</span>
+              </p>
+              <div class="mt-6">
+                <h2 class="mb-2 text-sm font-semibold tracking-wide text-blue-100/60 uppercase">
+                  Switch to a different project
+                </h2>
+                <form method="post" action={switchAction} class="flex gap-2">
+                  <input
+                    type="text"
+                    name="projectName"
+                    aria-label="Project to switch to"
+                    placeholder="New project name"
+                    required
+                    maxlength="200"
+                    class="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-blue-100/40"
+                  />
+                  <button
+                    type="submit"
+                    class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm whitespace-nowrap transition-colors hover:bg-white/20"
+                  >
+                    Switch
+                  </button>
+                </form>
+                {otherProjects.length > 0 && (
+                  <ul class="mt-4 space-y-2">
+                    {otherProjects.map((project) => (
+                      <li>
+                        <form method="post" action={switchAction}>
+                          <input type="hidden" name="projectName" value={project.name} />
+                          <button
+                            type="submit"
+                            class="w-full rounded-lg border border-white/20 bg-black/20 px-3 py-2 text-left text-sm text-white transition-colors hover:bg-white/20"
+                          >
+                            {project.name}
+                          </button>
+                        </form>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
           ) : (
             <div>
               <form method="post" action={startAction} class="flex gap-2">

@@ -43,7 +43,7 @@ People who work across several projects a day don't capture time as it happens, 
 | ---- | ------------------------ | ------------------------------------------------------------------------ | ------------- | ---------------------------- | -------- |
 | S-01 | private-link-access      | create their own private link and open it to land in their own workspace | —             | FR-007, US-02                | done        |
 | S-02 | first-timer-start        | add a project and pick it to start the timer instantly                   | S-01          | FR-001, FR-002, US-01, NFR   | done |
-| S-03 | timer-switch-rounding    | switch the running timer to another project with 15-min-rounded splits   | S-02          | FR-003                       | proposed |
+| S-03 | timer-switch-rounding    | switch the running timer to another project with 15-min-rounded splits   | S-02          | FR-003                       | in-progress |
 | S-04 | timer-stop-and-flags     | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                       | proposed |
 | S-05 | time-corrections         | correct logged time at end of day or start of next day                   | S-03, S-04    | FR-005                       | proposed |
 | S-06 | weekly-grid-summary      | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001               | proposed |
@@ -115,10 +115,10 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Prerequisites:** S-02
 - **Parallel with:** S-04, S-07, S-08
 - **Blockers:** —
-- **Unknowns:**
-  - Rounding rule for sub-15-minute switches (round each segment, or round per-day totals)? — Owner: user. Block: no.
+- **Unknowns:** —
+- **Rounding rule (resolved 2026-09-23):** round each project's tracked time *per day* — not per individual segment — always rounding up to the next 15-minute increment. Implementation is deferred to S-06: the "day" boundary this rule depends on isn't defined yet, since S-06's Mon–Sun timezone question (see its Unknowns) is still open. This slice only records the rule and stores exact raw timestamps.
 - **Risk:** Correctness guardrail (15-minute precision, right project) lives here, so it is sequenced right after the first timer.
-- **Status:** proposed
+- **Status:** in-progress
 
 ### S-04: Stop timer and flag long-running timers
 

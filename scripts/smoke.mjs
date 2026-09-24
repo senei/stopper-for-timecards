@@ -234,6 +234,72 @@ if (!hasServiceAccess) {
     unusedProjectAfterDelete.length === 0,
     `${unusedProjectAfterDelete.length} row(s)`,
   );
+
+  // R-02: switching closes the running entry and opens exactly one new one, through the same HTTP
+  // route a person's browser would hit. "Acme Widgets" is still running from the start checks above.
+  async function timeEntries() {
+    const { json } = await rest(
+      `time_entries?select=id,project_id,project_name,ended_at&link_id=eq.${linkId}&order=started_at.asc`,
+    );
+    return {
+      all: json,
+      open: json.filter((e) => e.ended_at === null),
+      closed: json.filter((e) => e.ended_at !== null),
+    };
+  }
+
+  r = await request(`/w/${token}`);
+  check("the workspace opens while a timer is running", r.status === 200, describeResponse(r));
+
+  r = await request(`/api/w/${token}/timer/switch`, { method: "POST", form: { projectName: "Beta Corp" } });
+  check(
+    "switching the timer redirects back to the workspace",
+    r.status === 303 && r.location === `/w/${token}`,
+    describeResponse(r),
+  );
+
+  let entries = await timeEntries();
+  check(
+    "the switch closes the old entry and leaves exactly one open entry, attributed to the new project",
+    entries.all.length === 2 &&
+      entries.closed.length === 1 &&
+      entries.closed[0].project_name === "Acme Widgets" &&
+      entries.open.length === 1 &&
+      entries.open[0].project_name === "Beta Corp",
+    JSON.stringify(entries.all),
+  );
+
+  r = await request(`/api/w/${token}/timer/switch`, { method: "POST", form: { projectName: "Gamma Inc" } });
+  entries = await timeEntries();
+  check(
+    "a second switch closes the running entry again and still leaves exactly one open entry",
+    r.status === 303 &&
+      entries.all.length === 3 &&
+      entries.closed.length === 2 &&
+      entries.open.length === 1 &&
+      entries.open[0].project_name === "Gamma Inc",
+    JSON.stringify(entries.all),
+  );
+
+  // R-01: switching back to a project by name (any case) reuses its row instead of duplicating it.
+  r = await request(`/api/w/${token}/timer/switch`, { method: "POST", form: { projectName: "acme widgets" } });
+  entries = await timeEntries();
+  check(
+    "switching back by name reopens the original project, not a duplicate",
+    r.status === 303 &&
+      entries.all.length === 4 &&
+      entries.open.length === 1 &&
+      entries.open[0].project_id === usedProjectId &&
+      entries.open[0].project_name === "Acme Widgets",
+    JSON.stringify(entries.open),
+  );
+
+  const { json: projectsAfterSwitches } = await rest(`projects?select=id,name&link_id=eq.${linkId}`);
+  check(
+    "switching created one project per new name and none for the reused one",
+    projectsAfterSwitches.length === 3,
+    `${projectsAfterSwitches.length} project(s)`,
+  );
 }
 
 r = await request(`/w/${"A".repeat(43)}`, { withCookies: false });
