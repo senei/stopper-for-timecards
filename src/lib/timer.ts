@@ -24,25 +24,11 @@ export class NoActiveTimerError extends Error {
   }
 }
 
-/**
- * Starts a timer through the atomic `start_timer` function: finds-or-creates the project by
- * name, then opens a new time entry. `TimerAlreadyRunningError` means the link already has one
- * running — see the partial unique index in `20260922150000_projects_and_timer.sql`.
- */
-export async function startTimer(linkId: string, projectName: string): Promise<StartTimerResult> {
-  const admin = adminOrThrow();
-
-  const response = await admin.rpc("start_timer", { p_link_id: linkId, p_project_name: projectName });
-  if (response.error) {
-    if (response.error.code === "23505") {
-      throw new TimerAlreadyRunningError();
-    }
-    throw new Error(`start_timer failed: ${response.error.message}`);
-  }
-
-  const rows: unknown = response.data;
+/** Validates the single row `start_timer` / `switch_timer` return and maps it to camelCase. */
+function parseTimerRow(fnName: string, data: unknown): StartTimerResult {
+  const rows: unknown = data;
   if (!Array.isArray(rows) || rows.length !== 1) {
-    throw new Error("start_timer returned an unexpected value");
+    throw new Error(`${fnName} returned an unexpected value`);
   }
 
   const row: unknown = rows[0];
@@ -65,7 +51,26 @@ export async function startTimer(linkId: string, projectName: string): Promise<S
       startedAt: row.started_at,
     };
   }
-  throw new Error("start_timer returned an unexpected row");
+  throw new Error(`${fnName} returned an unexpected row`);
+}
+
+/**
+ * Starts a timer through the atomic `start_timer` function: finds-or-creates the project by
+ * name, then opens a new time entry. `TimerAlreadyRunningError` means the link already has one
+ * running — see the partial unique index in `20260922150000_projects_and_timer.sql`.
+ */
+export async function startTimer(linkId: string, projectName: string): Promise<StartTimerResult> {
+  const admin = adminOrThrow();
+
+  const response = await admin.rpc("start_timer", { p_link_id: linkId, p_project_name: projectName });
+  if (response.error) {
+    if (response.error.code === "23505") {
+      throw new TimerAlreadyRunningError();
+    }
+    throw new Error(`start_timer failed: ${response.error.message}`);
+  }
+
+  return parseTimerRow("start_timer", response.data);
 }
 
 /**
@@ -86,32 +91,7 @@ export async function switchTimer(linkId: string, projectName: string): Promise<
     throw new Error(`switch_timer failed: ${response.error.message}`);
   }
 
-  const rows: unknown = response.data;
-  if (!Array.isArray(rows) || rows.length !== 1) {
-    throw new Error("switch_timer returned an unexpected value");
-  }
-
-  const row: unknown = rows[0];
-  if (
-    typeof row === "object" &&
-    row !== null &&
-    "entry_id" in row &&
-    typeof row.entry_id === "string" &&
-    "project_id" in row &&
-    typeof row.project_id === "string" &&
-    "project_name" in row &&
-    typeof row.project_name === "string" &&
-    "started_at" in row &&
-    typeof row.started_at === "string"
-  ) {
-    return {
-      entryId: row.entry_id,
-      projectId: row.project_id,
-      projectName: row.project_name,
-      startedAt: row.started_at,
-    };
-  }
-  throw new Error("switch_timer returned an unexpected row");
+  return parseTimerRow("switch_timer", response.data);
 }
 
 /** The link's currently open (`ended_at is null`) time entry, if any. */

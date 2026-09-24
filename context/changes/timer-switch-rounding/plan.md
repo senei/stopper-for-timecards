@@ -263,6 +263,13 @@ Add the switch affordance to the tracking view and extend the smoke test to cove
 - Error-translation pattern to follow: `src/lib/timer.ts:24-33` (`TimerAlreadyRunningError`)
 - Redirect-driven route shape to follow: `src/pages/api/w/[token]/timer/start.ts`
 
+## Addendum: changes outside the original scope (added after implementation, 2026-09-24)
+
+Recorded from `/10x-impl-review` (F1). Neither item was planned; both were committed separately from the phase commits.
+
+- **`82b2686` — fix: let browsers post the workspace forms.** Phase 3's manual checks could not be run in a browser: the workspace, delete and 404 pages (the last two are S-02 code) sent `Referrer-Policy: no-referrer`, so browsers sent `Origin: null` on form posts and Astro's origin check answered every post with a 403. Changed to `strict-origin` on the three pages, plus a smoke assertion on the workspace's header (`scripts/smoke.mjs`). The bug pre-dates this change (shipped with S-02).
+- **`52903c4` — chore: local smoke runner.** `scripts/smoke-local.mjs` (`npm run smoke:local`), a README line, an npm script, a `.gitignore` entry, and the `[inbucket]` to `[local_smtp]` rename in `supabase/config.toml`. Added so Phase 3's smoke gate (3.1) could be run locally in one command.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.

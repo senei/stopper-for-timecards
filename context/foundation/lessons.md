@@ -15,3 +15,10 @@
 - **Problem**: `drop column project` was safe only by accident (the next statement's NOT NULL column addition happened to abort the migration on a non-empty table), not by an explicit assertion.
 - **Rule**: Before a migration drops or destructively alters a column on a table that might contain rows, add an explicit precondition check (e.g. a do $$ ... raise exception ... block asserting the table is empty) rather than relying on an incidental NOT NULL constraint elsewhere in the same migration to catch a non-empty table.
 - **Applies to**: implement
+
+## A page served with `Referrer-Policy: no-referrer` cannot submit forms in a browser under Astro's origin check
+
+- **Context**: src/pages/w/[token].astro:14, delete.astro:10, 404.astro:5 (fixed in 82b2686) — any Astro SSR page that sets a Referrer-Policy header and contains a `<form method="post">`.
+- **Problem**: Under `no-referrer`, browsers send `Origin: null` on same-origin form posts (verified in Chrome: no-referrer gave null, strict-origin gave the real origin). Astro's default `security.checkOrigin` rejects that with a 403 "Cross-site POST form submissions are forbidden" before route code runs, so the browser lands on the /api URL showing that text. scripts/smoke.mjs sets Origin on every request, so smoke and curl checks pass while a real browser cannot submit the form; it shipped with S-02 and was found only by manual testing in timer-switch-rounding Phase 3.
+- **Rule**: Use `Referrer-Policy: strict-origin` (never `no-referrer`) on any page that contains a form: it keeps the token out of Referer and still sends a correct Origin. Verify every new form by submitting it in a real browser, not only with smoke or curl, which set Origin themselves.
+- **Applies to**: plan, implement, review

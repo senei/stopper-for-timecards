@@ -59,6 +59,7 @@ async function request(path, { method = "GET", form, json, withCookies = true } 
     location: response.headers.get("location") ?? "",
     referrerPolicy: response.headers.get("referrer-policy") ?? "",
     setsLinkCookie,
+    text: await response.text(),
   };
 }
 
@@ -267,6 +268,18 @@ if (!hasServiceAccess) {
       entries.open.length === 1 &&
       entries.open[0].project_name === "Beta Corp",
     JSON.stringify(entries.all),
+  );
+
+  // The switch list is one hidden-input form per project; the running project must not be among them.
+  r = await request(`/w/${token}`);
+  const switchTargets = [...r.text.matchAll(/<input[^>]*type="hidden"[^>]*value="([^"]*)"/g)].map((m) => m[1]);
+  check(
+    "while tracking, the workspace offers the other projects to switch to but not the running one",
+    r.status === 200 &&
+      r.text.includes("Switch to a different project") &&
+      switchTargets.includes("Acme Widgets") &&
+      !switchTargets.includes("Beta Corp"),
+    JSON.stringify(switchTargets),
   );
 
   r = await request(`/api/w/${token}/timer/switch`, { method: "POST", form: { projectName: "Gamma Inc" } });

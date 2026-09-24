@@ -5,6 +5,8 @@
 //   npm run smoke:local -- --serve       reset the DB and start the dev server for manual testing (Ctrl+C to stop)
 //   npm run smoke:local -- --dry-run     read Supabase status and print what would happen; changes nothing
 //   npm run smoke:local -- --restore     stop the dev server and put .env / .dev.vars back after an interrupted run
+//                                        (runs `astro dev stop`, so it stops ANY running Astro dev server, including one
+//                                        you started yourself)
 //
 // Options: --yes (no confirmation prompt), --skip-check (skip the `astro check` Vite cache warm-up),
 //          --keep-data (do not reset the DB again after the smoke run).
