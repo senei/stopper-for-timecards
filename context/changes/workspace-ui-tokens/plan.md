@@ -448,13 +448,13 @@ The kitchen-sink route ships in the Workers bundle and answers 404 outside devel
 
 #### Automated
 
-- [x] 5.1 Lint and type check pass: `npm run lint`, `npx astro check`
-- [x] 5.2 Build passes: `npm run build`
-- [x] 5.3 No legacy or literal styling remains in the pages, styles or components
-- [x] 5.4 Smoke passes against a locally running dev server with a freshly reset database
+- [x] 5.1 Lint and type check pass: `npm run lint`, `npx astro check` — 4aeed0a
+- [x] 5.2 Build passes: `npm run build` — 4aeed0a
+- [x] 5.3 No legacy or literal styling remains in the pages, styles or components — 4aeed0a
+- [x] 5.4 Smoke passes against a locally running dev server with a freshly reset database — 4aeed0a
 
 #### Manual
 
-- [x] 5.5 Landing, 404 and delete pages render as a white card on the light-gray page at desktop and 390px
-- [x] 5.6 Creating a link from the landing page and confirming a project delete work end to end in a browser
-- [x] 5.7 The Turnstile widget is readable on the light page
+- [x] 5.5 Landing, 404 and delete pages render as a white card on the light-gray page at desktop and 390px — 4aeed0a
+- [x] 5.6 Creating a link from the landing page and confirming a project delete work end to end in a browser — 4aeed0a
+- [x] 5.7 The Turnstile widget is readable on the light page — 4aeed0a
