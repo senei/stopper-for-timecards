@@ -1,10 +1,10 @@
 ---
 change_id: workspace-ui-tokens
 title: Workspace ui tokens
-status: implemented
+status: archived
 created: 2026-09-24
 updated: 2026-09-25
-archived_at: null
+archived_at: 2026-09-25T06:02:23Z
 ---
 
 ## Notes
