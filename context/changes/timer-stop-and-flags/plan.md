@@ -284,13 +284,13 @@ Purely additive: one new function, no table, index or data changes, so no backfi
 #### Automated
 
 - [ ] 3.1 Linting passes: `npm run lint`
-- [x] 3.2 Type checking passes: `npx astro check`
-- [x] 3.3 Production build succeeds: `npm run build`
-- [x] 3.4 Smoke passes against a reset local database, including the new stop, restart and flag checks: `npm run smoke:local`
+- [x] 3.2 Type checking passes: `npx astro check` — 20bfeee
+- [x] 3.3 Production build succeeds: `npm run build` — 20bfeee
+- [x] 3.4 Smoke passes against a reset local database, including the new stop, restart and flag checks: `npm run smoke:local` — 20bfeee
 
 #### Manual
 
-- [x] 3.5 In a real browser, clicking Stop on a running timer returns to the start screen with the "Timer stopped." banner (proves the form passes Astro's origin check, per the lesson)
-- [x] 3.6 With a local timer whose `started_at` is pushed back 13 hours in SQL, the workspace shows the warning naming 13 hours above the Stop button; Stop closes it; a freshly started timer shows no warning
-- [x] 3.7 Stopping and then starting the same project again works
-- [x] 3.8 The kitchen-sink "tracking" state shows no warning and the new "tracking, flagged" state shows the warning, both readable in light and dark themes
+- [x] 3.5 In a real browser, clicking Stop on a running timer returns to the start screen with the "Timer stopped." banner (proves the form passes Astro's origin check, per the lesson) — 20bfeee
+- [x] 3.6 With a local timer whose `started_at` is pushed back 13 hours in SQL, the workspace shows the warning naming 13 hours above the Stop button; Stop closes it; a freshly started timer shows no warning — 20bfeee
+- [x] 3.7 Stopping and then starting the same project again works — 20bfeee
+- [x] 3.8 The kitchen-sink "tracking" state shows no warning and the new "tracking, flagged" state shows the warning, both readable in light and dark themes — 20bfeee
