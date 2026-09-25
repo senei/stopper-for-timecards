@@ -12,6 +12,8 @@ Let a person permanently delete every project, every logged time entry, their ac
 - S-09 (delete project) shipped the pattern to copy: confirm page, POST route that re-derives the link from the URL token, typed error, pgTAP test and smoke steps.
 - `clearLinkCookie` already exists (`src/lib/link-cookie.ts:20`). `WorkspaceCard.astro` has a "Your private link" block at the bottom where the entry point belongs.
 - The comment in `supabase/migrations/20260922100433_access_log_link_fk.sql:5-8` says links are never deleted. FR-010 makes that untrue.
+- `context/foundation/infrastructure.md:90-98` already documents the same four deletes, in the same order, as an owner-only support runbook (raw SQL, no locks) and says to plan S-10 if the need becomes routine. It will drift from `delete_account` unless it is pointed at the function.
+- `context/foundation/infrastructure.md:112` says `access_log` exists so a leaked link can be investigated. Deleting the rows (decided in planning) means a holder of a leaked link can delete the victim's data and erase that trail in one action; this is accepted and recorded in the brief.
 
 ## Desired End State
 
@@ -36,6 +38,8 @@ Verify with the pgTAP tests, the smoke script over real HTTP, and a manual pass 
 - No rate limiting, undo, soft delete or grace period.
 - No change to `context/foundation/test-plan.md`, and no edit to the archived audit or to existing migration files (the stale comment is superseded by a new migration).
 - No touching link regeneration; the parallel `link-regeneration` change owns that.
+- No purge of data outside the app's database: Supabase backups keep deleted rows until they roll off, and Cloudflare request logs (live tail only) contain the token in the URL and the IP. "Deleted" means deleted from Stopper's database.
+- No retention job for `access_log`. Hits on a deleted link's old URL still log a `not_found` row with the IP and user-agent, as any unknown token does today; a retention job would be its own slice.
 
 ## Implementation Approach
 
@@ -43,14 +47,14 @@ Database first, so the irreversible logic is tested before any UI exists. One `s
 
 ## Critical Implementation Details
 
-- **State sequencing:** the function deletes `time_entries`, then `projects`, then `access_log`, then `links`. Deleting `projects` before `time_entries` fails on the `NO ACTION` foreign key. It returns `false` (and has deleted nothing) when the link id doesn't exist.
+- **State sequencing:** the function deletes `time_entries`, then `projects`, then `access_log`, then `links`. Deleting `projects` before `time_entries` fails on the `NO ACTION` foreign key. It first takes the advisory lock and then a `for update` row lock on the link: every workspace view inserts an `access_log` row without the timer lock, and without the row lock such an insert committing mid-delete would fail the final link delete with `23503` and roll the whole call back. It returns `false` (and has deleted nothing) when the link id doesn't exist.
 - **State sequencing:** the route clears the link cookie only when the cookie's token equals the deleted token; deleting via someone else's shared link must not log out the visitor's own.
 
 ## Phase 1: Database function
 
 ### Overview
 
-Add the atomic delete function, prove it with pgTAP, and supersede the stale "links are never deleted" note.
+Add the atomic delete function, prove it with pgTAP, supersede the stale "links are never deleted" note, and bring the owner-side runbook in line with the function.
 
 ### Changes Required:
 
@@ -60,7 +64,7 @@ Add the atomic delete function, prove it with pgTAP, and supersede the stale "li
 
 **Intent**: Create `delete_account` and record that the old "links are never deleted" note is superseded, without editing the archived migration.
 
-**Contract**: `delete_account(p_link_id uuid) returns boolean`, `security definer`, `set search_path = public`. Takes `pg_advisory_xact_lock(hashtext('public.timer:' || p_link_id::text))`, then deletes from `time_entries`, `projects`, `access_log` (all `where link_id = p_link_id`) and finally `links where id = p_link_id`, returning whether the link row existed. `revoke execute ... from public, anon, authenticated; grant execute ... to service_role` as in `create_link`. Also `comment on constraint access_log_link_id_fkey on access_log` stating that FR-010 now deletes links through `delete_account`. No drops or column changes, so the lessons.md precondition rule does not apply.
+**Contract**: `delete_account(p_link_id uuid) returns boolean`, `security definer`, `set search_path = public`. Takes `pg_advisory_xact_lock(hashtext('public.timer:' || p_link_id::text))`, then locks the link row with `select id from public.links where id = p_link_id for update` and returns `false` at once when there is none. Only then deletes from `time_entries`, `projects`, `access_log` (all `where link_id = p_link_id`) and finally `links where id = p_link_id`, returning `true`. `revoke execute ... from public, anon, authenticated; grant execute ... to service_role` as in `create_link`. Also `comment on constraint access_log_link_id_fkey on access_log` stating that FR-010 now deletes links through `delete_account`. No drops or column changes, so the lessons.md precondition rule does not apply.
 
 #### 2. pgTAP test
 
@@ -70,12 +74,21 @@ Add the atomic delete function, prove it with pgTAP, and supersede the stale "li
 
 **Contract**: Fixed link ids distinct from other tests. Cases: (a) a link with projects, an open entry, a closed entry and access_log rows is fully removed and the function returns `true`; (b) a second link's rows in all four tables are untouched; (c) an unknown link id returns `false` and changes nothing; (d) the links count drops by one, so the cap slot is free; (e) `anon` and `authenticated` cannot execute it and `service_role` can, via `has_function_privilege` as in `projects_and_timer.test.sql:68-82`.
 
+#### 3. Owner-only runbook
+
+**File**: `context/foundation/infrastructure.md` (the "Owner-only data deletion" bullet, lines 90-98)
+
+**Intent**: Keep the one documented owner-side removal in step with the function, instead of four raw `delete` statements that skip the locks and will drift as tables are added.
+
+**Contract**: Replace the four statements with `select public.delete_account('<link-id>');` (returns `true` if the link existed, `false` otherwise), stating that it is the same function the S-10 route calls. Reword the "never build this into the app" sentence so it covers owner-initiated removal only; the S-10 route lets a link holder delete their own data, which does not recreate an admin role. Drop the "if this need becomes routine, plan S-10" sentence, since S-10 is now planned. Documentation only; no other line in that file changes.
+
 ### Success Criteria:
 
 #### Automated Verification:
 
 - Migration applies cleanly on a reset database: `npx supabase db reset`
 - All database tests pass, including the new file: `npx supabase test db`
+- The owner-only runbook calls the function and no longer lists raw deletes: `grep -n "delete_account" context/foundation/infrastructure.md`
 
 #### Manual Verification:
 
@@ -123,7 +136,7 @@ The app-side pieces with no UI: the phrase check, the RPC wrapper, status messag
 
 **Intent**: The only way an account is deleted. Re-derives the link from the URL token like `projects/[projectId]/delete.ts`, checks the phrase on the server, deletes, clears the cookie, redirects.
 
-**Contract**: `POST` only (`ALL` returns 405 with `Allow: POST`). Order: malformed token rewrites to `/404`; link lookup failure returns 503; unknown link rewrites to `/404`; phrase from the `confirmation` form field fails `isDeleteConfirmed` redirects 303 to `/w/<token>/delete-account?error=confirm-mismatch` with nothing deleted; `deleteAccount` returning `false` rewrites to `/404`; an exception logs to the console (no ids) and redirects 303 to the confirm page with `error=1`; success clears the link cookie only if `cookies.get(LINK_COOKIE)?.value === token`, then redirects 303 to `/?status=account-deleted`. The success path logs one console line with no ids.
+**Contract**: `POST` only (`ALL` returns 405 with `Allow: POST`). Order: malformed token rewrites to `/404`; link lookup failure returns 503; unknown link rewrites to `/404`; the phrase is read from the `confirmation` form field the way `timer/start.ts:33-39` reads `projectName` (a body that isn't a form counts as an empty phrase, never a 500); a phrase that fails `isDeleteConfirmed` redirects 303 to `/w/<token>/delete-account?error=confirm-mismatch` with nothing deleted; `deleteAccount` returning `false` rewrites to `/404`; an exception logs to the console (no ids) and redirects 303 to the confirm page with `error=1`; success clears the link cookie only if `cookies.get(LINK_COOKIE)?.value === token`, then redirects 303 to `/?status=account-deleted`. The success path logs one console line with no ids.
 
 ### Success Criteria:
 
@@ -155,7 +168,7 @@ The confirm page, the entry point on the workspace, and the success banner on th
 
 **Intent**: A confirm page modeled on `projects/[projectId]/delete.astro` that explains what will be lost and asks for the typed phrase.
 
-**Contract**: Same headers (`Referrer-Policy: strict-origin`, `Cache-Control: no-store`, `X-Robots-Tag: noindex`) and the same token, lookup and 503/404 handling. Copy states that every project, time entry and the private link are deleted permanently, that it frees the person's spot, and that it can't be undone. A form posts to `/api/w/<token>/delete-account` with one text input named `confirmation` (labelled with the phrase, `autocomplete="off"`, `required`), a destructive submit button and a Cancel link back to `/w/<token>`. Shows the `error` query param through `errorMessage` in a destructive `Alert`.
+**Contract**: Same headers (`Referrer-Policy: strict-origin`, `Cache-Control: no-store`, `X-Robots-Tag: noindex`) and the same token, lookup and 503/404 handling. Copy states that every project, time entry and the private link are deleted permanently from Stopper, that it frees the person's spot, and that it can't be undone. It claims only what the app controls: it does not say that backups or platform logs are erased. A form posts to `/api/w/<token>/delete-account` with one text input named `confirmation` (labelled with the phrase, `autocomplete="off"`, `required`), a destructive submit button and a Cancel link back to `/w/<token>`. Shows the `error` query param through `errorMessage` in a destructive `Alert`.
 
 #### 2. Entry point
 
@@ -171,7 +184,7 @@ The confirm page, the entry point on the workspace, and the success banner on th
 
 **Intent**: Show the "deleted" confirmation after the redirect.
 
-**Contract**: Read `status` from the query, map it with `statusMessage`, and render a success `Alert` (`variant="success"`, `role="status"`) above the create form when present.
+**Contract**: Read `status` from the query, map it with `statusMessage`, and render a success `Alert` (`variant="success"`, `role="status"`) above the create form when present. When `status` maps to a message, skip the auto-redirect to a remembered workspace (`index.astro:11-14`) so the banner is shown even to a browser that holds a different valid link; its create button still returns that browser to its own workspace through `/api/links`.
 
 ### Success Criteria:
 
@@ -205,7 +218,13 @@ Prove the whole flow over real HTTP with the smoke script, then once in a real b
 
 **Intent**: Extend the existing script, inside the `hasServiceAccess` block after the access-log and anon checks so the earlier cap steps are undisturbed.
 
-**Contract**: Using the first link (which has projects, entries and access_log rows; hoist its `linkId`, currently block-scoped, or re-query by token hash): a wrong phrase gives 303 to `/w/<token>/delete-account?error=confirm-mismatch` and all rows remain; deleting the second (10th) link while the jar's cookie is the first token leaves `stopper_link` in the jar; the right phrase on the first link gives 303 to `/?status=account-deleted`, removes its rows from `time_entries`, `projects`, `access_log` and `links`, removes `stopper_link` from the jar, and `GET /w/<token>` is then 404; the other link still opens; and creating a new link now succeeds where it would have been "full" before.
+**Contract**: The script has exactly 10 links at that point (`scripts/smoke.mjs:341-370`; the jar's `stopper_link` is the first link's token, and the throttle allows 3 creations per 10 minutes). Hoist the first link's `linkId` (currently block-scoped) or re-query it by token hash. In order:
+
+1. `GET /w/<token>/delete-account` on the first link returns 200 with `Referrer-Policy: strict-origin` (the guard `lessons.md` asks for on form pages).
+2. A wrong phrase, and a JSON body, each give 303 to `/w/<token>/delete-account?error=confirm-mismatch`, and every row of the first link remains.
+3. Delete the 10th (second-created) link with the right phrase while the jar still holds the first link's cookie: 303 to `/?status=account-deleted`, `stopper_link` stays in the jar, `GET /?status=account-deleted` with that jar returns 200 showing the banner (no redirect), and the link count goes 10 to 9.
+4. Create a new link (9 to 10, succeeds), then create again and expect `/?full=1`; this is the cap-slot proof.
+5. Delete the first link with the right phrase: 303 to `/?status=account-deleted`, its rows are gone from `time_entries`, `projects`, `access_log` and `links`, `stopper_link` is removed from the jar, `GET /w/<token>` is 404, and other links still open.
 
 ### Success Criteria:
 
@@ -249,6 +268,10 @@ None. The delete touches one person's rows behind indexed `link_id` columns.
 
 Additive only: one new function and one constraint comment. No existing data changes and no rollback beyond dropping the function.
 
+**Production rollout order.** Push the migration to the remote Supabase project first (`npx supabase db push`, human-run, against the direct connection on port 5432 per `context/deployment/deployment-plan.md:185`), then deploy the Worker. Deploying the route first would call a function that doesn't exist and show every user the generic error. A Worker rollback (`wrangler rollback`) does not revert the migration; schema changes are a separate rollback surface (`infrastructure.md:88`), and here dropping the function is enough.
+
+**Production check.** `scripts/smoke.mjs` refuses to run off localhost, so verify in production by hand: create a throwaway link, delete it through the confirm page, and confirm the old URL returns 404. This is safe now because deleting frees the slot, which earlier throwaway links could not.
+
 ## References
 
 - Related research: `context/changes/delete-account/research.md`
@@ -267,10 +290,11 @@ Additive only: one new function and one constraint comment. No existing data cha
 
 - [ ] 1.1 Migration applies cleanly on a reset database: `npx supabase db reset`
 - [ ] 1.2 All database tests pass, including the new file: `npx supabase test db`
+- [ ] 1.3 The owner-only runbook calls the function and no longer lists raw deletes: `grep -n "delete_account" context/foundation/infrastructure.md`
 
 #### Manual
 
-- [ ] 1.3 `\d+ access_log` in psql shows the new constraint comment on `access_log_link_id_fkey`
+- [ ] 1.4 `\d+ access_log` in psql shows the new constraint comment on `access_log_link_id_fkey`
 
 ### Phase 2: Server logic
 
@@ -282,7 +306,7 @@ Additive only: one new function and one constraint comment. No existing data cha
 
 #### Manual
 
-- [ ] 2.4 Posting to the route with `curl`: a wrong phrase redirects to the confirm page with `error=confirm-mismatch` and keeps the data; the right phrase redirects to `/?status=account-deleted` and removes the rows
+- [ ] 2.4 With the dev server and a local database, posting to the route with `curl` and a wrong phrase returns 303 to the confirm page with `error=confirm-mismatch` and leaves the data intact; the right phrase returns 303 to `/?status=account-deleted` and the rows are gone
 
 ### Phase 3: UI
 
@@ -295,7 +319,7 @@ Additive only: one new function and one constraint comment. No existing data cha
 #### Manual
 
 - [ ] 3.4 The workspace shows "Delete all my data" below the private link and it opens the confirm page
-- [ ] 3.5 In a real browser, the confirm form submits without a 403 and a wrong phrase shows the mismatch message on the same page
+- [ ] 3.5 In a real browser, submitting the confirm form works (no 403 from Astro's origin check) and a wrong phrase shows the mismatch message on the same page
 - [ ] 3.6 The confirm page and banner hold up at phone width
 
 ### Phase 4: End-to-end check
@@ -306,5 +330,5 @@ Additive only: one new function and one constraint comment. No existing data cha
 
 #### Manual
 
-- [ ] 4.2 In a real browser: start a timer, delete everything with the typed phrase, land on the home page with the success message, and get 404 on the old workspace URL
-- [ ] 4.3 The home page offers to create a new link, and the 10-person cap has one free slot
+- [ ] 4.2 In a real browser: start a timer, delete everything with the typed phrase, land on the home page with the success message, and reload the old workspace URL to get 404
+- [ ] 4.3 The home page then offers to create a new link, and the 10-person cap has one free slot

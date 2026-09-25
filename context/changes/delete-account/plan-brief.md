@@ -24,15 +24,15 @@ From the workspace, a person opens "Delete all my data", types `delete my data`,
 | `ON DELETE CASCADE` | Rejected                                                                     | It would let deleting a project wipe its time entries, breaking FR-009, and is one-way.   | Plan     |
 | `access_log` rows   | Deleted with the link                                                        | FR-010 says "all of their own data" and the rows hold IP and user-agent.                  | Plan     |
 | Deletion audit      | None in the database; one console line with no ids                           | Nothing identifying should survive a delete-everything action.                            | Plan     |
-| Concurrency         | Function takes the per-link `public.timer:` advisory lock                    | Serializes with `start_timer` and `switch_timer`.                                         | Research |
+| Concurrency         | Function takes the per-link `public.timer:` advisory lock, then a row lock   | Serializes with timer functions and with `access_log` inserts from page views.            | Plan     |
 | Cookie              | Cleared only when it equals the deleted token                                | Deleting via a shared link must not log out the visitor's own link.                       | Plan     |
 | Code placement      | New `src/lib/account.ts` and `src/lib/delete-confirmation.ts`                | Avoids conflicts with the parallel link-regeneration change touching `links.ts`.          | Plan     |
 
 ## Scope
 
-**In scope:** the migration and pgTAP test, phrase check, RPC wrapper, POST route, confirm page, workspace entry point, home-page banner, smoke steps, superseding the stale "links are never deleted" comment.
+**In scope:** the migration and pgTAP test, phrase check, RPC wrapper, POST route, confirm page, workspace entry point, home-page banner, smoke steps, superseding the stale "links are never deleted" comment, and pointing the owner-only runbook in `infrastructure.md` at the new function.
 
-**Out of scope:** cascades or foreign key changes, a deletion audit record, keeping anonymized access-log rows, running-timer warning, rate limiting, undo or soft delete, editing `test-plan.md` or archived files.
+**Out of scope:** cascades or foreign key changes, a deletion audit record, keeping anonymized access-log rows, running-timer warning, rate limiting, undo or soft delete, purging backups or platform logs, an `access_log` retention job, editing `test-plan.md` or archived files.
 
 ## Architecture / Approach
 
@@ -42,7 +42,7 @@ A confirm page at `/w/<token>/delete-account` posts to `/api/w/<token>/delete-ac
 
 | Phase                  | What it delivers                                              | Key risk                                             |
 | ---------------------- | ------------------------------------------------------------- | ---------------------------------------------------- |
-| 1. Database function   | `delete_account` migration and pgTAP test                     | Wrong delete order or missed table leaves a `23503`  |
+| 1. Database function   | `delete_account` migration, pgTAP test, runbook update        | Wrong delete order or missed table leaves a `23503`  |
 | 2. Server logic        | Phrase check, RPC wrapper, messages, POST route               | Route deleting without a correct phrase              |
 | 3. UI                  | Confirm page, workspace entry point, home-page banner         | Form blocked by Astro's origin check in a browser    |
 | 4. End-to-end check    | Smoke steps plus a real-browser pass                          | Smoke ordering disturbing the existing cap steps     |
@@ -55,6 +55,9 @@ A confirm page at `/w/<token>/delete-account` posts to `/api/w/<token>/delete-ac
 - The parallel `link-regeneration` change likely edits `WorkspaceCard.astro`; the entry point is kept to one contiguous block to limit conflicts.
 - Anyone holding the link can delete everything; that follows the accepted no-accounts model, and the typed phrase is the only guard.
 - A timer start racing a delete fails with the generic error and the token then 404s; accepted as harmless.
+- Deleting the `access_log` rows removes the trail `infrastructure.md:112` keeps for investigating leaked links: a holder of a leaked link can delete the victim's data and that trail in one action. Accepted in planning; the typed phrase is the only guard.
+- "Deleted" covers Stopper's database only. Supabase backups and Cloudflare request logs are outside the app, so the confirm-page copy must not claim otherwise.
+- Rollout order matters: push the migration to the remote Supabase project before deploying the Worker, or every user sees the generic error. The production check is by hand, since smoke refuses to run off localhost.
 
 ## Success Criteria (Summary)
 

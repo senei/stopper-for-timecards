@@ -1,7 +1,7 @@
 ---
 change_id: delete-account
 title: Delete all own data and the private link (S-10)
-status: planned
+status: plan_reviewed
 created: 2026-09-25
 updated: 2026-09-25
 archived_at: null

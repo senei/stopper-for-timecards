@@ -43,7 +43,8 @@ Owner is the user unless noted.
 Small items surfaced by the audit that are not tied to a product decision.
 
 - [ ] **Fix the stale comment** in `supabase/migrations/20260922100433_access_log_link_fk.sql:5-8`. It says links are never deleted by any code path, "by design, see FR-007". FR-010 adds exactly that path. Do this in a new migration or comment change, not by editing history.
-- [ ] **Apply the migration precondition rule** from `context/foundation/lessons.md` (recorded after finding F2 of the first-timer-start review) to any destructive migration this change adds. F2 itself stays accepted for the shipped S-02 migration.
+- [x] **Migration precondition rule** from `context/foundation/lessons.md` does not apply: `delete_account` drops no column and restructures no table. F2 itself stays accepted for the shipped S-02 migration.
+- [ ] **Owner-only runbook** in `context/foundation/infrastructure.md:90-98` lists the same four raw deletes; point it at `delete_account` (plan Phase 1, change 3).
 - [x] **FR-007 wording** already says it is superseded by FR-010 (`context/foundation/prd.md:80`); nothing to change.
 
 ## Related
