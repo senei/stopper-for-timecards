@@ -200,10 +200,10 @@ With `SMOKE_LOCAL_PORT` unset the script behaves as before (port 4321), so exist
 
 #### Automated
 
-- [x] 2.1 Formatting passes: `npx prettier --check README.md context/foundation/parallel-goals.md`
-- [x] 2.2 The false claim is gone from the docs and script: `grep -rnE "stops (any|every) Astro dev server" README.md context/foundation/parallel-goals.md scripts/smoke-local.mjs` prints nothing
+- [x] 2.1 Formatting passes: `npx prettier --check README.md context/foundation/parallel-goals.md` — 5d10ac1
+- [x] 2.2 The false claim is gone from the docs and script: `grep -rnE "stops (any|every) Astro dev server" README.md context/foundation/parallel-goals.md scripts/smoke-local.mjs` prints nothing — 5d10ac1
 
 #### Manual
 
-- [x] 2.3 README, the script header and `parallel-goals.md` agree with what Phase 1 verified: variable name, default, `--restore` behaviour, and the slot Astro ports 4322 and 4323 used as `SMOKE_LOCAL_PORT` values
-- [x] 2.4 `lessons.md` is unchanged, and the two clauses to correct by hand (lines 28 and 29) are quoted in the phase report for the user
+- [x] 2.3 README, the script header and `parallel-goals.md` agree with what Phase 1 verified: variable name, default, `--restore` behaviour, and the slot Astro ports 4322 and 4323 used as `SMOKE_LOCAL_PORT` values — 5d10ac1
+- [x] 2.4 `lessons.md` is unchanged, and the two clauses to correct by hand (lines 28 and 29) are quoted in the phase report for the user — 5d10ac1
