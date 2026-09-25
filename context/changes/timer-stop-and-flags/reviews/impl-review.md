@@ -51,7 +51,7 @@ Manual rows: 1.3, 2.4, 3.6 have script or query evidence; 3.5, 3.7, 3.8 rest on 
   - Tradeoff: Rewrites 2 already-pushed commits and needs a force-push.
   - Confidence: MEDIUM — unknown whether anyone else built on the pushed branch.
   - Blind spot: Same roadmap.md conflict, replayed per commit.
-- **Decision**: PENDING
+- **Decision**: FIXED via Fix A — main merged into the branch with no conflicts (roadmap.md auto-merged: S-04 in-progress, S-08 done). Re-verified on the merged tree: vitest 53/53, astro check 0 errors, build OK, pgTAP 81/81 across 6 files (includes S-08's purge tests), smoke passed
 
 ### F2 — Row 3.1 is ticked while `npm run lint` still exits 1
 
