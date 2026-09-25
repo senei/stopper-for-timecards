@@ -36,3 +36,10 @@
 - **Problem**: Rows 3.5 (real-browser Stop), 3.7 (restart after stop) and 3.8 (kitchen sink in light and dark themes) were ticked on the user's confirmation alone; nothing in the diff or the review shows them. The rows checked by script (2.4, 3.6) carry their own evidence.
 - **Rule**: When a manual Progress row is ticked on the user's confirmation alone, say so in the phase commit body (for example "3.5, 3.7 and 3.8 confirmed by the user") so the review can tell confirmed-by-person rows from script-verified ones.
 - **Applies to**: implement, impl-review
+
+## Clear the ESLint cache if unresolved-type errors appear only in cached runs
+
+- **Context**: `npm run lint` (type-aware `strictTypeChecked`, run with `--cache --cache-strategy content`, cache in node_modules/.cache/eslint/) in a fresh git worktree, or after generated types (`astro sync`) or dependencies change.
+- **Problem**: The first lint run in a new worktree happened before Astro's generated types (.astro/types.d.ts) existed, so `import.meta.env` resolved to an error type and 8 `@typescript-eslint/no-unsafe-*` errors were cached. The content cache keys on file content and config, not on type information, so unchanged files replayed those errors on every later run, even after `astro sync`, while a direct uncached `npx eslint <file>` on the same files was clean. It looked like a repo bug and produced a follow-up change (fix-eslint-env-typing).
+- **Rule**: In a fresh worktree, run `npx astro sync` before the first `npm run lint`; if lint reports `error typed` or unresolved-type errors that a direct `npx eslint <file>` does not, delete node_modules/.cache/eslint/ and re-run before treating them as real.
+- **Applies to**: implement, impl-review

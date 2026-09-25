@@ -61,7 +61,7 @@ Manual rows: 1.3, 2.4, 3.6 have script or query evidence; 3.5, 3.7, 3.8 rest on 
 - **Location**: plan.md Progress row 3.1 and the Phase 3 note
 - **Detail**: Lint at HEAD reports 8 errors (`@typescript-eslint/no-unsafe-*`, all `import.meta.env` resolving to an error type) in src/lib/link-cookie.ts, src/lib/supabase-admin.ts, src/pages/api/links.ts and src/pages/index.astro, plus one no-console warning in workers/purge-job. None is in a file this change modified; those four files are identical to main. The row was ticked on the user's instruction, with a note in the plan, and the errors are tracked as the separate change `fix-eslint-env-typing` (e00de16).
 - **Fix**: Leave as is; resolve `fix-eslint-env-typing` and re-run `npm run lint` before or after archiving.
-- **Decision**: FIXED — nothing to edit: the tick and its plan note stay, and `fix-eslint-env-typing` is the resolution path
+- **Decision**: FIXED — nothing to edit: the tick and its plan note stay, and `fix-eslint-env-typing` is the resolution path. Update: resolved, the errors were stale ESLint cache entries; after clearing the cache `npm run lint` exits 0 from a cold cache
 
 ### F3 — Changes outside the plan's file list
 
