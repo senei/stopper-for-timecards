@@ -215,6 +215,8 @@ Show the Stop button and the long-running warning, keep the kitchen-sink states 
 - Stopping and then starting the same project again works
 - The kitchen-sink "tracking" state shows no warning and the new "tracking, flagged" state shows the warning, both readable in light and dark themes
 
+**Note (2026-09-25):** Progress row 3.1 was ticked on the user's instruction although `npm run lint` still exits non-zero. Everything this change touched lints clean; the remaining 8 errors are `import.meta.env` typing errors in four files identical to `main` (src/lib/link-cookie.ts, src/lib/supabase-admin.ts, src/pages/api/links.ts, src/pages/index.astro). They are tracked as the separate change `fix-eslint-env-typing`.
+
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase. Phase blocks use plain bullets — the corresponding `- [ ]` checkboxes for these items live in the `## Progress` section at the bottom of the plan.
 
 ---
@@ -283,7 +285,7 @@ Purely additive: one new function, no table, index or data changes, so no backfi
 
 #### Automated
 
-- [ ] 3.1 Linting passes: `npm run lint`
+- [x] 3.1 Linting passes: `npm run lint` — 20bfeee
 - [x] 3.2 Type checking passes: `npx astro check` — 20bfeee
 - [x] 3.3 Production build succeeds: `npm run build` — 20bfeee
 - [x] 3.4 Smoke passes against a reset local database, including the new stop, restart and flag checks: `npm run smoke:local` — 20bfeee
