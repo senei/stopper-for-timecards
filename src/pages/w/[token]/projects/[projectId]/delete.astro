@@ -1,4 +1,6 @@
 ---
+import PageCard from "@/components/PageCard.astro";
+import { Button, buttonVariants } from "@/components/ui/button";
 import Layout from "@/layouts/Layout.astro";
 import { isWellFormedToken } from "@/lib/link-token";
 import { findLinkByToken } from "@/lib/links";
@@ -47,39 +49,29 @@ const deleteAction = `/api/w/${token}/projects/${projectId}/delete`;
 ---
 
 <Layout title="Delete project">
-  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
-    <div class="w-full max-w-xl rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
-      {unavailable ? (
-        <>
-          <h1 class="mb-4 text-2xl font-bold">Temporarily unavailable</h1>
-          <p class="text-blue-100/80">We could not load your workspace right now. Please try again in a moment.</p>
-        </>
-      ) : (
-        <>
-          <h1 class="mb-4 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
-            Delete project
-          </h1>
-          <p class="text-blue-100/80">
-            Delete <span class="font-semibold text-white">{project?.name}</span>? This can't be undone.
-          </p>
-          <div class="mt-6 flex gap-2">
-            <form method="post" action={deleteAction}>
-              <button
-                type="submit"
-                class="rounded-lg border border-red-400/30 bg-red-500/20 px-4 py-2 text-sm whitespace-nowrap text-red-100 transition-colors hover:bg-red-500/30"
-              >
-                Confirm delete
-              </button>
-            </form>
-            <a
-              href={cancelUrl}
-              class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm whitespace-nowrap text-white transition-colors hover:bg-white/20"
-            >
-              Cancel
-            </a>
-          </div>
-        </>
-      )}
-    </div>
-  </div>
+  <PageCard>
+    {unavailable ? (
+      <>
+        <h1 class="mb-4 text-2xl font-bold text-heading">Temporarily unavailable</h1>
+        <p class="text-muted-foreground">We could not load your workspace right now. Please try again in a moment.</p>
+      </>
+    ) : (
+      <>
+        <h1 class="mb-4 text-3xl font-bold text-heading">Delete project</h1>
+        <p class="text-muted-foreground">
+          Delete <span class="font-semibold text-card-foreground">{project?.name}</span>? This can't be undone.
+        </p>
+        <div class="mt-6 flex gap-2">
+          <form method="post" action={deleteAction}>
+            <Button type="submit" variant="destructive">
+              Confirm delete
+            </Button>
+          </form>
+          <a href={cancelUrl} class:list={buttonVariants({ variant: "secondary" })}>
+            Cancel
+          </a>
+        </div>
+      </>
+    )}
+  </PageCard>
 </Layout>

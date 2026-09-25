@@ -15,7 +15,7 @@ Colors are Tailwind v4 gray-scale values quoted from `node_modules/tailwindcss/t
 | `--background-end` (new) | bottom of the page gradient | Tailwind `gray-200` | `oklch(0.928 0.006 264.531)` |
 | `--foreground` | `text-white` directly on the page | Tailwind `gray-900` | `oklch(0.21 0.034 264.665)` |
 
-`bg-cosmic` (used by index, 404, delete and, until Phase 3, the workspace) is kept as a **legacy** utility with the old dark navy look, rewritten from `#0a0e1a` / `#0f1529` into `oklch(0.166 0.026 269.4)` / `oklch(0.201 0.041 269.8)`. The three unrestyled pages use white text on translucent glass and would be unreadable on the light page. The workspace switches to `bg-background` in Phase 3; the utility is deleted in Phase 5, when the other pages are restyled (the user asked that every page adopt the light-gray look).
+`bg-cosmic`, the old page gradient, was removed in Phase 5 once every page used the light-gray page (`PageCard` draws its own gradient from `--background` to `--background-end`).
 
 ## Surfaces (solid, no alpha)
 

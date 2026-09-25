@@ -1,5 +1,8 @@
 ---
 import { LINK_CREATION_CLOSED, TURNSTILE_SITE_KEY } from "astro:env/server";
+import PageCard from "@/components/PageCard.astro";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import Layout from "@/layouts/Layout.astro";
 import { isCreationClosed } from "@/lib/creation-closed";
 import { resolveCookieLink } from "@/lib/link-cookie";
@@ -23,35 +26,32 @@ const error = messages[params.get("error") ?? ""];
 ---
 
 <Layout title="Stopper for Timecards">
-  <div class="bg-cosmic flex min-h-screen items-center justify-center p-4">
-    <div class="w-full max-w-md rounded-2xl border border-white/10 bg-white/10 p-8 text-center text-white backdrop-blur-xl">
-      <h1 class="mb-4 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
-        Stopper for Timecards
-      </h1>
-      <p class="text-blue-100/80">
-        Track your time across projects during the day and get it back as your weekly timesheet grid. There are no
-        accounts: your private link is your identity, so keep it safe.
-      </p>
+  <PageCard width="md" class="text-center">
+    <h1 class="mb-4 text-3xl font-bold text-heading">Stopper for Timecards</h1>
+    <p class="text-muted-foreground">
+      Track your time across projects during the day and get it back as your weekly timesheet grid. There are no
+      accounts: your private link is your identity, so keep it safe.
+    </p>
 
-      {error && <p class="mt-4 rounded-lg border border-red-300/30 bg-red-500/10 p-3 text-sm text-red-100">{error}</p>}
+    {error && (
+      <Alert variant="destructive" className="mt-4">
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    )}
 
-      {full ? (
-        <p class="mt-6 text-blue-100">All 10 spots are taken; no new links can be created.</p>
-      ) : closed ? (
-        <p class="mt-6 text-blue-100">New links are closed. If you already have a link, open it directly.</p>
-      ) : (
-        <form method="POST" action="/api/links" class="mt-6 flex flex-col items-center gap-4">
-          <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY}></div>
-          <button
-            type="submit"
-            class="inline-flex items-center justify-center rounded-lg bg-purple-600 px-6 py-3 text-base font-medium text-white transition-colors hover:bg-purple-500"
-          >
-            Create my private link
-          </button>
-        </form>
-      )}
-    </div>
-  </div>
+    {full ? (
+      <p class="mt-6 text-card-foreground">All 10 spots are taken; no new links can be created.</p>
+    ) : closed ? (
+      <p class="mt-6 text-card-foreground">New links are closed. If you already have a link, open it directly.</p>
+    ) : (
+      <form method="POST" action="/api/links" class="mt-6 flex flex-col items-center gap-4">
+        <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} data-theme="light"></div>
+        <Button type="submit" size="lg">
+          Create my private link
+        </Button>
+      </form>
+    )}
+  </PageCard>
 
   {!full && !closed && (
     <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>

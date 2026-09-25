@@ -155,20 +155,6 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/*
- * LEGACY: the old dark navy page gradient, kept only for index, 404 and delete, whose cards are white-on-glass and
- * would be unreadable on the light page. Same colors as the previous navy stops, written in oklch. The
- * workspace stops using it in Phase 3 (it uses bg-background); delete this utility when those three pages are restyled.
- */
-@utility bg-cosmic {
-  background-image: linear-gradient(
-    to bottom,
-    oklch(0.166 0.026 269.4),
-    oklch(0.201 0.041 269.8),
-    oklch(0.166 0.026 269.4)
-  );
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;

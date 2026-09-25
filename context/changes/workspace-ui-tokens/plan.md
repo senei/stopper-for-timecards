@@ -429,32 +429,32 @@ The kitchen-sink route ships in the Workers bundle and answers 404 outside devel
 
 #### Automated
 
-- [x] 4.1 Lint and type check pass: `npm run lint`, `npx astro check`
-- [x] 4.2 Build passes: `npm run build`
-- [x] 4.3 Unit tests pass: `npm run test -- --run`
-- [x] 4.4 Smoke passes against a locally running dev server with a freshly reset database
+- [x] 4.1 Lint and type check pass: `npm run lint`, `npx astro check` — ce3fa48
+- [x] 4.2 Build passes: `npm run build` — ce3fa48
+- [x] 4.3 Unit tests pass: `npm run test -- --run` — ce3fa48
+- [x] 4.4 Smoke passes against a locally running dev server with a freshly reset database — ce3fa48
 
 #### Manual
 
-- [x] 4.5 Kitchen-sink screenshots at desktop and one mobile width show all seven states
-- [x] 4.6 Tabbing through the real workspace page shows a visible focus ring on every control
-- [x] 4.7 Measured contrast is at least 4.5:1 for text and 3:1 for the focus ring and control boundaries, recorded in `tokens.md`
-- [x] 4.8 Submitting Start disables the button in flight, and Back leaves it enabled
-- [x] 4.9 With the clipboard blocked, Copy shows the failure message
-- [x] 4.10 The unavailable state shows the message and a working "Try again" link
-- [x] 4.11 The mobile screenshot shows no horizontal scroll and no clipped controls
+- [x] 4.5 Kitchen-sink screenshots at desktop and one mobile width show all seven states — ce3fa48
+- [x] 4.6 Tabbing through the real workspace page shows a visible focus ring on every control — ce3fa48
+- [x] 4.7 Measured contrast is at least 4.5:1 for text and 3:1 for the focus ring and control boundaries, recorded in `tokens.md` — ce3fa48
+- [x] 4.8 Submitting Start disables the button in flight, and Back leaves it enabled — ce3fa48
+- [x] 4.9 With the clipboard blocked, Copy shows the failure message — ce3fa48
+- [x] 4.10 The unavailable state shows the message and a working "Try again" link — ce3fa48
+- [x] 4.11 The mobile screenshot shows no horizontal scroll and no clipped controls — ce3fa48
 
 ### Phase 5: Other pages
 
 #### Automated
 
-- [ ] 5.1 Lint and type check pass: `npm run lint`, `npx astro check`
-- [ ] 5.2 Build passes: `npm run build`
-- [ ] 5.3 No legacy or literal styling remains in the pages, styles or components
-- [ ] 5.4 Smoke passes against a locally running dev server with a freshly reset database
+- [x] 5.1 Lint and type check pass: `npm run lint`, `npx astro check`
+- [x] 5.2 Build passes: `npm run build`
+- [x] 5.3 No legacy or literal styling remains in the pages, styles or components
+- [x] 5.4 Smoke passes against a locally running dev server with a freshly reset database
 
 #### Manual
 
-- [ ] 5.5 Landing, 404 and delete pages render as a white card on the light-gray page at desktop and 390px
-- [ ] 5.6 Creating a link from the landing page and confirming a project delete work end to end in a browser
-- [ ] 5.7 The Turnstile widget is readable on the light page
+- [x] 5.5 Landing, 404 and delete pages render as a white card on the light-gray page at desktop and 390px
+- [x] 5.6 Creating a link from the landing page and confirming a project delete work end to end in a browser
+- [x] 5.7 The Turnstile widget is readable on the light page
