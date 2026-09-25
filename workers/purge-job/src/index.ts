@@ -23,6 +23,7 @@ export default {
       .single();
 
     if (started.error) {
+      // eslint-disable-next-line no-console
       console.error("Purge job could not record its start; aborting before any delete:", started.error);
       throw new Error(`job_runs start insert failed: ${started.error.message}`);
     }
@@ -42,12 +43,15 @@ export default {
       .eq("id", started.data.id);
 
     // Throw after recording so the invocation shows as failed in Cloudflare's
-    // cron events; this is only for a live `wrangler tail` session.
+    // cron events. The console.error output is only for a live `wrangler tail`
+    // session.
     if (finished.error) {
+      // eslint-disable-next-line no-console
       console.error("Purge job could not record its outcome:", finished.error, "purge error:", purge.error);
       throw new Error(`job_runs finish update failed: ${finished.error.message}`);
     }
     if (purge.error) {
+      // eslint-disable-next-line no-console
       console.error("Purge job failed:", purge.error);
       throw new Error(`purge_time_entries failed: ${purge.error.message}`);
     }
