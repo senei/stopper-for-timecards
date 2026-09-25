@@ -48,7 +48,7 @@ People who work across several projects a day don't capture time as it happens, 
 | S-05 | time-corrections         | correct logged time at end of day or start of next day                   | S-03, S-04    | FR-005                       | proposed |
 | S-06 | weekly-grid-summary      | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001               | proposed |
 | S-07 | link-regeneration        | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02                | proposed |
-| S-08 | time-entry-purge-verified| have entries older than 3 months purged automatically                    | S-02          | FR-008                       | proposed |
+| S-08 | time-entry-purge-verified| have entries older than 3 months purged automatically                    | S-02          | FR-008                       | done |
 | S-09 | delete-project            | delete a project from their list, blocked if it has any logged time      | S-02          | FR-009                       | done |
 | S-10 | delete-account            | permanently delete all their own data and their link, freeing their slot | S-02          | FR-010, FR-007               | proposed |
 
@@ -180,7 +180,7 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** The purge worker already exists but targets a placeholder table; this slice re-points it at the real entry model and verifies it end to end in production, including that projects are untouched.
-- **Status:** proposed
+- **Status:** done
 
 ### S-09: Delete a project
 
@@ -245,3 +245,4 @@ GitHub issues created 2026-09-21 in `senei/stopper-for-timecards`.
 - **S-02: add a project and pick it to start its timer instantly, with no separate start step** — Archived 2026-09-22 → `context/archive/2026-09-22-first-timer-start/`. Lesson: —.
 - **S-09: delete a project from their list; a project with any logged time entries against it is protected from deletion instead of silently destroying history** — Archived 2026-09-23 → `context/archive/2026-09-23-delete-project/`. Lesson: —.
 - **S-03: user can switch the active timer to another project mid-day, with time split between projects at 15-minute precision** — Archived 2026-09-24 → `context/archive/2026-09-23-timer-switch-rounding/`. Lesson: —.
+- **S-08: user's time entries older than 3 months are purged automatically, while project definitions remain** — Archived 2026-09-25 → `context/archive/2026-09-25-time-entry-purge-verified/`. Lesson: —.
