@@ -1,35 +1,47 @@
 <!-- BEGIN @przeprogramowani/10x-cli -->
 
-## 10xDevs AI Toolkit - Module 2, Lesson 5 (10xDevs 4.0 UI)
+## 10xDevs AI Toolkit - Module 2, Lesson 5
 
-Treat a visual change as a **10x change with a design-system contract**, not a "make it pretty" chat:
+Scale the single-change cycle into parallel work with **worktrees, goal-directed delegation, and multi-session orchestration**:
 
 ```
-/10x-new -> audit+reference research -> plan (tokens then one view) -> implement -> screenshot gate -> /10x-impl-review
+worktree per change -> /goal or claude -p -> PR -> review -> merge
 ```
+
+The lesson focus is safe throughput: isolated contexts, choosing the right execution mode, and capping parallelism at review capacity.
 
 ### Task Router - Where to start
 
 | Skill | Use it when |
 | --- | --- |
-| `/10x-ui` | A view that already renders and needs auditing and improving: theme, restyle, "nicer UI", tokens, visual pass — on the course app or any other stack. Not for building the view in the first place. |
-| `/10x-research` | Locate this repo's value source and shared components, map which views read them, and pick a named motif — not a moodboard. Output is a list of charges (file, line, user impact). |
-| `/10x-plan` / `/10x-implement` | Same chain as earlier M2 lessons; payload is UI. |
-| `/10x-impl-review` | Before merge; do not skip visual findings as cosmetic. |
+| **Code isolation** | |
+| `git worktree add` | You need a separate working directory for a parallel change. One change per worktree, one fresh agent context per worktree. |
+| **Complex changes** | |
+| `/10x-implement <change-id> phase <n>` | The change has multiple phases, needs manual gates, or benefits from interactive decision-making during execution. |
+| **Simple changes** | |
+| `/goal` | You have a clear, bounded task and want goal-directed delegation. The agent works autonomously toward the stated goal with a stop condition. |
+| `claude -p` | You want headless execution for a well-defined task. The Ralph Wiggum loop (run, check, retry) is the universal autonomous pattern. |
+| **Multi-session orchestration** | |
+| Superset / Conductor / Antigravity / VS Code Agent View | You are running multiple agent sessions in parallel and need visibility, coordination, or session management across them. |
 
-### Contract
+### Parallel work rules
 
-- Two halves, whatever the stack: semantic tokens in one source, and importable components living in the repo. Tailwind v4 `@theme` + shadcn is how the course app realises them; read this repo's own realisation before proposing values.
-- Values taken from outside go into the repo with a line naming the source. Not into the chat history.
-- One view + global tokens. Not a whole-MVP rebrand. Not worktrees/`/goal`.
-- Three charge categories: missing tokens, missing shared component, accidental architecture.
-- Visual gate: a kitchen sink rendering every state, screenshotted; wire it into a screenshot test only if the repo already has one. Do not blind-update baselines.
-- No design system in the repo? Proposing one is allowed — marked as adding a dependency, scoped to what the change needs, and always losing to a system that already exists.
-- Models: route by phase, not vendor. Strongest model you have for audit, plan and review; a cheaper working tier for implementing charges in the loop; escalate only when the same charge survives two rounds. Any vision-capable model works, and no single model — Fable 5.1 included — is a requirement.
+- One change per worktree or isolated workspace. One fresh agent context per change.
+- Choose interactive `/10x-implement` for complex changes, `/goal` or `claude -p` for simple ones.
+- Parallelism is capped by review capacity. More agents without review means more unreviewed code, not higher throughput.
+- The quality pain from faster shipping is intentional — it bridges into Module 3 testing gates.
 
 ### Lesson boundaries
 
-- Do not reteach Exa/Context7, worktrees, or screenshot testing as a testing course.
-- Do not initialize a second design system on a repo that already has one — `shadcn init` on the course starter included.
+- Do not reteach interactive `/10x-implement` or `/10x-impl-review`; those are Lessons 2 and 3.
+- Do not introduce testing strategy here. The quality pain is the motivation for Module 3.
+- Worktrees are a mechanism for isolation, not the topic of a full git tutorial.
+
+### Paths used by this lesson
+
+- `context/changes/<change-id>/` - active change folder
+- `context/changes/<change-id>/plan.md` - implementation input for any execution mode
+
+Skills must not write to `context/archive/`. Archived changes are immutable; if a resolved target path starts with `context/archive/`, abort with: "This change is archived. Open a new change with `/10x-new` instead."
 
 <!-- END @przeprogramowani/10x-cli -->

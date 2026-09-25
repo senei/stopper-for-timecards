@@ -1,10 +1,10 @@
 ---
 change_id: first-timer-start-audit
 title: Re-audit shipped first-timer-start (S-02) before downstream work
-status: preparing
+status: archived
 created: 2026-09-23
-updated: 2026-09-23
-archived_at: null
+updated: 2026-09-25
+archived_at: 2026-09-25T06:39:52Z
 ---
 
 ## Notes
