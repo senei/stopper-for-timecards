@@ -1,6 +1,6 @@
 import { adminOrThrow } from "./supabase-admin";
 
-export interface StartTimerResult {
+export interface TimerEntryResult {
   entryId: string;
   projectId: string;
   projectName: string;
@@ -25,7 +25,7 @@ export class NoActiveTimerError extends Error {
 }
 
 /** Validates the single row `start_timer` / `switch_timer` / `stop_timer` return and maps it to camelCase. */
-function parseTimerRow(fnName: string, data: unknown): StartTimerResult {
+function parseTimerRow(fnName: string, data: unknown): TimerEntryResult {
   const rows: unknown = data;
   if (!Array.isArray(rows) || rows.length !== 1) {
     throw new Error(`${fnName} returned an unexpected value`);
@@ -59,7 +59,7 @@ function parseTimerRow(fnName: string, data: unknown): StartTimerResult {
  * name, then opens a new time entry. `TimerAlreadyRunningError` means the link already has one
  * running — see the partial unique index in `20260922150000_projects_and_timer.sql`.
  */
-export async function startTimer(linkId: string, projectName: string): Promise<StartTimerResult> {
+export async function startTimer(linkId: string, projectName: string): Promise<TimerEntryResult> {
   const admin = adminOrThrow();
 
   const response = await admin.rpc("start_timer", { p_link_id: linkId, p_project_name: projectName });
@@ -80,7 +80,7 @@ export async function startTimer(linkId: string, projectName: string): Promise<S
  * link had no open entry to switch away from (`P0001`) — a race backstop, same philosophy as
  * `TimerAlreadyRunningError`.
  */
-export async function switchTimer(linkId: string, projectName: string): Promise<StartTimerResult> {
+export async function switchTimer(linkId: string, projectName: string): Promise<TimerEntryResult> {
   const admin = adminOrThrow();
 
   const response = await admin.rpc("switch_timer", { p_link_id: linkId, p_project_name: projectName });
@@ -99,7 +99,7 @@ export async function switchTimer(linkId: string, projectName: string): Promise<
  * at the current moment and returns it. `NoActiveTimerError` means the link had no open entry to
  * stop (`P0001`) — a race backstop, same philosophy as in `switchTimer`.
  */
-export async function stopTimer(linkId: string): Promise<StartTimerResult> {
+export async function stopTimer(linkId: string): Promise<TimerEntryResult> {
   const admin = adminOrThrow();
 
   const response = await admin.rpc("stop_timer", { p_link_id: linkId });

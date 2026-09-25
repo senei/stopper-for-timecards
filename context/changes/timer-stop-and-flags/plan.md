@@ -217,6 +217,8 @@ Show the Stop button and the long-running warning, keep the kitchen-sink states 
 
 **Note (2026-09-25):** Progress row 3.1 was ticked on the user's instruction although `npm run lint` still exits non-zero. Everything this change touched lints clean; the remaining 8 errors are `import.meta.env` typing errors in four files identical to `main` (src/lib/link-cookie.ts, src/lib/supabase-admin.ts, src/pages/api/links.ts, src/pages/index.astro). They are tracked as the separate change `fix-eslint-env-typing`.
 
+**Addendum (2026-09-25):** three groups of edits fall outside this plan's file list, all user-directed or required by the skills: a new lesson in `context/foundation/lessons.md` (start `astro dev` with `ASTRO_DEV_BACKGROUND=1` under an AI agent), the S-04 status flips in `context/foundation/roadmap.md`, and the new change `context/changes/fix-eslint-env-typing/`. The impl review (F4) also renamed the result type in `src/lib/timer.ts` from `StartTimerResult` to `TimerEntryResult`, since `stopTimer` returns it too.
+
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase. Phase blocks use plain bullets — the corresponding `- [ ]` checkboxes for these items live in the `## Progress` section at the bottom of the plan.
 
 ---
