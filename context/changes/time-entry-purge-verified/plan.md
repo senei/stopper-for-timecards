@@ -204,7 +204,7 @@ Additive migration only (new function); no existing rows or tables change. The o
 
 Recorded after the implementation review (2026-09-25, `reviews/impl-review.md`, APPROVED). None of these change the plan's scope or Progress rows.
 
-- **Phase 3 is open and user-run.** Rows 3.1 to 3.4: from the main checkout after the PR is merged, `npx supabase db push` first, then `npx wrangler deploy --config wrangler.jsonc` from `workers/purge-job/`, then confirm a production `job_runs` success row and an unchanged `projects` count.
+- **Phase 3 was run on 2026-09-25 (rows 3.1 to 3.4, confirmed by the user).** From the main checkout after PR #11 merged (`24d8c42`): `npx supabase db push` applied three migrations, not one (`20260922150000`, `20260923120000` and `20260925120000`; production still had the S-02/S-03 schema pending, and its `time_entries` was empty, so the column changes were data-safe). `wrangler deploy` published Worker version `8660b555-1aa4-42d9-9394-533fa3c9fbda` with the cron `0 3 * * *` intact. One run was triggered from a local copy of the code against production (`--test-scheduled`, as on 2026-09-18): `job_runs` went from 8 to 9 rows, the new row is `success` with `rows_affected = 0`, none stuck at `running`. Production had 0 projects and 0 time entries before and after, so the "projects unchanged" check (3.4) is trivial until real data exists. The deployed Worker's own 03:00 UTC cron run was not yet observed at the time of writing.
 - **Archive after merge.** `/10x-archive` on `main` is what flips the roadmap's S-08 item; per `context/foundation/parallel-goals.md` no lane edits `roadmap.md` before that, so it still says `proposed`.
 - **The shared local Supabase may no longer have this migration.** All worktrees share one local instance (`project_id = "10x-astro-starter"` in `supabase/config.toml`), and another lane's `db reset` removed `purge_time_entries` from it. Restore it with `npx supabase db reset` from this branch, or use a scratch copy of `supabase/` with its own `project_id` and ports, which is how the Phase 2 manual checks were run without collisions.
 - **Local-only files left out of every commit.** `.claude/settings.local.json` (session permission grants). `workers/purge-job/.dev.vars` (gitignored; holds only the local demo key and points at a Supabase instance that has since been stopped, so repoint or delete it before reusing it, and never copy a production key into a worktree).
@@ -245,7 +245,7 @@ Recorded after the implementation review (2026-09-25, `reviews/impl-review.md`, 
 
 #### Manual
 
-- [ ] 3.1 `npx supabase migration list` shows `20260925120000` applied both locally and remotely after `npx supabase db push`
-- [ ] 3.2 `npx wrangler deploy --config wrangler.jsonc` from `workers/purge-job/` exits 0 and the Cron Trigger `0 3 * * *` is still registered on the Worker
-- [ ] 3.3 A production scheduled run adds a newest `job_runs` row for `purge_time_entries` with `status = 'success'`, `finished_at` set and an integer `rows_affected` (0 is expected while no entry is older than 3 months), with no row left at `running`
-- [ ] 3.4 The production `projects` row count is the same before and after that run
+- [x] 3.1 `npx supabase migration list` shows `20260925120000` applied both locally and remotely after `npx supabase db push`
+- [x] 3.2 `npx wrangler deploy --config wrangler.jsonc` from `workers/purge-job/` exits 0 and the Cron Trigger `0 3 * * *` is still registered on the Worker
+- [x] 3.3 A production scheduled run adds a newest `job_runs` row for `purge_time_entries` with `status = 'success'`, `finished_at` set and an integer `rows_affected` (0 is expected while no entry is older than 3 months), with no row left at `running`
+- [x] 3.4 The production `projects` row count is the same before and after that run
