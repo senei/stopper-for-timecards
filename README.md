@@ -42,7 +42,7 @@ Product and planning documents live in `context/`:
 - `npm test` - unit tests (Vitest)
 - `npx supabase test db` - database (pgTAP) tests against local Supabase. Run `npx supabase db reset` first: the suite only passes on a fresh database, and `private_links.test.sql` fails once local links or timers exist.
 - `npm run smoke` - smoke test against a running local server (`BASE_URL`, default `http://localhost:4321`). Local only: it creates data.
-- `npm run smoke:local` - one command for the above: resets the local Supabase DB, starts the dev server with dummy Turnstile keys, runs the smoke test, then restores `.env` / `.dev.vars`. `-- --serve` keeps the server up for manual testing; `-- --dry-run` only prints the plan.
+- `npm run smoke:local` - one command for the above: resets the local Supabase DB, starts the dev server (port `SMOKE_LOCAL_PORT`, default 4321) with dummy Turnstile keys, runs the smoke test, then restores `.env` / `.dev.vars`. `-- --serve` keeps the server up for manual testing; `-- --dry-run` only prints the plan.
 
 ## Database
 

@@ -182,28 +182,28 @@ With `SMOKE_LOCAL_PORT` unset the script behaves as before (port 4321), so exist
 
 #### Automated
 
-- [x] 1.1 A non-numeric port is rejected before anything runs: `SMOKE_LOCAL_PORT=abc node scripts/smoke-local.mjs --dry-run` exits non-zero and the message names `SMOKE_LOCAL_PORT`
-- [x] 1.2 An out-of-range port is rejected the same way: `SMOKE_LOCAL_PORT=99999 node scripts/smoke-local.mjs --dry-run` exits non-zero and the message names `SMOKE_LOCAL_PORT`
-- [x] 1.3 Formatting passes: `npx prettier --check scripts/smoke-local.mjs`
-- [x] 1.4 Linting passes, run once here after `npm ci` and `npx astro sync`: `npm run lint`
+- [x] 1.1 A non-numeric port is rejected before anything runs: `SMOKE_LOCAL_PORT=abc node scripts/smoke-local.mjs --dry-run` exits non-zero and the message names `SMOKE_LOCAL_PORT` — 63d078a
+- [x] 1.2 An out-of-range port is rejected the same way: `SMOKE_LOCAL_PORT=99999 node scripts/smoke-local.mjs --dry-run` exits non-zero and the message names `SMOKE_LOCAL_PORT` — 63d078a
+- [x] 1.3 Formatting passes: `npx prettier --check scripts/smoke-local.mjs` — 63d078a
+- [x] 1.4 Linting passes, run once here after `npm ci` and `npx astro sync`: `npm run lint` — 63d078a
 
 #### Manual
 
-- [x] 1.5 `npm run smoke:local -- --dry-run` prints the dev server on `http://localhost:4321` when the variable is unset and on `http://localhost:4399` with `SMOKE_LOCAL_PORT=4399`, and changes nothing
-- [x] 1.6 With a dev server started by hand in this worktree on port 4400, `SMOKE_LOCAL_PORT=4399 npm run smoke:local -- --restore` leaves it running and says so, and then `SMOKE_LOCAL_PORT=4400 npm run smoke:local -- --restore` stops it
-- [x] 1.7 With no dev server running, `npm run smoke:local -- --restore` reports that there was nothing to stop and does not stop anything
-- [x] 1.8 With a dev server running in this worktree, `--dry-run` prints a note that a real run would refuse, naming that server's port, without failing; and, only on a lane-owned stack, `npm run smoke:local -- --yes` refuses before any database reset
-- [x] 1.9 With another process listening on the configured port, `--dry-run` prints a note that a real run would refuse, naming the port, without failing; and, only on a lane-owned stack, `npm run smoke:local -- --yes` refuses before any database reset
+- [x] 1.5 `npm run smoke:local -- --dry-run` prints the dev server on `http://localhost:4321` when the variable is unset and on `http://localhost:4399` with `SMOKE_LOCAL_PORT=4399`, and changes nothing — 63d078a
+- [x] 1.6 With a dev server started by hand in this worktree on port 4400, `SMOKE_LOCAL_PORT=4399 npm run smoke:local -- --restore` leaves it running and says so, and then `SMOKE_LOCAL_PORT=4400 npm run smoke:local -- --restore` stops it — 63d078a
+- [x] 1.7 With no dev server running, `npm run smoke:local -- --restore` reports that there was nothing to stop and does not stop anything — 63d078a
+- [x] 1.8 With a dev server running in this worktree, `--dry-run` prints a note that a real run would refuse, naming that server's port, without failing; and, only on a lane-owned stack, `npm run smoke:local -- --yes` refuses before any database reset — 63d078a
+- [x] 1.9 With another process listening on the configured port, `--dry-run` prints a note that a real run would refuse, naming the port, without failing; and, only on a lane-owned stack, `npm run smoke:local -- --yes` refuses before any database reset — 63d078a
 - [ ] 1.10 If this lane has its own slot stack, one complete `SMOKE_LOCAL_PORT=<slot port> npm run smoke:local` passes and leaves no server running (skip and say so when there is no slot stack)
 
 ### Phase 2: Docs — describe the new behaviour
 
 #### Automated
 
-- [ ] 2.1 Formatting passes: `npx prettier --check README.md context/foundation/parallel-goals.md`
-- [ ] 2.2 The false claim is gone from the docs and script: `grep -rnE "stops (any|every) Astro dev server" README.md context/foundation/parallel-goals.md scripts/smoke-local.mjs` prints nothing
+- [x] 2.1 Formatting passes: `npx prettier --check README.md context/foundation/parallel-goals.md`
+- [x] 2.2 The false claim is gone from the docs and script: `grep -rnE "stops (any|every) Astro dev server" README.md context/foundation/parallel-goals.md scripts/smoke-local.mjs` prints nothing
 
 #### Manual
 
-- [ ] 2.3 README, the script header and `parallel-goals.md` agree with what Phase 1 verified: variable name, default, `--restore` behaviour, and the slot Astro ports 4322 and 4323 used as `SMOKE_LOCAL_PORT` values
-- [ ] 2.4 `lessons.md` is unchanged, and the two clauses to correct by hand (lines 28 and 29) are quoted in the phase report for the user
+- [x] 2.3 README, the script header and `parallel-goals.md` agree with what Phase 1 verified: variable name, default, `--restore` behaviour, and the slot Astro ports 4322 and 4323 used as `SMOKE_LOCAL_PORT` values
+- [x] 2.4 `lessons.md` is unchanged, and the two clauses to correct by hand (lines 28 and 29) are quoted in the phase report for the user
