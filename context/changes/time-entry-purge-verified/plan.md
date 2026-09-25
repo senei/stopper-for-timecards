@@ -200,6 +200,17 @@ Additive migration only (new function); no existing rows or tables change. The o
 - Similar implementation: `supabase/migrations/20260923120000_switch_timer.sql`, `supabase/tests/database/switch_timer.test.sql`
 - Previous worker verification: `context/deployment/deploy-plan.md:159-174,204`
 
+## Loose Ends
+
+Recorded after the implementation review (2026-09-25, `reviews/impl-review.md`, APPROVED). None of these change the plan's scope or Progress rows.
+
+- **Phase 3 is open and user-run.** Rows 3.1 to 3.4: from the main checkout after the PR is merged, `npx supabase db push` first, then `npx wrangler deploy --config wrangler.jsonc` from `workers/purge-job/`, then confirm a production `job_runs` success row and an unchanged `projects` count.
+- **Archive after merge.** `/10x-archive` on `main` is what flips the roadmap's S-08 item; per `context/foundation/parallel-goals.md` no lane edits `roadmap.md` before that, so it still says `proposed`.
+- **The shared local Supabase may no longer have this migration.** All worktrees share one local instance (`project_id = "10x-astro-starter"` in `supabase/config.toml`), and another lane's `db reset` removed `purge_time_entries` from it. Restore it with `npx supabase db reset` from this branch, or use a scratch copy of `supabase/` with its own `project_id` and ports, which is how the Phase 2 manual checks were run without collisions.
+- **Local-only files left out of every commit.** `.claude/settings.local.json` (session permission grants). `workers/purge-job/.dev.vars` (gitignored; holds only the local demo key and points at a Supabase instance that has since been stopped, so repoint or delete it before reusing it, and never copy a production key into a worktree).
+- **Slow, fragile commands on a fresh worktree.** `npm ci` is required first; `npx astro sync` must run before lint (CI does this at `.github/workflows/ci.yml:19`) and hung for about 20 minutes here; a cold `npm run lint` took about 15 minutes. The `delete-account` lane's plan runs lint once in its last code phase for the same reason; this plan already does (criterion 2.1).
+- **Lessons not yet recorded** in `context/foundation/lessons.md` (use `/10x-lesson`): worktrees share one local Supabase through `project_id`, so a reset in one lane breaks the others; lint needs `astro sync` first and is very slow on a fresh worktree; `psql`-applied function changes may not reach PostgREST's schema cache until `notify pgrst, 'reload schema'`.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
