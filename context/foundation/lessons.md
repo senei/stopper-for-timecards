@@ -29,3 +29,10 @@
 - **Problem**: Astro 7 detects an AI-agent environment and starts the dev server as a detached background process that must become ready within 30 s (node_modules/astro/dist/cli/dev/index.js:86-91, cli/server.js:148). A fresh worktree's first start took about 114 s, so every attempt was killed with 'Dev server failed to start within 30s' and .astro/dev.log stayed empty. Running `astro check` first or seeding the Vite cache did not help, and each smoke:local retry cost a ~5 minute database reset. Hit five times in timer-stop-and-flags Phase 2.
 - **Rule**: When starting the dev server from an agent session, set `ASTRO_DEV_BACKGROUND=1` (for example `ASTRO_DEV_BACKGROUND=1 npx astro dev --port 4321`) so it runs in the foreground with no 30 s limit, run it as a background shell task, and wait for the 'ready' line before sending requests. `npm run smoke:local` starts astro dev itself, so export the variable before running it (verified: `ASTRO_DEV_BACKGROUND=1 npm run smoke:local -- --yes` passed; the server still takes about 2 minutes to become ready, and the script waits up to 3 minutes).
 - **Applies to**: implement, impl-review
+
+## Record how each manual Progress row was verified
+
+- **Context**: plan.md Progress rows 3.5, 3.7 and 3.8 (manual-verification rows for UI behaviour in timer-stop-and-flags)
+- **Problem**: Rows 3.5 (real-browser Stop), 3.7 (restart after stop) and 3.8 (kitchen sink in light and dark themes) were ticked on the user's confirmation alone; nothing in the diff or the review shows them. The rows checked by script (2.4, 3.6) carry their own evidence.
+- **Rule**: When a manual Progress row is ticked on the user's confirmation alone, say so in the phase commit body (for example "3.5, 3.7 and 3.8 confirmed by the user") so the review can tell confirmed-by-person rows from script-verified ones.
+- **Applies to**: implement, impl-review

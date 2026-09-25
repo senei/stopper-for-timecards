@@ -219,6 +219,8 @@ Show the Stop button and the long-running warning, keep the kitchen-sink states 
 
 **Addendum (2026-09-25):** three groups of edits fall outside this plan's file list, all user-directed or required by the skills: a new lesson in `context/foundation/lessons.md` (start `astro dev` with `ASTRO_DEV_BACKGROUND=1` under an AI agent), the S-04 status flips in `context/foundation/roadmap.md`, and the new change `context/changes/fix-eslint-env-typing/`. The impl review (F4) also renamed the result type in `src/lib/timer.ts` from `StartTimerResult` to `TimerEntryResult`, since `stopTimer` returns it too.
 
+**How the manual rows were verified (2026-09-25):** rows 3.5, 3.7 and 3.8 were confirmed by the user; rows 2.4 and 3.6 were verified by scripts over real HTTP against the local dev server; row 1.3 was verified with a rolled-back SQL script run in the database container and confirmed by the user.
+
 **Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual testing was successful before proceeding to the next phase. Phase blocks use plain bullets — the corresponding `- [ ]` checkboxes for these items live in the `## Progress` section at the bottom of the plan.
 
 ---

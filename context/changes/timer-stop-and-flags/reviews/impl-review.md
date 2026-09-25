@@ -91,4 +91,4 @@ Manual rows: 1.3, 2.4, 3.6 have script or query evidence; 3.5, 3.7, 3.8 rest on 
 - **Location**: plan.md Progress rows 3.5, 3.7, 3.8
 - **Detail**: Rows 3.5 (real-browser Stop), 3.7 (restart) and 3.8 (kitchen sink, light and dark) were confirmed by the user; no artifact in the diff shows them. Row 3.6 was verified by a script over real HTTP, and 2.4 likewise. The local database showed a stop-then-start sequence consistent with 3.5 and 3.7.
 - **Fix**: None needed.
-- **Decision**: PENDING
+- **Decision**: FIXED + ACCEPTED-AS-RULE: Record how each manual Progress row was verified (lesson appended to context/foundation/lessons.md; plan.md Phase 3 now states how each manual row was verified)
