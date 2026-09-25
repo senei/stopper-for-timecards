@@ -3,7 +3,7 @@ project: "Stopper for Timecards"
 version: 1
 status: draft
 created: 2026-09-21
-updated: 2026-09-24
+updated: 2026-09-25
 prd_version: 4
 main_goal: speed
 top_blocker: capacity
@@ -44,7 +44,7 @@ People who work across several projects a day don't capture time as it happens, 
 | S-01 | private-link-access      | create their own private link and open it to land in their own workspace | —             | FR-007, US-02                | done        |
 | S-02 | first-timer-start        | add a project and pick it to start the timer instantly                   | S-01          | FR-001, FR-002, US-01, NFR   | done |
 | S-03 | timer-switch-rounding    | switch the running timer to another project with 15-min-rounded splits   | S-02          | FR-003                       | done |
-| S-04 | timer-stop-and-flags     | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                       | proposed |
+| S-04 | timer-stop-and-flags     | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                       | in-progress |
 | S-05 | time-corrections         | correct logged time at end of day or start of next day                   | S-03, S-04    | FR-005                       | proposed |
 | S-06 | weekly-grid-summary      | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001               | proposed |
 | S-07 | link-regeneration        | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02                | proposed |
@@ -131,7 +131,7 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Unknowns:**
   - What threshold counts as "suspiciously long" / past end of day? — Owner: user. Block: no.
 - **Risk:** Protects the rest of the day from silent corruption; touches the same timer logic as S-03, so parallel runs need care.
-- **Status:** proposed
+- **Status:** in-progress
 
 ### S-05: Correct logged time
 
