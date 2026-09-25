@@ -1,7 +1,7 @@
 ---
 change_id: time-entry-purge-verified
 title: Time entry purge verified
-status: implemented
+status: impl_reviewed
 created: 2026-09-25
 updated: 2026-09-25
 archived_at: null
