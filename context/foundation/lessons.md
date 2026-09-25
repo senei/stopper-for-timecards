@@ -43,3 +43,24 @@
 - **Problem**: The first lint run in a new worktree happened before Astro's generated types (.astro/types.d.ts) existed, so `import.meta.env` resolved to an error type and 8 `@typescript-eslint/no-unsafe-*` errors were cached. The content cache keys on file content and config, not on type information, so unchanged files replayed those errors on every later run, even after `astro sync`, while a direct uncached `npx eslint <file>` on the same files was clean. It looked like a repo bug and produced a follow-up change (fix-eslint-env-typing).
 - **Rule**: In a fresh worktree, run `npx astro sync` before the first `npm run lint`; if lint reports `error typed` or unresolved-type errors that a direct `npx eslint <file>` does not, delete node_modules/.cache/eslint/ and re-run before treating them as real.
 - **Applies to**: implement, impl-review
+
+## Give each database-touching worktree lane its own local Supabase stack
+
+- **Context**: Parallel git worktrees of this repo running `supabase db reset`, `supabase test db`, `scripts/smoke.mjs` or `npm run smoke:local` on one machine. `supabase/config.toml` fixes `project_id = "10x-astro-starter"` and ports 54320-54329, and `smoke-local.mjs` hardcodes port 4321.
+- **Problem**: Worktrees isolate code, not the database, so all lanes share one local stack: a `db reset` in one lane wipes another's data, `smoke.mjs` refuses to run while another lane's links exist, `astro dev stop` kills the other lane's dev server, and pgTAP runs against whichever lane's migrations were applied last. Hit when two active lanes competed for the same database.
+- **Rule**: Before a lane runs any database or smoke check, give it its own stack slot (its own `project_id`, shifted ports and Astro dev port, per `context/foundation/parallel-goals.md`), keep that config edit out of git with `skip-worktree`, and confirm `supabase status` shows the slot's ports before any `db reset`; checks that need no database (lint, astro check, vitest) can still run in every worktree at once.
+- **Applies to**: plan, implement
+
+## In a fresh worktree run `npm ci` and `npx astro sync` before lint, and budget for a slow first run
+
+- **Context**: Any new git worktree of this repo, before `npm run lint`, `npx astro check` or `npm run build`. `node_modules/` and `.astro/` are gitignored, so a new worktree has neither, and `eslint.config.js:20` uses type-aware rules (`projectService: true`).
+- **Problem**: Without the generated `.astro/types.d.ts`, lint reports false `no-unsafe-*` errors on `import.meta.env` in files nobody touched (9 errors in `src/pages/index.astro`, `dev/kitchen-sink.astro`, `api/links.ts` and `lib/supabase-admin.ts` during time-entry-purge-verified). The script's content-keyed `--cache` can keep serving those stale results after the types appear. A cold type-aware run took about 13 to 15 minutes there, and `astro sync` once ran for over 20 minutes.
+- **Rule**: In a new worktree run `npm ci`, then `npx astro sync` (as CI does at `.github/workflows/ci.yml:19`), before any lint or type check; if lint reports unresolved `import.meta.env` types after the types exist, re-run with `npx eslint . --no-cache` rather than trusting cached results. Run lint once, in the last code phase of a plan, as the delete-account plan does.
+- **Applies to**: plan, implement
+
+## Stop the workerd process behind `wrangler dev`, not just the task that started it
+
+- **Context**: Local Worker checks with `wrangler dev --test-scheduled` on Windows (for example `workers/purge-job`), especially when the run uses a `.dev.vars` that holds a real service-role key, and before deleting that worktree.
+- **Problem**: Stopping the background task only stops the `npx` wrapper. The `wrangler` node process and its `workerd` child keep running, respawn if only the child is killed, and keep listening on the port with the `.dev.vars` values still loaded. They also hold files under `.wrangler/` and `node_modules/miniflare` open, so deleting the worktree fails with "Device or resource busy". Four such processes were left behind in time-entry-purge-verified.
+- **Rule**: After a `wrangler dev` run, find the listener with `netstat -ano | grep :<port>`, confirm from its command line that it is your `workerd`, and kill its parent process tree; only then delete `.dev.vars` and the worktree. Prefer a fresh port per run, because `wrangler dev` does not reload a changed `.dev.vars`.
+- **Applies to**: implement

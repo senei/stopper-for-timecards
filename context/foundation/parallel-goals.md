@@ -64,6 +64,54 @@ Two stale worktrees already exist (`deployment-bootstrap-verification`, `first-t
 - **PR per lane:** each lane ends in a PR from its own branch; review it (`/10x-impl-review`) before merge, then run `/10x-archive` on `main` after merge, since archiving edits `roadmap.md`.
 - **Gate per lane:** `/10x-new` → `/10x-plan` → `/10x-plan-review` → `/10x-implement` → `/10x-impl-review` → `/10x-archive`. The existing checks (`npm run lint`, `npx astro check`, `npm run build`, the pgTAP tests in `supabase/tests/database/`, `scripts/smoke.mjs`) must pass.
 
+## Local databases and dev servers (one stack per database-touching lane)
+
+Worktrees isolate code, not the database. The committed `supabase/config.toml` fixes `project_id = "10x-astro-starter"` and ports 54320 to 54329, so every worktree points at the same local Supabase stack. That breaks parallel lanes:
+
+- `npx supabase db reset` (also inside `npm run smoke:local`) wipes the database under every other lane.
+- `scripts/smoke.mjs` refuses to run if any link exists, so it fails when another lane has data in the shared database.
+- `scripts/smoke-local.mjs` hardcodes port 4321, and its `--restore` runs `astro dev stop`, which stops any Astro dev server, including another lane's.
+- The database holds whichever lane's migrations were applied last, so a pgTAP run can pass or fail against the wrong schema.
+
+**Rule:** a lane that runs `supabase db reset`, `supabase test db` or a smoke script gets its own stack and dev-server port (a *slot*). Checks that need no database (`npm run lint`, `npx astro check`, `npm test -- --run`, and `npm run build` with the env values set) can run in every worktree at once.
+
+### Slots
+
+Slot 0 is the committed default; slots 1 and 2 shift every port by 100 per slot. At most three stacks run at once, which also keeps you inside the "two implementing lanes" review cap. Docker memory per stack has not been measured; watch it.
+
+| Slot | `project_id` | api | db | shadow | pooler | studio | smtp | analytics | edge inspector | Astro dev |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 (default) | `10x-astro-starter` | 54321 | 54322 | 54320 | 54329 | 54323 | 54324 | 54327 | 8083 | 4321 |
+| 1 | `stopper-lane-1` | 54421 | 54422 | 54420 | 54429 | 54423 | 54424 | 54427 | 8183 | 4322 |
+| 2 | `stopper-lane-2` | 54521 | 54522 | 54520 | 54529 | 54523 | 54524 | 54527 | 8283 | 4323 |
+
+Assign a slot when a lane starts and free it when the lane merges. A lane already running against the default stack keeps slot 0 until it merges; every other database-touching lane takes slot 1 or 2. `main` and throwaway integration worktrees take whichever slot is free.
+
+### Setting up a lane's stack
+
+Run in the lane's worktree, once:
+
+1. `npm ci`, then copy `.env` and `.dev.vars` from the main checkout (both are gitignored, so a new worktree has neither).
+2. Edit `supabase/config.toml` for the slot: `project_id` and the ports in the table (`[api]`, `[db]` with `shadow_port`, `[db.pooler]`, `[studio]`, `[local_smtp]`, `[analytics]`, `[edge_runtime] inspector_port`). Leave `[auth.email.smtp] port = 587` alone; it is an external mail server.
+3. Keep that edit out of git: `git update-index --skip-worktree supabase/config.toml`. Undo it with `--no-skip-worktree` before a rebase that touches the file.
+4. Start the stack with the same exclusions CI uses: `npx supabase start -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,realtime,storage-api,postgres-meta,supavisor`, then read the URL and keys with `npx supabase status -o env`.
+5. Point `.env` and `.dev.vars` at the slot's `API_URL` and keys, with Cloudflare's dummy Turnstile keys (the values `smoke-local.mjs` uses).
+
+Run the database checks against it: `npx supabase db reset`, `npx supabase test db`, then the app on the slot's port (`npx astro dev --port 4322`) and `BASE_URL=http://localhost:4322 SMOKE_SUPABASE_URL=<API_URL> SMOKE_SERVICE_ROLE_KEY=<key> SMOKE_ANON_KEY=<key> npm run smoke`. `smoke.mjs` already reads `BASE_URL` and refuses anything but localhost.
+
+Tear down when the lane merges: `npx supabase stop --no-backup` in that worktree, then `git worktree remove`.
+
+### Rules
+
+- Before any `db reset`, `test db` or smoke run, check that `npx supabase status` shows your slot's ports. Never run them against a stack the lane does not own.
+- Do not use `npm run smoke:local` in a lane on slot 1 or 2 until it accepts a port; today it starts its dev server on 4321 and its `--restore` stops every Astro dev server. Use the manual smoke command above instead.
+- The committed `config.toml` never changes, so CI (which runs the default stack on 4321) is unaffected.
+- To test two lanes together, create a throwaway worktree from `main`, merge both branches into it, give it a free slot, and run the full suite once there. Before that, `git merge-tree --write-tree --name-only <branch-a> <branch-b>` reports merge conflicts without touching any working tree.
+
+### Follow-up (not done)
+
+`scripts/smoke-local.mjs` should read its port from an environment variable (it hardcodes 4321 at lines 25 and 211) and limit its cleanup to its own dev server. That is a small change of its own; until it lands, slots 1 and 2 use the manual smoke command.
+
 ## Wave 1
 
 ### Lane 1: S-08 `time-entry-purge-verified` (isolated, safest)
