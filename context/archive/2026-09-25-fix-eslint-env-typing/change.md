@@ -1,10 +1,10 @@
 ---
 change_id: fix-eslint-env-typing
 title: Fix ESLint import.meta.env typing errors
-status: implemented
+status: archived
 created: 2026-09-25
 updated: 2026-09-25
-archived_at: null
+archived_at: 2026-09-25T12:53:05Z
 ---
 
 ## Notes
