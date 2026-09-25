@@ -43,7 +43,7 @@ Verify with the pgTAP tests, the smoke script over real HTTP, and a manual pass 
 
 ## Implementation Approach
 
-Database first, so the irreversible logic is tested before any UI exists. One `security definer` function `delete_account(p_link_id uuid)` does all the work, following `create_link` and `start_timer`. The app layer is thin: a confirmation check, an RPC call, a POST route, a confirm page, and an entry point. The confirmation phrase is validated on the server so it works without JavaScript and cannot be skipped by posting directly.
+Database first, so the irreversible logic is tested before any UI exists. One `security definer` function `delete_account(p_link_id uuid)` does all the work, following `create_link` and `start_timer`. The app layer is thin: a confirmation check, an RPC call, a POST route, a confirm page, and an entry point. The confirmation phrase is validated on the server so it works without JavaScript and cannot be skipped by posting directly. Linting is slow here, so the full `npm run lint` runs once, in Phase 4, instead of after every phase; between phases rely on `npx astro check` and editor diagnostics, and fix any lint findings in one pass at the end.
 
 ## Critical Implementation Details
 
@@ -144,7 +144,6 @@ The app-side pieces with no UI: the phrase check, the RPC wrapper, status messag
 
 - Unit tests pass: `npm test -- --run`
 - Type check passes: `npx astro check`
-- Lint passes: `npm run lint`
 
 #### Manual Verification:
 
@@ -191,7 +190,6 @@ The confirm page, the entry point on the workspace, and the success banner on th
 #### Automated Verification:
 
 - Type check passes: `npx astro check`
-- Lint passes: `npm run lint`
 - Build passes: `npm run build`
 
 #### Manual Verification:
@@ -230,6 +228,7 @@ Prove the whole flow over real HTTP with the smoke script, then once in a real b
 
 #### Automated Verification:
 
+- Lint passes (run once, here; CI runs it again on the PR): `npm run lint`
 - Smoke test passes against a freshly reset local database: `npm run smoke:local`
 
 #### Manual Verification:
@@ -302,33 +301,32 @@ Additive only: one new function and one constraint comment. No existing data cha
 
 - [ ] 2.1 Unit tests pass: `npm test -- --run`
 - [ ] 2.2 Type check passes: `npx astro check`
-- [ ] 2.3 Lint passes: `npm run lint`
 
 #### Manual
 
-- [ ] 2.4 With the dev server and a local database, posting to the route with `curl` and a wrong phrase returns 303 to the confirm page with `error=confirm-mismatch` and leaves the data intact; the right phrase returns 303 to `/?status=account-deleted` and the rows are gone
+- [ ] 2.3 With the dev server and a local database, posting to the route with `curl` and a wrong phrase returns 303 to the confirm page with `error=confirm-mismatch` and leaves the data intact; the right phrase returns 303 to `/?status=account-deleted` and the rows are gone
 
 ### Phase 3: UI
 
 #### Automated
 
 - [ ] 3.1 Type check passes: `npx astro check`
-- [ ] 3.2 Lint passes: `npm run lint`
-- [ ] 3.3 Build passes: `npm run build`
+- [ ] 3.2 Build passes: `npm run build`
 
 #### Manual
 
-- [ ] 3.4 The workspace shows "Delete all my data" below the private link and it opens the confirm page
-- [ ] 3.5 In a real browser, submitting the confirm form works (no 403 from Astro's origin check) and a wrong phrase shows the mismatch message on the same page
-- [ ] 3.6 The confirm page and banner hold up at phone width
+- [ ] 3.3 The workspace shows "Delete all my data" below the private link and it opens the confirm page
+- [ ] 3.4 In a real browser, submitting the confirm form works (no 403 from Astro's origin check) and a wrong phrase shows the mismatch message on the same page
+- [ ] 3.5 The confirm page and banner hold up at phone width
 
 ### Phase 4: End-to-end check
 
 #### Automated
 
-- [ ] 4.1 Smoke test passes against a freshly reset local database: `npm run smoke:local`
+- [ ] 4.1 Lint passes (run once, here; CI runs it again on the PR): `npm run lint`
+- [ ] 4.2 Smoke test passes against a freshly reset local database: `npm run smoke:local`
 
 #### Manual
 
-- [ ] 4.2 In a real browser: start a timer, delete everything with the typed phrase, land on the home page with the success message, and reload the old workspace URL to get 404
-- [ ] 4.3 The home page then offers to create a new link, and the 10-person cap has one free slot
+- [ ] 4.3 In a real browser: start a timer, delete everything with the typed phrase, land on the home page with the success message, and reload the old workspace URL to get 404
+- [ ] 4.4 The home page then offers to create a new link, and the 10-person cap has one free slot
