@@ -19,7 +19,9 @@
       "Bash(cd \"C:/Users/MAKGRU/Source/x10-dev--curse\")",
       "Bash(echo \"=== projects ===\")",
       "Bash(echo)",
-      "Bash(echo \"=== time_entries ===\")"
+      "Bash(echo \"=== time_entries ===\")",
+      "Bash(SP=\"C:/Users/MAKGRU/AppData/Local/Temp/claude/C--Users-MAKGRU-Source-x10-dev--curse/411985ce-7f17-4f9b-b7f4-6fec9778b947/scratchpad\"; printf \"dev server -> \"; curl -s -o /dev/null -w \"%{http_code}\\\\n\" --max-time 8 http://localhost:4321/; timeout 290 node --no-deprecation \"$SP/shoot.cjs\" phase1 context/changes/workspace-ui-tokens/screenshots 2>&1 | tail -10)",
+      "Bash(cd *)"
     ]
   },
   "enableAllProjectMcpServers": true,
