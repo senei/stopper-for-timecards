@@ -208,27 +208,27 @@ Additive migration only (new function); no existing rows or tables change. The o
 
 #### Automated
 
-- [x] 1.1 Migration applies cleanly to a fresh local database: `npx supabase db reset`
-- [x] 1.2 The pgTAP suite passes including the new purge test: `npx supabase test db`
+- [x] 1.1 Migration applies cleanly to a fresh local database: `npx supabase db reset` — c02c6ca
+- [x] 1.2 The pgTAP suite passes including the new purge test: `npx supabase test db` — c02c6ca
 
 #### Manual
 
-- [x] 1.3 The migration deletes only from `time_entries` and never references `projects`, and its grants match the `switch_timer` pattern
+- [x] 1.3 The migration deletes only from `time_entries` and never references `projects`, and its grants match the `switch_timer` pattern — c02c6ca
 
 ### Phase 2: Worker on the function, with run logging
 
 #### Automated
 
-- [ ] 2.1 Linting passes: `npm run lint`
-- [ ] 2.2 Type checking passes, including the worker file: `npx astro check`
-- [ ] 2.3 Production build passes: `npm run build`
+- [x] 2.1 Linting passes: `npm run lint`
+- [x] 2.2 Type checking passes, including the worker file: `npx astro check`
+- [x] 2.3 Production build passes: `npm run build`
 
 #### Manual
 
-- [ ] 2.4 Local end-to-end: with local Supabase seeded with an old closed entry, a recent closed entry, an old open entry and their projects, a scheduled run (`wrangler dev --config wrangler.jsonc --test-scheduled --port 8799` from `workers/purge-job/`, then the `/cdn-cgi/local/scheduled` route) returns outcome ok, deletes only the old closed entry, and leaves every other entry and every project
-- [ ] 2.5 That run leaves exactly one new `job_runs` row for `purge_time_entries` with `status = 'success'`, `finished_at` set and `rows_affected` equal to the number deleted, and no row stuck at `running`
-- [ ] 2.6 With an invalid `SUPABASE_SERVICE_ROLE_KEY` the scheduled run reports a failed outcome and deletes nothing
-- [ ] 2.7 With `purge_time_entries` dropped from the local database, a scheduled run reports a failed outcome, leaves one `job_runs` row with `status = 'error'` and a non-empty `error_message`, and leaves no row at `running` (then restore the database with `npx supabase db reset`)
+- [x] 2.4 Local end-to-end: with local Supabase seeded with an old closed entry, a recent closed entry, an old open entry and their projects, a scheduled run (`wrangler dev --config wrangler.jsonc --test-scheduled --port 8799` from `workers/purge-job/`, then the `/cdn-cgi/local/scheduled` route) returns outcome ok, deletes only the old closed entry, and leaves every other entry and every project
+- [x] 2.5 That run leaves exactly one new `job_runs` row for `purge_time_entries` with `status = 'success'`, `finished_at` set and `rows_affected` equal to the number deleted, and no row stuck at `running`
+- [x] 2.6 With an invalid `SUPABASE_SERVICE_ROLE_KEY` the scheduled run reports a failed outcome and deletes nothing
+- [x] 2.7 With `purge_time_entries` dropped from the local database, a scheduled run reports a failed outcome, leaves one `job_runs` row with `status = 'error'` and a non-empty `error_message`, and leaves no row at `running` (then restore the database with `npx supabase db reset`)
 
 ### Phase 3: Production rollout and verification (run by the user)
 
