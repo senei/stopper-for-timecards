@@ -2,6 +2,7 @@ export const ERROR_INVALID_NAME = "invalid-name";
 export const ERROR_PROJECT_IN_USE = "project-in-use";
 export const ERROR_GENERIC = "1";
 export const STATUS_PROJECT_DELETED = "project-deleted";
+export const STATUS_TIMER_STOPPED = "timer-stopped";
 
 export function errorMessage(code: string | null): string | null {
   if (!code) return null;
@@ -14,6 +15,9 @@ export function errorMessage(code: string | null): string | null {
 
 export function statusMessage(code: string | null): string | null {
   if (!code) return null;
-  const messages: Record<string, string> = { [STATUS_PROJECT_DELETED]: "Project deleted." };
+  const messages: Record<string, string> = {
+    [STATUS_PROJECT_DELETED]: "Project deleted.",
+    [STATUS_TIMER_STOPPED]: "Timer stopped.",
+  };
   return messages[code] ?? null;
 }

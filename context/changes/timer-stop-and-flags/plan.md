@@ -261,23 +261,23 @@ Purely additive: one new function, no table, index or data changes, so no backfi
 
 #### Automated
 
-- [x] 1.1 Migration applies on a fresh local database: `npx supabase db reset`
-- [x] 1.2 The pgTAP suite, including the new file, passes: `npx supabase test db`
+- [x] 1.1 Migration applies on a fresh local database: `npx supabase db reset` — a871863
+- [x] 1.2 The pgTAP suite, including the new file, passes: `npx supabase test db` — a871863
 
 #### Manual
 
-- [x] 1.3 In the local Supabase SQL editor, `start_timer` then `stop_timer` for one link leaves the entry with `ended_at` set and no open entry
+- [x] 1.3 In the local Supabase SQL editor, `start_timer` then `stop_timer` for one link leaves the entry with `ended_at` set and no open entry — a871863
 
 ### Phase 2: App logic and stop route
 
 #### Automated
 
-- [ ] 2.1 Unit tests pass, including the new flag and status tests: `npx vitest run`
-- [ ] 2.2 Type checking passes: `npx astro check`
+- [x] 2.1 Unit tests pass, including the new flag and status tests: `npx vitest run`
+- [x] 2.2 Type checking passes: `npx astro check`
 
 #### Manual
 
-- [ ] 2.4 With the dev server running and a timer started, `POST /api/w/<token>/timer/stop` (with an `Origin` header and a form body) answers 303 to `?status=timer-stopped`; repeating it answers 303 to the plain workspace; a `GET` answers 405
+- [x] 2.4 With the dev server running and a timer started, `POST /api/w/<token>/timer/stop` (with an `Origin` header and a form body) answers 303 to `?status=timer-stopped`; repeating it answers 303 to the plain workspace; a `GET` answers 405
 
 ### Phase 3: UI and smoke coverage
 

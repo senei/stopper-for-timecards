@@ -22,3 +22,10 @@
 - **Problem**: Under `no-referrer`, browsers send `Origin: null` on same-origin form posts (verified in Chrome: no-referrer gave null, strict-origin gave the real origin). Astro's default `security.checkOrigin` rejects that with a 403 "Cross-site POST form submissions are forbidden" before route code runs, so the browser lands on the /api URL showing that text. scripts/smoke.mjs sets Origin on every request, so smoke and curl checks pass while a real browser cannot submit the form; it shipped with S-02 and was found only by manual testing in timer-switch-rounding Phase 3.
 - **Rule**: Use `Referrer-Policy: strict-origin` (never `no-referrer`) on any page that contains a form: it keeps the token out of Referer and still sends a correct Origin. Verify every new form by submitting it in a real browser, not only with smoke or curl, which set Origin themselves.
 - **Applies to**: plan, implement, review
+
+## Start astro dev with ASTRO_DEV_BACKGROUND=1 when an AI agent runs it
+
+- **Context**: Starting `astro dev` (directly, or through `npm run smoke:local`) from a Claude Code or other agent session on Astro 7, especially in a fresh worktree.
+- **Problem**: Astro 7 detects an AI-agent environment and starts the dev server as a detached background process that must become ready within 30 s (node_modules/astro/dist/cli/dev/index.js:86-91, cli/server.js:148). A fresh worktree's first start took about 114 s, so every attempt was killed with 'Dev server failed to start within 30s' and .astro/dev.log stayed empty. Running `astro check` first or seeding the Vite cache did not help, and each smoke:local retry cost a ~5 minute database reset. Hit five times in timer-stop-and-flags Phase 2.
+- **Rule**: When starting the dev server from an agent session, set `ASTRO_DEV_BACKGROUND=1` (for example `ASTRO_DEV_BACKGROUND=1 npx astro dev --port 4321`) so it runs in the foreground with no 30 s limit, run it as a background shell task, and wait for the 'ready' line before sending requests. `npm run smoke:local` starts astro dev itself, so export the variable before running it (expected to work, not yet verified).
+- **Applies to**: implement, impl-review

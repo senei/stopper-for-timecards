@@ -16,7 +16,7 @@ export class TimerAlreadyRunningError extends Error {
   }
 }
 
-/** Thrown when `switch_timer` finds no open entry to close (`P0001`). */
+/** Thrown when `switch_timer` or `stop_timer` finds no open entry to close (`P0001`). */
 export class NoActiveTimerError extends Error {
   constructor() {
     super("No timer is running for this link");
@@ -24,7 +24,7 @@ export class NoActiveTimerError extends Error {
   }
 }
 
-/** Validates the single row `start_timer` / `switch_timer` return and maps it to camelCase. */
+/** Validates the single row `start_timer` / `switch_timer` / `stop_timer` return and maps it to camelCase. */
 function parseTimerRow(fnName: string, data: unknown): StartTimerResult {
   const rows: unknown = data;
   if (!Array.isArray(rows) || rows.length !== 1) {
@@ -92,6 +92,25 @@ export async function switchTimer(linkId: string, projectName: string): Promise<
   }
 
   return parseTimerRow("switch_timer", response.data);
+}
+
+/**
+ * Stops the running timer through the atomic `stop_timer` function: closes the link's open entry
+ * at the current moment and returns it. `NoActiveTimerError` means the link had no open entry to
+ * stop (`P0001`) — a race backstop, same philosophy as in `switchTimer`.
+ */
+export async function stopTimer(linkId: string): Promise<StartTimerResult> {
+  const admin = adminOrThrow();
+
+  const response = await admin.rpc("stop_timer", { p_link_id: linkId });
+  if (response.error) {
+    if (response.error.code === "P0001") {
+      throw new NoActiveTimerError();
+    }
+    throw new Error(`stop_timer failed: ${response.error.message}`);
+  }
+
+  return parseTimerRow("stop_timer", response.data);
 }
 
 /** The link's currently open (`ended_at is null`) time entry, if any. */
