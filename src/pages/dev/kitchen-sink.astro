@@ -22,20 +22,24 @@ const running: CurrentTimer = {
   startedAt: "2026-09-24T10:57:00.000Z",
 };
 
-// The heading index is pinned so screenshots do not change from day to day.
+// The heading index and the clock are pinned so screenshots do not change from day to day: 1 hour after `running` started.
 const shared = {
   token: "kitchen-sink-token",
   startAction: "/dev/kitchen-sink",
   switchAction: "/dev/kitchen-sink",
+  stopAction: "/dev/kitchen-sink",
   workspaceUrl: "http://localhost:4321/w/kitchen-sink-token",
   embedded: true,
   headingIndex: 0,
+  now: new Date("2026-09-24T12:00:00.000Z"),
 };
 
 const cardStates = [
   { name: "default, with projects", props: { currentTimer: null, projects } },
   { name: "default, empty (no projects)", props: { currentTimer: null, projects: [] } },
   { name: "tracking", props: { currentTimer: running, projects } },
+  // 14 hours after `running` started, past the 12-hour limit.
+  { name: "tracking, flagged", props: { currentTimer: running, projects, now: new Date("2026-09-25T01:00:00.000Z") } },
   { name: "error message", props: { currentTimer: null, projects, bannerError: "That project name isn't valid." } },
   { name: "status message", props: { currentTimer: null, projects, bannerStatus: "Project deleted." } },
   { name: "unavailable", props: { currentTimer: null, projects: [], unavailable: true } },
