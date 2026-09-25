@@ -3,6 +3,7 @@ import {
   ERROR_INVALID_NAME,
   ERROR_PROJECT_IN_USE,
   STATUS_PROJECT_DELETED,
+  STATUS_TIMER_STOPPED,
   errorMessage,
   statusMessage,
 } from "./status-messages";
@@ -23,8 +24,9 @@ describe("errorMessage", () => {
 });
 
 describe("statusMessage", () => {
-  it("maps the known status code to its exact text", () => {
+  it("maps the known status codes to their exact text", () => {
     expect(statusMessage(STATUS_PROJECT_DELETED)).toBe("Project deleted.");
+    expect(statusMessage(STATUS_TIMER_STOPPED)).toBe("Timer stopped.");
   });
 
   it("returns null for an unknown status code", () => {

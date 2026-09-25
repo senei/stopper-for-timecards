@@ -60,6 +60,7 @@ if (unavailable) {
 const workspaceUrl = Astro.url.href;
 const startAction = `/api/w/${token}/timer/start`;
 const switchAction = `/api/w/${token}/timer/switch`;
+const stopAction = `/api/w/${token}/timer/stop`;
 const bannerError = errorMessage(Astro.url.searchParams.get("error"));
 const bannerStatus = statusMessage(Astro.url.searchParams.get("status"));
 ---
@@ -74,6 +75,7 @@ const bannerStatus = statusMessage(Astro.url.searchParams.get("status"));
     token={token}
     startAction={startAction}
     switchAction={switchAction}
+    stopAction={stopAction}
     workspaceUrl={workspaceUrl}
   />
 </Layout>

@@ -44,7 +44,7 @@ People who work across several projects a day don't capture time as it happens, 
 | S-01 | private-link-access      | create their own private link and open it to land in their own workspace | —             | FR-007, US-02                | done        |
 | S-02 | first-timer-start        | add a project and pick it to start the timer instantly                   | S-01          | FR-001, FR-002, US-01, NFR   | done |
 | S-03 | timer-switch-rounding    | switch the running timer to another project with 15-min-rounded splits   | S-02          | FR-003                       | done |
-| S-04 | timer-stop-and-flags     | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                       | proposed |
+| S-04 | timer-stop-and-flags     | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                       | done |
 | S-05 | time-corrections         | correct logged time at end of day or start of next day                   | S-03, S-04    | FR-005                       | proposed |
 | S-06 | weekly-grid-summary      | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001               | proposed |
 | S-07 | link-regeneration        | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02                | proposed |
@@ -131,7 +131,7 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Unknowns:**
   - What threshold counts as "suspiciously long" / past end of day? — Owner: user. Block: no.
 - **Risk:** Protects the rest of the day from silent corruption; touches the same timer logic as S-03, so parallel runs need care.
-- **Status:** proposed
+- **Status:** done
 
 ### S-05: Correct logged time
 
@@ -246,3 +246,4 @@ GitHub issues created 2026-09-21 in `senei/stopper-for-timecards`.
 - **S-09: delete a project from their list; a project with any logged time entries against it is protected from deletion instead of silently destroying history** — Archived 2026-09-23 → `context/archive/2026-09-23-delete-project/`. Lesson: —.
 - **S-03: user can switch the active timer to another project mid-day, with time split between projects at 15-minute precision** — Archived 2026-09-24 → `context/archive/2026-09-23-timer-switch-rounding/`. Lesson: —.
 - **S-08: user's time entries older than 3 months are purged automatically, while project definitions remain** — Archived 2026-09-25 → `context/archive/2026-09-25-time-entry-purge-verified/`. Lesson: —.
+- **S-04: user can stop the timer for the day and is prompted to correct a timer that has been running suspiciously long** — Archived 2026-09-25 → `context/archive/2026-09-25-timer-stop-and-flags/`. Lesson: —.

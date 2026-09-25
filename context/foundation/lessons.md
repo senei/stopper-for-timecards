@@ -23,6 +23,27 @@
 - **Rule**: Use `Referrer-Policy: strict-origin` (never `no-referrer`) on any page that contains a form: it keeps the token out of Referer and still sends a correct Origin. Verify every new form by submitting it in a real browser, not only with smoke or curl, which set Origin themselves.
 - **Applies to**: plan, implement, review
 
+## Start astro dev with ASTRO_DEV_BACKGROUND=1 when an AI agent runs it
+
+- **Context**: Starting `astro dev` (directly, or through `npm run smoke:local`) from a Claude Code or other agent session on Astro 7, especially in a fresh worktree.
+- **Problem**: Astro 7 detects an AI-agent environment and starts the dev server as a detached background process that must become ready within 30 s (node_modules/astro/dist/cli/dev/index.js:86-91, cli/server.js:148). A fresh worktree's first start took about 114 s, so every attempt was killed with 'Dev server failed to start within 30s' and .astro/dev.log stayed empty. Running `astro check` first or seeding the Vite cache did not help, and each smoke:local retry cost a ~5 minute database reset. Hit five times in timer-stop-and-flags Phase 2.
+- **Rule**: When starting the dev server from an agent session, set `ASTRO_DEV_BACKGROUND=1` (for example `ASTRO_DEV_BACKGROUND=1 npx astro dev --port 4321`) so it runs in the foreground with no 30 s limit, run it as a background shell task, and wait for the 'ready' line before sending requests. `npm run smoke:local` starts astro dev itself, so export the variable before running it (verified: `ASTRO_DEV_BACKGROUND=1 npm run smoke:local -- --yes` passed; the server still takes about 2 minutes to become ready, and the script waits up to 3 minutes).
+- **Applies to**: implement, impl-review
+
+## Record how each manual Progress row was verified
+
+- **Context**: plan.md Progress rows 3.5, 3.7 and 3.8 (manual-verification rows for UI behaviour in timer-stop-and-flags)
+- **Problem**: Rows 3.5 (real-browser Stop), 3.7 (restart after stop) and 3.8 (kitchen sink in light and dark themes) were ticked on the user's confirmation alone; nothing in the diff or the review shows them. The rows checked by script (2.4, 3.6) carry their own evidence.
+- **Rule**: When a manual Progress row is ticked on the user's confirmation alone, say so in the phase commit body (for example "3.5, 3.7 and 3.8 confirmed by the user") so the review can tell confirmed-by-person rows from script-verified ones.
+- **Applies to**: implement, impl-review
+
+## Clear the ESLint cache if unresolved-type errors appear only in cached runs
+
+- **Context**: `npm run lint` (type-aware `strictTypeChecked`, run with `--cache --cache-strategy content`, cache in node_modules/.cache/eslint/) in a fresh git worktree, or after generated types (`astro sync`) or dependencies change.
+- **Problem**: The first lint run in a new worktree happened before Astro's generated types (.astro/types.d.ts) existed, so `import.meta.env` resolved to an error type and 8 `@typescript-eslint/no-unsafe-*` errors were cached. The content cache keys on file content and config, not on type information, so unchanged files replayed those errors on every later run, even after `astro sync`, while a direct uncached `npx eslint <file>` on the same files was clean. It looked like a repo bug and produced a follow-up change (fix-eslint-env-typing).
+- **Rule**: In a fresh worktree, run `npx astro sync` before the first `npm run lint`; if lint reports `error typed` or unresolved-type errors that a direct `npx eslint <file>` does not, delete node_modules/.cache/eslint/ and re-run before treating them as real.
+- **Applies to**: implement, impl-review
+
 ## Give each database-touching worktree lane its own local Supabase stack
 
 - **Context**: Parallel git worktrees of this repo running `supabase db reset`, `supabase test db`, `scripts/smoke.mjs` or `npm run smoke:local` on one machine. `supabase/config.toml` fixes `project_id = "10x-astro-starter"` and ports 54320-54329, and `smoke-local.mjs` hardcodes port 4321.
