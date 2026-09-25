@@ -22,3 +22,10 @@
 - **Problem**: Under `no-referrer`, browsers send `Origin: null` on same-origin form posts (verified in Chrome: no-referrer gave null, strict-origin gave the real origin). Astro's default `security.checkOrigin` rejects that with a 403 "Cross-site POST form submissions are forbidden" before route code runs, so the browser lands on the /api URL showing that text. scripts/smoke.mjs sets Origin on every request, so smoke and curl checks pass while a real browser cannot submit the form; it shipped with S-02 and was found only by manual testing in timer-switch-rounding Phase 3.
 - **Rule**: Use `Referrer-Policy: strict-origin` (never `no-referrer`) on any page that contains a form: it keeps the token out of Referer and still sends a correct Origin. Verify every new form by submitting it in a real browser, not only with smoke or curl, which set Origin themselves.
 - **Applies to**: plan, implement, review
+
+## Give each database-touching worktree lane its own local Supabase stack
+
+- **Context**: Parallel git worktrees of this repo running `supabase db reset`, `supabase test db`, `scripts/smoke.mjs` or `npm run smoke:local` on one machine. `supabase/config.toml` fixes `project_id = "10x-astro-starter"` and ports 54320-54329, and `smoke-local.mjs` hardcodes port 4321.
+- **Problem**: Worktrees isolate code, not the database, so all lanes share one local stack: a `db reset` in one lane wipes another's data, `smoke.mjs` refuses to run while another lane's links exist, `astro dev stop` kills the other lane's dev server, and pgTAP runs against whichever lane's migrations were applied last. Hit when two active lanes competed for the same database.
+- **Rule**: Before a lane runs any database or smoke check, give it its own stack slot (its own `project_id`, shifted ports and Astro dev port, per `context/foundation/parallel-goals.md`), keep that config edit out of git with `skip-worktree`, and confirm `supabase status` shows the slot's ports before any `db reset`; checks that need no database (lint, astro check, vitest) can still run in every worktree at once.
+- **Applies to**: plan, implement
