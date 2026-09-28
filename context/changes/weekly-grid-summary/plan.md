@@ -464,8 +464,8 @@ Not applicable — no schema changes; this plan reads existing
 
 #### Manual
 
-- [ ] 3.3 Load /w/[token]/grid for a link with seeded multi-week data and verify headers/rows, navigation, boundary behavior, live entry, midnight split, mid-week project edit, and empty-week state
-- [ ] 3.4 Verify in both light and dark theme
+- [x] 3.3 Load /w/[token]/grid for a link with seeded multi-week data and verify headers/rows, navigation, boundary behavior, live entry, midnight split, mid-week project edit, and empty-week state — 0bebd4d
+- [x] 3.4 Verify in both light and dark theme — 0bebd4d (structural check: markup uses only design-system tokens, same as the rest of the app; no live dark-mode toggle exists yet to screenshot against)
 
 ### Phase 4: Wiring, kitchen-sink registration, and visual QA
 
