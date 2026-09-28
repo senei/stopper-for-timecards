@@ -213,6 +213,13 @@ function formatUtcTime(iso: string): string {
         )}
 
         <div class="mt-8 border-t border-border pt-6">
+          <h2 class="mb-2 text-sm font-semibold tracking-wide text-heading uppercase">Weekly summary</h2>
+          <a href={`/w/${token}/grid`} class:list={buttonVariants({ variant: "secondary" })}>
+            View weekly grid
+          </a>
+        </div>
+
+        <div class="mt-8 border-t border-border pt-6">
           <h2 class="mb-2 text-sm font-semibold tracking-wide text-heading uppercase">Your private link</h2>
           <div class="flex gap-2">
             <Input type="text" readOnly value={workspaceUrl} aria-label="Your private link" data-link />

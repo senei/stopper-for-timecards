@@ -1,0 +1,83 @@
+---
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { buttonVariants } from "@/components/ui/button";
+import type { GridRow } from "@/lib/weekly-grid";
+
+const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+
+interface Props {
+  weekLabel: string;
+  showPrevious: boolean;
+  showNext: boolean;
+  /** Required when `showPrevious` is true. */
+  previousHref?: string;
+  /** Required when `showNext` is true. */
+  nextHref?: string;
+  rows: GridRow[];
+}
+
+const { weekLabel, showPrevious, showNext, previousHref, nextHref, rows } = Astro.props;
+
+/** Raw minutes (already rounded up to a 15-minute increment by buildWeeklyGrid) as `H:MM`; zero renders as an
+ * em dash rather than "0:00". */
+function formatMinutes(minutes: number): string {
+  if (minutes === 0) {
+    return "—";
+  }
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return `${hours}:${String(remainder).padStart(2, "0")}`;
+}
+---
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h1 class="text-3xl font-bold text-heading">Weekly grid</h1>
+    <p class="mt-1 text-muted-foreground">{weekLabel}</p>
+  </div>
+  <div class="flex gap-2">
+    {showPrevious && previousHref && (
+      <a href={previousHref} class:list={buttonVariants({ variant: "secondary", size: "sm" })}>
+        ← Previous week
+      </a>
+    )}
+    {showNext && nextHref && (
+      <a href={nextHref} class:list={buttonVariants({ variant: "secondary", size: "sm" })}>
+        Next week →
+      </a>
+    )}
+  </div>
+</div>
+{rows.length === 0 ? (
+  <Alert role="status">
+    <AlertDescription>No time was logged for this week.</AlertDescription>
+  </Alert>
+) : (
+  <div class="overflow-x-auto">
+    <table class="w-full border-collapse text-sm">
+      <thead>
+        <tr class="border-b border-border text-left text-muted-foreground">
+          <th class="py-2 pr-4 font-medium">Project</th>
+          {DAY_LABELS.map((label) => (
+            <th class="px-2 py-2 text-right font-medium">{label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr class="border-b border-border last:border-b-0">
+            <td class="py-2 pr-4 text-card-foreground">
+              <div>{row.projectName}</div>
+              <div class="text-xs text-muted-foreground">
+                {row.task ?? "—"} - {row.type} - {row.workType}
+              </div>
+            </td>
+            {row.dailyMinutes.map((minutes) => (
+              <td class="px-2 py-2 text-right text-card-foreground">{formatMinutes(minutes)}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
