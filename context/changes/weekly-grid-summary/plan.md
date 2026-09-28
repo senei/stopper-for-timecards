@@ -435,22 +435,22 @@ Not applicable — no schema changes; this plan reads existing
 
 #### Automated
 
-- [x] 1.1 `npx vitest run src/lib/weekly-grid.test.ts` passes, covering every case listed above
+- [x] 1.1 `npx vitest run src/lib/weekly-grid.test.ts` passes, covering every case listed above — b7c9199
 
 #### Manual
 
-- [x] 1.2 Hand-trace one midnight-spanning example against the function's output and confirm the split minutes match hand calculation
+- [x] 1.2 Hand-trace one midnight-spanning example against the function's output and confirm the split minutes match hand calculation — b7c9199
 
 ### Phase 2: Weekly-grid data access
 
 #### Automated
 
-- [ ] 2.1 `npx vitest run src/lib/weekly-grid-query.test.ts` passes for earliestNavigableWeekStart
-- [ ] 2.2 `npm run build` passes (typecheck covers fetchWeekEntries's Supabase query shape)
+- [x] 2.1 `npx vitest run src/lib/weekly-grid-query.test.ts` passes for earliestNavigableWeekStart
+- [x] 2.2 `npm run build` passes (typecheck covers fetchWeekEntries's Supabase query shape)
 
 #### Manual
 
-- [ ] 2.3 Using Supabase Studio or a scratch script against hand-seeded data, confirm fetchWeekEntries returns exactly the expected rows
+- [x] 2.3 Using Supabase Studio or a scratch script against hand-seeded data, confirm fetchWeekEntries returns exactly the expected rows
 
 ### Phase 3: Grid page, route, and UI
 
