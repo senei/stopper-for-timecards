@@ -33,8 +33,7 @@ create temporary table switch1 as
 create temporary table switch2 as
   select * from switch_timer('b0000000-0000-0000-0000-000000000001', 'Project C');
 
-create temporary table stop1 as
-  select * from stop_timer('b0000000-0000-0000-0000-000000000001');
+select * from stop_timer('b0000000-0000-0000-0000-000000000001');
 
 select is(
   (select ended_at from time_entries where id = (select entry_id from start1)),

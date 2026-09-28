@@ -92,19 +92,21 @@ orchestrator updates Status as artifacts appear on disk.
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|---|---|---|---|---|---|
 | 1 | Timer precision & attribution regression guard | Harden the two guardrail risks the team trusts least, extending existing db coverage with deliberate-break checks | #1, #2 | integration | complete | `context/changes/testing-timer-guardrails/` |
-| 2 | Real-browser flow coverage | Bootstrap a real-browser (e2e) layer to close the proven blind spot that HTTP-only smoke checks can't see | #3 | e2e | not started | — |
-| 3 | Weekly grid rounding & aggregation | Build the test oracle for the still-unbuilt weekly grid (S-06) before/alongside its implementation | #5 | unit + integration | not started | — |
-| 4 | Irreversible-action & link-abuse guardrails | Cover irreversible full-account delete (S-10) and link leak/regeneration (S-07) before/alongside those slices | #6, #4 | integration + e2e | not started | — |
+| 2 | Weekly grid rounding & aggregation | Build the test oracle for the still-unbuilt weekly grid (S-06) before/alongside its implementation | #5 | unit + integration | not started | — |
+| 3 | Irreversible-action & link-abuse guardrails | Cover irreversible full-account delete (S-10) and link leak/regeneration (S-07) before/alongside those slices | #6, #4 | integration + e2e | not started | — |
+| 4 | Real-browser flow coverage | Bootstrap a real-browser (e2e) layer to close the proven blind spot that HTTP-only smoke checks can't see | #3 | e2e | not started | — |
 
 Order rationale: Phase 1 protects the highest-ranked risks first at the
 cheapest incremental cost (existing pgTAP coverage already exists to
-extend). Phase 2 is the most evidence-backed gap (an incident that already
-shipped) and builds infrastructure every later e2e need reuses. Phases 3–4
-are sequenced to land alongside their still-`proposed` roadmap slices
-(S-06, then S-10/S-07), so tests exist before or with the code rather than
-trailing it. No AI-native phase is included — the interview (Q5) explicitly
-excluded visual/styling test budget, and nothing else in the risk map
-clears cost × signal for a vision-review layer.
+extend). Phases 2–3 are sequenced to land alongside their still-`proposed`
+roadmap slices (S-06, then S-10/S-07), so tests exist before or with the
+code rather than trailing it. Phase 4 (real-browser/e2e bootstrap) moves to
+last by explicit team decision (2026-09-28) — despite being the most
+evidence-backed gap (an incident that already shipped, see Risk #3), the
+team chose to sequence the roadmap-linked phases first. No AI-native phase
+is included — the interview (Q5) explicitly excluded visual/styling test
+budget, and nothing else in the risk map clears cost × signal for a
+vision-review layer.
 
 ## 4. Stack
 
