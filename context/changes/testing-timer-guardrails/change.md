@@ -1,7 +1,7 @@
 ---
 change_id: testing-timer-guardrails
 title: Testing timer guardrails
-status: implementing
+status: implemented
 created: 2026-09-28
 updated: 2026-09-28
 archived_at: null

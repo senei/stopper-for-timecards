@@ -443,8 +443,8 @@ against the existing schema from
 
 #### Automated
 
-- [x] 3.1 `grep` confirms `context/foundation/test-plan.md` §3 row 1 reads `complete` and §6.2 references `timer_guardrails.test.sql`
+- [x] 3.1 `grep` confirms `context/foundation/test-plan.md` §3 row 1 reads `complete` and §6.2 references `timer_guardrails.test.sql` — a3109d2
 
 #### Manual
 
-- [x] 3.2 Read the updated §6.2 and confirm the new deliberate-break note is concise and doesn't duplicate the existing bullets
+- [x] 3.2 Read the updated §6.2 and confirm the new deliberate-break note is concise and doesn't duplicate the existing bullets — a3109d2
