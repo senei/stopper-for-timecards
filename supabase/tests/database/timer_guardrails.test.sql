@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(12);
+select plan(16);
 
 -- Fixed link ids, distinct from every other test file's a0000000-… range
 -- (projects_and_timer.test.sql's …001, switch_timer.test.sql's …004/…005,
@@ -10,12 +10,14 @@ select plan(12);
 -- so later throws_ok/is literals don't need interpolation and can't collide
 -- if tests ever run in the same session. One link per case keeps setup
 -- order-independent, matching switch_timer.test.sql/stop_timer.test.sql.
--- …0001-…0003 are this phase's cases; …0004/…0005 are reserved for Phase 2's
--- canonicalization and Unicode-snapshot cases, added later to this same file.
+-- …0001-…0003 are Phase 1's cases; …0004/…0005 are Phase 2's canonicalization
+-- and Unicode-snapshot cases.
 insert into links (id, token_hash) values
   ('b0000000-0000-0000-0000-000000000001', 'timer-guardrails-test-hash-1'),
   ('b0000000-0000-0000-0000-000000000002', 'timer-guardrails-test-hash-2'),
-  ('b0000000-0000-0000-0000-000000000003', 'timer-guardrails-test-hash-3');
+  ('b0000000-0000-0000-0000-000000000003', 'timer-guardrails-test-hash-3'),
+  ('b0000000-0000-0000-0000-000000000004', 'timer-guardrails-test-hash-4'),
+  ('b0000000-0000-0000-0000-000000000005', 'timer-guardrails-test-hash-5');
 
 -- Case 1: segment-boundary chaining. start -> switch -> switch -> stop on one
 -- link must write the identical timestamp for each closed segment's ended_at
@@ -120,6 +122,52 @@ select is(
   (select count(*) from projects where link_id = 'b0000000-0000-0000-0000-000000000003'),
   1::bigint,
   'the rejected direct insert leaves the link with exactly one projects row'
+);
+
+-- Case 4: casing-canonicalization contract. Reusing an existing project
+-- under different casing must resolve to (and keep) the project's original,
+-- first-seen casing — lower(trim()) drives the lookup, but only trim()
+-- drives the insert, so the stored name never gets overwritten by a later
+-- differently-cased retype. This documents that behavior explicitly instead
+-- of leaving it an unasserted accident.
+create temporary table start4 as
+  select * from start_timer('b0000000-0000-0000-0000-000000000004', 'Acme');
+
+create temporary table switch4 as
+  select * from switch_timer('b0000000-0000-0000-0000-000000000004', 'ACME');
+
+select is(
+  (select project_name from switch4),
+  'Acme',
+  'switch_timer returns the project''s original first-seen casing (Acme), not the newly-typed casing (ACME)'
+);
+select is(
+  (select name from projects where id = (select project_id from start4)),
+  'Acme',
+  'the stored projects.name is unchanged at the original casing (Acme) after the case-varied reuse'
+);
+
+-- Case 5: non-ASCII case-fold snapshot. Pins today's collation-dependent
+-- lower() behavior for one accented example, so a future collation/locale
+-- change would be caught. This documents current behavior for this one
+-- example, not a correctness claim about every script.
+create temporary table start5a as
+  select * from start_timer('b0000000-0000-0000-0000-000000000005', 'Café');
+
+select * from stop_timer('b0000000-0000-0000-0000-000000000005');
+
+create temporary table start5b as
+  select * from start_timer('b0000000-0000-0000-0000-000000000005', 'CAFÉ');
+
+select is(
+  (select project_id from start5b),
+  (select project_id from start5a),
+  'reusing an accented name under different casing resolves via server-side lower() (documents current collation behavior)'
+);
+select is(
+  (select count(*) from projects where link_id = 'b0000000-0000-0000-0000-000000000005'),
+  1::bigint,
+  'reusing the accented name creates no duplicate projects row (documents current collation behavior)'
 );
 
 select * from finish();

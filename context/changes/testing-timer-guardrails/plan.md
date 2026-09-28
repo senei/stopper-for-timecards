@@ -419,25 +419,25 @@ against the existing schema from
 
 #### Automated
 
-- [x] 1.1 New file parses and runs: `npx supabase test db` completes with no syntax errors and every assertion in this phase's three cases passes
-- [x] 1.2 `npx supabase db reset && npx supabase test db` passes locally, matching the CI `smoke` job's command
-- [x] 1.3 The boundary-chaining case's equality assertions (`ended_at = started_at` across segments) pass, proving atomic same-timestamp close/open
-- [x] 1.4 Both `throws_ok(..., '23505', ...)` bypass-insert assertions pass, and their paired row-count assertions confirm no partial state was left behind
+- [x] 1.1 New file parses and runs: `npx supabase test db` completes with no syntax errors and every assertion in this phase's three cases passes — cb1b4a9
+- [x] 1.2 `npx supabase db reset && npx supabase test db` passes locally, matching the CI `smoke` job's command — cb1b4a9
+- [x] 1.3 The boundary-chaining case's equality assertions (`ended_at = started_at` across segments) pass, proving atomic same-timestamp close/open — cb1b4a9
+- [x] 1.4 Both `throws_ok(..., '23505', ...)` bypass-insert assertions pass, and their paired row-count assertions confirm no partial state was left behind — cb1b4a9
 
 #### Manual
 
-- [x] 1.5 Read the pgTAP output for this phase's cases and confirm the assertion descriptions read as intended
+- [x] 1.5 Read the pgTAP output for this phase's cases and confirm the assertion descriptions read as intended — cb1b4a9
 
 ### Phase 2: Casing-canonicalization contract & Unicode snapshot
 
 #### Automated
 
-- [ ] 2.1 `npx supabase test db` passes with the finalized `plan(N)` count matching the actual number of assertions run
-- [ ] 2.2 Full suite (`npx supabase db reset && npx supabase test db`) passes, confirming the new file doesn't collide with or affect any existing file's fixtures
+- [x] 2.1 `npx supabase test db` passes with the finalized `plan(N)` count matching the actual number of assertions run
+- [x] 2.2 Full suite (`npx supabase db reset && npx supabase test db`) passes, confirming the new file doesn't collide with or affect any existing file's fixtures
 
 #### Manual
 
-- [ ] 2.3 Read the canonicalization and Unicode case assertion descriptions and confirm they clearly separate "documents current behavior" framing from "this is correct/required" framing
+- [x] 2.3 Read the canonicalization and Unicode case assertion descriptions and confirm they clearly separate "documents current behavior" framing from "this is correct/required" framing
 
 ### Phase 3: Cookbook & rollout-status sync
 
