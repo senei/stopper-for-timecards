@@ -432,19 +432,19 @@ against the existing schema from
 
 #### Automated
 
-- [x] 2.1 `npx supabase test db` passes with the finalized `plan(N)` count matching the actual number of assertions run
-- [x] 2.2 Full suite (`npx supabase db reset && npx supabase test db`) passes, confirming the new file doesn't collide with or affect any existing file's fixtures
+- [x] 2.1 `npx supabase test db` passes with the finalized `plan(N)` count matching the actual number of assertions run — 8e4dacd
+- [x] 2.2 Full suite (`npx supabase db reset && npx supabase test db`) passes, confirming the new file doesn't collide with or affect any existing file's fixtures — 8e4dacd
 
 #### Manual
 
-- [x] 2.3 Read the canonicalization and Unicode case assertion descriptions and confirm they clearly separate "documents current behavior" framing from "this is correct/required" framing
+- [x] 2.3 Read the canonicalization and Unicode case assertion descriptions and confirm they clearly separate "documents current behavior" framing from "this is correct/required" framing — 8e4dacd
 
 ### Phase 3: Cookbook & rollout-status sync
 
 #### Automated
 
-- [ ] 3.1 `grep` confirms `context/foundation/test-plan.md` §3 row 1 reads `complete` and §6.2 references `timer_guardrails.test.sql`
+- [x] 3.1 `grep` confirms `context/foundation/test-plan.md` §3 row 1 reads `complete` and §6.2 references `timer_guardrails.test.sql`
 
 #### Manual
 
-- [ ] 3.2 Read the updated §6.2 and confirm the new deliberate-break note is concise and doesn't duplicate the existing bullets
+- [x] 3.2 Read the updated §6.2 and confirm the new deliberate-break note is concise and doesn't duplicate the existing bullets
