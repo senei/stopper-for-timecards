@@ -11,7 +11,8 @@ import { fetchWeekEntries } from "@/lib/weekly-grid-query";
 import { earliestNavigableWeekStart } from "@/lib/weekly-grid-retention";
 
 const MS_PER_DAY = 86_400_000;
-const WEEK_PARAM_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const MS_PER_WEEK = 7 * MS_PER_DAY;
+const WEEK_PARAM_PATTERN = /^\d+$/;
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 // Keep the token out of caches, referrers and search indexes — the same convention every other tokenized page
@@ -48,21 +49,23 @@ const nowUtc = new Date();
 const currentWeekStart = utcMondayOf(nowUtc);
 const earliestWeekStart = earliestNavigableWeekStart(nowUtc);
 
-/** Parses `?week=YYYY-MM-DD` and snaps it to that date's UTC Monday. Missing, malformed, or out-of-range values
- * (either past the current week or before the earliest navigable week) all fall back to the current UTC week. */
+/** Parses `?week=<N>`, the number of whole weeks before the current UTC week (`0` = current week, `1` = last
+ * week, and so on) — never an absolute calendar/ISO week number, which would need a year anchor and disagrees
+ * with itself across a year boundary. Missing, malformed, or out-of-range values (before the earliest
+ * navigable week; the pattern already rules out negative/future values) all fall back to the current UTC week. */
 function parseViewedWeekStart(weekParam: string | null): Date {
   if (!weekParam || !WEEK_PARAM_PATTERN.test(weekParam)) {
     return currentWeekStart;
   }
-  const parsed = new Date(`${weekParam}T00:00:00.000Z`);
-  if (Number.isNaN(parsed.getTime())) {
+  const weeksAgo = Number(weekParam);
+  if (!Number.isSafeInteger(weeksAgo)) {
     return currentWeekStart;
   }
-  const snapped = utcMondayOf(parsed);
-  if (snapped.getTime() > currentWeekStart.getTime() || snapped.getTime() < earliestWeekStart.getTime()) {
+  const candidate = new Date(currentWeekStart.getTime() - weeksAgo * MS_PER_WEEK);
+  if (candidate.getTime() < earliestWeekStart.getTime()) {
     return currentWeekStart;
   }
-  return snapped;
+  return candidate;
 }
 
 const viewedWeekStart = parseViewedWeekStart(Astro.url.searchParams.get("week"));
@@ -83,12 +86,12 @@ if (unavailable) {
 
 const showPrevious = viewedWeekStart.getTime() > earliestWeekStart.getTime();
 const showNext = viewedWeekStart.getTime() < currentWeekStart.getTime();
-const previousWeekStart = new Date(viewedWeekStart.getTime() - 7 * MS_PER_DAY);
-const nextWeekStart = new Date(viewedWeekStart.getTime() + 7 * MS_PER_DAY);
+const previousWeekStart = new Date(viewedWeekStart.getTime() - MS_PER_WEEK);
+const nextWeekStart = new Date(viewedWeekStart.getTime() + MS_PER_WEEK);
 
-/** `YYYY-MM-DD` for the `?week=` query param, from a UTC-midnight Date. */
-function toWeekParam(date: Date): string {
-  return date.toISOString().slice(0, 10);
+/** The `?week=<N>` value for a UTC-Monday `weekStart`: how many whole weeks before `currentWeekStart` it is. */
+function toWeekParam(weekStart: Date): string {
+  return String(Math.round((currentWeekStart.getTime() - weekStart.getTime()) / MS_PER_WEEK));
 }
 
 /** e.g. "Sep 21 – Sep 27, 2026" for the week starting at `weekStart` (a UTC Monday). */

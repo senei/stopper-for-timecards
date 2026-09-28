@@ -293,10 +293,13 @@ tokens (`PageCard`, `--card`/`--border`/`--muted-foreground` per
 `tokens.md`). Accepts the viewed week via a query param, defaulting to the
 current UTC week when absent.
 
-**Contract**: URL shape `/w/[token]/grid?week=<YYYY-MM-DD>` (a UTC Monday
-date; malformed or out-of-range values fall back to the current week).
-Table columns: Project | Task | Type | Work Type | Mon | Tue | Wed | Thu |
-Fri | Sat | Sun. "Previous week" link omitted once
+**Contract**: URL shape `/w/[token]/grid?week=<N>`, where `N` is the number
+of whole weeks before the current UTC week (`0` = current week, `1` = last
+week, and so on) — not an absolute calendar/ISO week number, which would
+need a year anchor and disagrees with itself across a year boundary.
+Malformed, negative, or out-of-range values fall back to the current week.
+Table columns: Project (with Task - Type - Work Type as a subtitle line) |
+Mon | Tue | Wed | Thu | Fri | Sat | Sun. "Previous week" link omitted once
 `earliestNavigableWeekStart` is reached; "next week" link omitted once the
 viewed week is the current week. Uses `buildWeeklyGrid` +
 `fetchWeekEntries` from Phases 1–2; passes `new Date()` as `nowUtc` at
@@ -445,19 +448,19 @@ Not applicable — no schema changes; this plan reads existing
 
 #### Automated
 
-- [x] 2.1 `npx vitest run src/lib/weekly-grid-query.test.ts` passes for earliestNavigableWeekStart
-- [x] 2.2 `npm run build` passes (typecheck covers fetchWeekEntries's Supabase query shape)
+- [x] 2.1 `npx vitest run src/lib/weekly-grid-query.test.ts` passes for earliestNavigableWeekStart — ad89fe3
+- [x] 2.2 `npm run build` passes (typecheck covers fetchWeekEntries's Supabase query shape) — ad89fe3
 
 #### Manual
 
-- [x] 2.3 Using Supabase Studio or a scratch script against hand-seeded data, confirm fetchWeekEntries returns exactly the expected rows
+- [x] 2.3 Using Supabase Studio or a scratch script against hand-seeded data, confirm fetchWeekEntries returns exactly the expected rows — ad89fe3
 
 ### Phase 3: Grid page, route, and UI
 
 #### Automated
 
-- [ ] 3.1 `npm run build` passes (typecheck + Astro build for the new page)
-- [ ] 3.2 `npm run lint` passes for the new file
+- [x] 3.1 `npm run build` passes (typecheck + Astro build for the new page)
+- [x] 3.2 `npm run lint` passes for the new file
 
 #### Manual
 
