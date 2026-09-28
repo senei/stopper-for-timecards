@@ -397,16 +397,16 @@ shapes.
 
 #### Automated
 
-- [x] 1.1 `npx supabase db reset` applies the new migration cleanly
-- [x] 1.2 `npx supabase test db` passes, including the new `regenerate_link.test.sql`
+- [x] 1.1 `npx supabase db reset` applies the new migration cleanly — 3d4d9d0
+- [x] 1.2 `npx supabase test db` passes, including the new `regenerate_link.test.sql` — 3d4d9d0
 
 ### Phase 2: Application — confirm, swap, cookie, UI
 
 #### Automated
 
-- [ ] 2.1 `npm run lint` passes
-- [ ] 2.2 `npx astro check` passes
-- [ ] 2.3 `npm run build` passes
+- [x] 2.1 `npm run lint` passes
+- [x] 2.2 `npx astro check` passes
+- [x] 2.3 `npm run build` passes
 
 #### Manual
 

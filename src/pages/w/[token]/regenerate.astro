@@ -1,0 +1,63 @@
+---
+import PageCard from "@/components/PageCard.astro";
+import { Button, buttonVariants } from "@/components/ui/button";
+import Layout from "@/layouts/Layout.astro";
+import { isWellFormedToken } from "@/lib/link-token";
+import { findLinkByToken } from "@/lib/links";
+
+// Keep the token out of caches, referrers and search indexes. `strict-origin` sends only the site origin, never the
+// path; `no-referrer` would make browsers send `Origin: null` on this page's form, which Astro's origin check rejects.
+Astro.response.headers.set("Referrer-Policy", "strict-origin");
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("X-Robots-Tag", "noindex");
+
+const { token } = Astro.params;
+
+// Malformed tokens never reach the database.
+if (!isWellFormedToken(token)) {
+  return Astro.rewrite("/404");
+}
+
+let unavailable = false;
+try {
+  if (!(await findLinkByToken(token))) {
+    return Astro.rewrite("/404");
+  }
+} catch {
+  unavailable = true;
+  Astro.response.status = 503;
+}
+
+const cancelUrl = `/w/${token}`;
+const regenerateAction = `/api/w/${token}/regenerate`;
+---
+
+<Layout title="Regenerate link">
+  <PageCard>
+    {unavailable ? (
+      <>
+        <h1 class="mb-4 text-2xl font-bold text-heading">Temporarily unavailable</h1>
+        <p class="text-muted-foreground">We could not load your workspace right now. Please try again in a moment.</p>
+      </>
+    ) : (
+      <>
+        <h1 class="mb-4 text-3xl font-bold text-heading">Regenerate your link</h1>
+        <p class="text-muted-foreground">
+          Your current link will stop working <span class="font-semibold text-card-foreground">immediately</span>. A new
+          link will take you to the same workspace — same projects, same history. Save the new link once it's shown; it
+          can't be recovered afterward.
+        </p>
+        <div class="mt-6 flex gap-2">
+          <form method="post" action={regenerateAction}>
+            <Button type="submit" variant="destructive">
+              Confirm regenerate
+            </Button>
+          </form>
+          <a href={cancelUrl} class:list={buttonVariants({ variant: "secondary" })}>
+            Cancel
+          </a>
+        </div>
+      </>
+    )}
+  </PageCard>
+</Layout>
