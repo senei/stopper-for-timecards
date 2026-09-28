@@ -404,9 +404,9 @@ shapes.
 
 #### Automated
 
-- [x] 2.1 `npm run lint` passes
-- [x] 2.2 `npx astro check` passes
-- [x] 2.3 `npm run build` passes
+- [x] 2.1 `npm run lint` passes — b0c9625
+- [x] 2.2 `npx astro check` passes — b0c9625
+- [x] 2.3 `npm run build` passes — b0c9625
 
 #### Manual
 
