@@ -50,7 +50,7 @@ People who work across several projects a day don't capture time as it happens, 
 | S-07 | link-regeneration        | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02                | in-progress |
 | S-08 | time-entry-purge-verified| have entries older than 3 months purged automatically                    | S-02          | FR-008                       | done |
 | S-09 | delete-project            | delete a project from their list, blocked if it has any logged time      | S-02          | FR-009                       | done |
-| S-10 | delete-account            | permanently delete all their own data and their link, freeing their slot | S-02          | FR-010, FR-007               | proposed |
+| S-10 | delete-account            | permanently delete all their own data and their link, freeing their slot | S-02          | FR-010, FR-007               | planning |
 
 ## Streams
 
@@ -207,7 +207,7 @@ None. Deploy/infra is already present, and every other technical element (link i
   - Exact confirmation UX (typed phrase vs. two-step confirm) — Owner: user. Block: no.
   - Whether this needs its own audit-log entry (mirroring `access_log`) given it's irreversible and self-service — Owner: user. Block: no.
 - **Risk:** Fully irreversible, no-admin, no-recovery action — the highest-consequence single click in the app. Confirmation UX needs real scrutiny at plan time; a careless implementation here is the one mistake in this codebase with no undo path at all.
-- **Status:** proposed
+- **Status:** planning
 
 ## Backlog Handoff
 
