@@ -283,25 +283,25 @@ None: no schema or data changes.
 
 #### Automated
 
-- [x] 3.1 Syntax and format pass: `node --check scripts/smoke.mjs` and `npx prettier --check scripts/smoke.mjs`
-- [x] 3.2 Smoke passes locally, one lane at a time: `ASTRO_DEV_BACKGROUND=1 npm run smoke:local -- --yes`
+- [x] 3.1 Syntax and format pass: `node --check scripts/smoke.mjs` and `npx prettier --check scripts/smoke.mjs` — 39a3587
+- [x] 3.2 Smoke passes locally, one lane at a time: `ASTRO_DEV_BACKGROUND=1 npm run smoke:local -- --yes` — 39a3587
 
 #### Manual
 
-- [x] 3.3 Removing one header line from one token page fails smoke for that page, and the file was restored
+- [x] 3.3 Removing one header line from one token page fails smoke for that page, and the file was restored — 39a3587
 - [ ] 3.4 CI `smoke` job is green after the push
 
 ### Phase 4: Anon-role exposure test in pgTAP (G5)
 
 #### Automated
 
-- [ ] 4.1 pgTAP passes with the new file: `npx supabase db reset && npx supabase test db`
-- [ ] 4.2 Lint passes: `npm run lint`
-- [ ] 4.3 Type check passes: `npx astro check`
+- [x] 4.1 pgTAP passes with the new file: `npx supabase db reset && npx supabase test db`
+- [x] 4.2 Lint passes: `npm run lint`
+- [x] 4.3 Type check passes: `npx astro check`
 
 #### Manual
 
-- [ ] 4.4 The control assertion turned the check red when RLS was disabled, and `plan(N)` matches the assertion count
+- [x] 4.4 The control assertion turned the check red when RLS was disabled, and `plan(N)` matches the assertion count
 
 ### Phase 5: Cookbook and rollout-status sync
 

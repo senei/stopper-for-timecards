@@ -76,7 +76,7 @@ describe("link cookie — documents current behavior (oracle is the code comment
 
     it("returns the token and keeps the cookie when the link resolves", async () => {
       const token = generateToken();
-      findLink.mockResolvedValue({ id: "link-1" } as never);
+      findLink.mockResolvedValue({ id: "link-1" });
       const { jar, del } = fakeCookies(token);
 
       expect(await resolveCookieLink(jar)).toBe(token);
