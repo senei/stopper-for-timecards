@@ -1,15 +1,18 @@
 export const ERROR_INVALID_NAME = "invalid-name";
 export const ERROR_PROJECT_IN_USE = "project-in-use";
+export const ERROR_CONFIRM_PHRASE = "confirm-phrase";
 export const ERROR_GENERIC = "1";
 export const STATUS_PROJECT_DELETED = "project-deleted";
 export const STATUS_LINK_REGENERATED = "link-regenerated";
 export const STATUS_TIMER_STOPPED = "timer-stopped";
+export const STATUS_ACCOUNT_DELETED = "account-deleted";
 
 export function errorMessage(code: string | null): string | null {
   if (!code) return null;
   const messages: Record<string, string> = {
     [ERROR_INVALID_NAME]: "That project name isn't valid.",
     [ERROR_PROJECT_IN_USE]: "That project has logged time and can't be deleted.",
+    [ERROR_CONFIRM_PHRASE]: "Type DELETE exactly to confirm.",
   };
   return messages[code] ?? "Something went wrong. Please try again.";
 }
@@ -20,6 +23,7 @@ export function statusMessage(code: string | null): string | null {
     [STATUS_PROJECT_DELETED]: "Project deleted.",
     [STATUS_LINK_REGENERATED]: "Your link was regenerated — save the new one now.",
     [STATUS_TIMER_STOPPED]: "Timer stopped.",
+    [STATUS_ACCOUNT_DELETED]: "Your data and link were permanently deleted.",
   };
   return messages[code] ?? null;
 }

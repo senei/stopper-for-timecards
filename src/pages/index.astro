@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import Layout from "@/layouts/Layout.astro";
 import { isCreationClosed } from "@/lib/creation-closed";
 import { resolveCookieLink } from "@/lib/link-cookie";
+import { statusMessage } from "@/lib/status-messages";
 
 // A browser that already holds a valid link goes straight to its workspace.
 const linkedToken = await resolveCookieLink(Astro.cookies);
@@ -23,6 +24,7 @@ const messages: Record<string, string> = {
   verify: "Verification failed; please try again.",
 };
 const error = messages[params.get("error") ?? ""];
+const status = statusMessage(params.get("status"));
 ---
 
 <Layout title="Stopper for Timecards">
@@ -36,6 +38,12 @@ const error = messages[params.get("error") ?? ""];
     {error && (
       <Alert variant="destructive" className="mt-4">
         <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    )}
+
+    {status && (
+      <Alert variant="success" role="status" className="mt-4">
+        <AlertDescription>{status}</AlertDescription>
       </Alert>
     )}
 

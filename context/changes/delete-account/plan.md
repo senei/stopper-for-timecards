@@ -258,13 +258,13 @@ One new migration, additive (a function and a constraint comment). It never runs
 
 #### Automated
 
-- [ ] 2.1 Type check passes: `npx astro check`
-- [ ] 2.2 Existing unit suite passes: `npx vitest run`
-- [ ] 2.3 Lint on the touched files passes: `npx eslint src/lib/links.ts src/lib/status-messages.ts "src/pages/api/w/[token]/delete-account.ts" src/pages/index.astro`
+- [x] 2.1 Type check passes: `npx astro check`
+- [x] 2.2 Existing unit suite passes: `npx vitest run`
+- [x] 2.3 Lint on the touched files passes: `npx eslint src/lib/links.ts src/lib/status-messages.ts "src/pages/api/w/[token]/delete-account.ts" src/pages/index.astro`
 
 #### Manual
 
-- [ ] 2.4 A POST with a wrong phrase changes nothing
+- [x] 2.4 A POST with a wrong phrase changes nothing
 
 ### Phase 3: Confirm page, workspace link and smoke step
 

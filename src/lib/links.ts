@@ -51,6 +51,25 @@ export async function regenerateLink(oldToken: string): Promise<RegenerateLinkRe
   return { status: "regenerated", id, token: newToken };
 }
 
+/**
+ * Permanently deletes a person's projects, time entries, access-log rows and link in one transaction through the
+ * database function. `false` means no link has that id (already deleted, or never existed).
+ */
+export async function deleteAccount(linkId: string): Promise<boolean> {
+  const admin = adminOrThrow();
+
+  const response = await admin.rpc("delete_account", { p_link_id: linkId });
+  if (response.error) {
+    throw new Error(`delete_account failed: ${response.error.message}`);
+  }
+
+  const deleted: unknown = response.data;
+  if (typeof deleted !== "boolean") {
+    throw new Error("delete_account returned an unexpected value");
+  }
+  return deleted;
+}
+
 /** Looks a link up by its token. Callers check the token's shape first. */
 export async function findLinkByToken(token: string): Promise<{ id: string } | null> {
   const admin = adminOrThrow();

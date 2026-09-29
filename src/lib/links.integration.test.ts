@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { cleanupSeeded, hasEnv, integrationTitle, seedPerson } from "../test/integration-db";
 import { generateToken } from "./link-token";
-import { findLinkByToken, regenerateLink } from "./links";
+import { deleteAccount, findLinkByToken, regenerateLink } from "./links";
 
 // Oracle: PRD FR-007 and Access Control (link regeneration invalidates the old link at once; a link opens only its
 // owner's data). Decided in planning: the old link is a 404 with no grace window.
@@ -49,6 +49,20 @@ describe.skipIf(!hasEnv)(integrationTitle("findLinkByToken / regenerateLink (rea
 
       expect(result).toMatchObject({ status: "regenerated", id: holder.linkId });
       expect(await findLinkByToken(holder.token)).toBeNull();
+    });
+  });
+
+  // Oracle: PRD FR-010 -- deleting an account removes the person's link, so the token stops resolving; nobody else is
+  // affected (the full two-person scope tests live in testing-delete-account-guardrails).
+  describe("deleteAccount", () => {
+    it("deletes the person's link so the token stops resolving, and reports false the second time", async () => {
+      const leaver = await seedPerson();
+      const stayer = await seedPerson();
+
+      expect(await deleteAccount(leaver.linkId)).toBe(true);
+      expect(await findLinkByToken(leaver.token)).toBeNull();
+      expect(await findLinkByToken(stayer.token)).toEqual({ id: stayer.linkId });
+      expect(await deleteAccount(leaver.linkId)).toBe(false);
     });
   });
 });
