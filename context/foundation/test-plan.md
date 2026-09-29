@@ -13,7 +13,7 @@ created: 2026-09-28
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-09-28
+> Last updated: 2026-09-29
 
 ## 1. Strategy
 
@@ -92,7 +92,7 @@ orchestrator updates Status as artifacts appear on disk.
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|---|---|---|---|---|---|
 | 1 | Timer precision & attribution regression guard | Harden the two guardrail risks the team trusts least, extending existing db coverage with deliberate-break checks | #1, #2 | integration | complete | `context/changes/testing-timer-guardrails/` |
-| 2 | Weekly grid rounding & aggregation | Build the test oracle for the still-unbuilt weekly grid (S-06) before/alongside its implementation | #5 | unit + integration | not started | — |
+| 2 | Weekly grid rounding & aggregation | Pin the rounding rule and Mon–Sun boundary of the weekly grid (S-06, already built) with oracle-derived tests, and cover its overlap query | #5 | unit + integration | complete | `context/changes/testing-weekly-grid-rounding-aggregation/` |
 | 3 | Irreversible-action & link-abuse guardrails | Cover irreversible full-account delete (S-10) and link leak/regeneration (S-07) before/alongside those slices | #6, #4 | integration + e2e | not started | — |
 | 4 | Real-browser flow coverage | Bootstrap a real-browser (e2e) layer to close the proven blind spot that HTTP-only smoke checks can't see | #3 | e2e | not started | — |
 
@@ -116,6 +116,7 @@ The classic test base for this project. AI-native tools (if any) carry a
 | Layer | Tool | Version | Notes |
 |---|---|---|---|
 | unit | Vitest | ^5.0.1 | `src/lib/*.test.ts`, `src/__tests__/`; happy-dom env |
+| integration (application code vs real DB) | Vitest, opt-in (`vitest.integration.config.ts`) | ^5.0.1 | `src/**/*.integration.test.ts`; needs the local Supabase stack and `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` (from `npx supabase status -o env`: `API_URL` / `SERVICE_ROLE_KEY`); run with `npm run test:integration`; **ad hoc gate — not in CI and not in the default `npm test`**, skips when the env vars are absent |
 | integration (database) | pgTAP via `supabase test db` | Supabase CLI ^2.23.4 | `supabase/tests/database/`; runs against a real local Postgres, no mocking |
 | HTTP smoke | custom Node script (`scripts/smoke.mjs`) | n/a | exercises the deployed preview over HTTP; sets its own `Origin` header — this is the known blind spot behind Risk #3 |
 | e2e (real browser) | none yet — see §3 Phase 2 | n/a | category example: Playwright; final choice is `/10x-research`'s job for that phase |
@@ -155,6 +156,7 @@ codebase are documented now; patterns the rollout will add read "TBD — see
 - **Naming**: `<module>.test.ts`.
 - **Reference test**: `src/lib/project-name.test.ts`.
 - **Run locally**: `npm test` (or `npx vitest run <path>` for a single file).
+- **Rounding/boundary cases**: see §6.4.
 
 ### 6.2 Adding a database integration test
 
@@ -170,7 +172,13 @@ codebase are documented now; patterns the rollout will add read "TBD — see
 
 ### 6.4 Adding a weekly-grid / rounding-aggregation test
 
-- TBD — see §3 Phase 3.
+- **Oracle first**: write expected values by hand from the written rule, never by running the code. Rule (roadmap S-03, `context/foundation/roadmap.md`): per day, per (Project/Task/Type/Work Type) row, sum first and round once, **always up** to the next 15 minutes (15:00 → 15, 15:01 → 30). Day and week boundaries are UTC — a current plan decision (weekly-grid-summary), not a proven product rule, so those tests say "documents the current UTC decision" in their `describe` title and comments.
+- **Unit location**: `src/lib/weekly-grid.test.ts` (`buildWeeklyGrid`), `src/lib/weekly-grid-retention.test.ts` (`earliestNavigableWeekStart`). Reference: the boundary and edge groups in `weekly-grid.test.ts`. Use `it.each` for cases that check one property (rounding boundaries, exact-15-minute totals split into many segments).
+- **Float trap**: sum durations in integer milliseconds; summing fractional minutes made 45 × 20 s round to 30 instead of 15 (fixed in this change, first found via research and driven test-first).
+- **Query layer**: `fetchWeekEntries` is a PostgREST call, so pgTAP would only test a copy of its filter. Use `src/lib/weekly-grid-query.integration.test.ts` (real function, real local DB, seeded links/projects/entries, cleanup in `afterAll`). Run: `SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… npm run test:integration`. Open-entry cases need their own link (one open entry per link).
+- **Deliberate-break**: before committing, break the production line in a worktree-only edit (`ceil`→`round`, drop the day-end clamp, change `.lt`/`.gt`, drop the link scope), confirm red, restore. Run the integration break-check with the env vars actually set — with them unset every test is skipped and proves nothing.
+- **Mutation check (Stryker)**: tried once on 2026-09-29 for `src/lib/weekly-grid.ts` (`npx stryker run --mutate src/lib/weekly-grid.ts --testRunner vitest`, `@stryker-mutator/core` + `vitest-runner` 10.0.0, installed with `--no-save`) against vitest 5.0.1. It reported 0 of 64 mutants killed even though manual breaks of the same lines turn tests red, so the result is invalid and was not triaged. Treat the manual deliberate-break checks as the current gate; retry when the runner supports vitest 5.
+- **Known gaps**: the week helpers inside `src/pages/w/[token]/grid.astro` (`utcMondayOf`, `parseViewedWeekStart`, `toWeekParam`, `formatMinutes`) are untested and `utcMondayOf` is duplicated from `weekly-grid-retention.ts`; extracting them is a production refactor. The PRD (`prd.md:98`) says "nearest 15 minutes" while the roadmap and code round up — tests follow the roadmap.
 
 ### 6.5 Adding an irreversible-action or multi-user-isolation test
 
@@ -180,6 +188,8 @@ codebase are documented now; patterns the rollout will add read "TBD — see
 
 (Fills in after each phase lands, per that phase's final `/10x-plan`
 sub-phase.)
+
+- **§3 Phase 2 — weekly grid rounding & aggregation** (`context/changes/testing-weekly-grid-rounding-aggregation/`, complete 2026-09-29): 1 test-first bug fix (integer-ms accumulation), 15 unit boundary/edge tests, 3 opt-in integration tests for `fetchWeekEntries`; see §6.4 for patterns and known gaps.
 
 ## 7. What We Deliberately Don't Test
 

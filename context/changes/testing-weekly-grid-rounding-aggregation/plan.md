@@ -183,7 +183,7 @@ Record the patterns and the state so later phases reuse them.
 
 **Intent**: Run Stryker once, ad hoc, scoped to `src/lib/weekly-grid.ts`, review surviving mutants, and add assertions only for those that would harm a user; ignore cosmetic ones.
 
-**Contract**: No committed Stryker config or CI gate; result summarized in the phase commit body.
+**Contract**: No committed Stryker config or CI gate; result summarized in the phase commit body. (Observed: Stryker 10.0.0 + vitest-runner reported 0/64 killed on vitest 5.0.1, an invalid result; recorded in test-plan §6.4 instead of triaging.)
 
 ### Success Criteria:
 
@@ -260,23 +260,23 @@ None: no schema or data changes.
 
 #### Automated
 
-- [x] 3.1 Default suite passes with no database and no env vars: `npx vitest run`
-- [x] 3.2 Integration suite passes against local Supabase: `npm run test:integration`
-- [x] 3.3 Integration suite skips with a clear message when env vars are absent
-- [x] 3.4 Lint passes: `npm run lint`
+- [x] 3.1 Default suite passes with no database and no env vars: `npx vitest run` — 388fd84
+- [x] 3.2 Integration suite passes against local Supabase: `npm run test:integration` — 388fd84
+- [x] 3.3 Integration suite skips with a clear message when env vars are absent — 388fd84
+- [x] 3.4 Lint passes: `npm run lint` — 388fd84
 
 #### Manual
 
-- [x] 3.5 Deliberate-break of the overlap filter turns the integration suite red, and restoring turns it green
-- [x] 3.6 `supabase status` confirmed for this worktree and no seeded rows remain afterward
+- [x] 3.5 Deliberate-break of the overlap filter turns the integration suite red, and restoring turns it green — 388fd84
+- [x] 3.6 `supabase status` confirmed for this worktree and no seeded rows remain afterward — 388fd84
 
 ### Phase 4: Cookbook and rollout-status sync
 
 #### Automated
 
-- [ ] 4.1 Whole unit suite still passes: `npx vitest run`
+- [x] 4.1 Whole unit suite still passes: `npx vitest run`
 
 #### Manual
 
-- [ ] 4.2 `test-plan.md` §3 row 2 shows `complete` and §6 has the new cookbook entries
-- [ ] 4.3 Surviving Stryker mutants on `weekly-grid.ts` were each triaged
+- [x] 4.2 `test-plan.md` §3 row 2 shows `complete` and §6 has the new cookbook entries
+- [x] 4.3 Surviving Stryker mutants on `weekly-grid.ts` were each triaged
