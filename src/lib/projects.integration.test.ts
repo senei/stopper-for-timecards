@@ -9,6 +9,8 @@ describe.skipIf(!hasEnv)(integrationTitle("link_id ownership scoping (real datab
   let linkB = "";
   let projectA = "";
   let projectB = "";
+  let unusedA = "";
+  let unusedB = "";
 
   /** One OPEN entry per link at most: a unique index allows a single running timer per person. */
   async function insertOpenEntry(linkId: string, projectId: string, projectName: string) {
@@ -28,9 +30,12 @@ describe.skipIf(!hasEnv)(integrationTitle("link_id ownership scoping (real datab
     linkB = personB.linkId;
     projectA = await seedProject(linkA, "Project of A");
     projectB = await seedProject(linkB, "Project of B");
-    // Both projects carry logged time, so a delete that ignored ownership could not hide behind an empty project.
+    // The projects with logged time are for the read and timer checks; the FK would also block deleting them.
     await insertOpenEntry(linkA, projectA, "Project of A");
     await insertOpenEntry(linkB, projectB, "Project of B");
+    // Unused projects are deletable, so only the ownership check can stop A from deleting B's.
+    unusedA = await seedProject(linkA, "Unused of A");
+    unusedB = await seedProject(linkB, "Unused of B");
   });
 
   afterAll(cleanupSeeded);
@@ -47,12 +52,25 @@ describe.skipIf(!hasEnv)(integrationTitle("link_id ownership scoping (real datab
     expect(await getProject(linkA, projectA)).toEqual({ id: projectA, name: "Project of A" });
   });
 
+  async function projectRows(projectId: string) {
+    const { data, error } = await admin().from("projects").select("id").eq("id", projectId);
+    if (error) throw new Error(`verify project failed: ${error.message}`);
+    return data;
+  }
+
   it("does not delete another person's project, and leaves it in place", async () => {
     expect(await deleteProject(linkA, projectB)).toBe(false);
+    expect(await projectRows(projectB)).toHaveLength(1);
+  });
 
-    const { data, error } = await admin().from("projects").select("id").eq("id", projectB);
-    if (error) throw new Error(`verify project failed: ${error.message}`);
-    expect(data).toHaveLength(1);
+  it("does not delete another person's unused project, and leaves it in place", async () => {
+    expect(await deleteProject(linkA, unusedB)).toBe(false);
+    expect(await projectRows(unusedB)).toHaveLength(1);
+  });
+
+  it("deletes the caller's own unused project", async () => {
+    expect(await deleteProject(linkA, unusedA)).toBe(true);
+    expect(await projectRows(unusedA)).toHaveLength(0);
   });
 
   it("never returns another person's open timer", async () => {

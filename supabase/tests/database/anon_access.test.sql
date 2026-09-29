@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(6);
+select plan(10);
 
 -- Oracle: PRD Access Control, "no public access" — an unauthenticated (anon)
 -- caller must never read any row from any table. Expected values come from
@@ -73,6 +73,39 @@ select is(
   (select count(*) from links where id = 'c0000000-0000-0000-0000-000000000001'),
   1::bigint,
   'control: with RLS disabled on links, anon can read the seeded row (the test detects the regression)'
+);
+
+reset role;
+
+-- The same control for the other four tables, so each zero-row assertion above is
+-- shown to depend on RLS and not on a seed row that anon could never see anyway.
+grant select on projects, time_entries, access_log, job_runs to anon;
+alter table projects disable row level security;
+alter table time_entries disable row level security;
+alter table access_log disable row level security;
+alter table job_runs disable row level security;
+
+set local role anon;
+
+select is(
+  (select count(*) from projects where link_id = 'c0000000-0000-0000-0000-000000000001'),
+  1::bigint,
+  'control: with RLS disabled on projects, anon can read the seeded row'
+);
+select is(
+  (select count(*) from time_entries where link_id = 'c0000000-0000-0000-0000-000000000001'),
+  1::bigint,
+  'control: with RLS disabled on time_entries, anon can read the seeded row'
+);
+select is(
+  (select count(*) from access_log where link_id = 'c0000000-0000-0000-0000-000000000001'),
+  1::bigint,
+  'control: with RLS disabled on access_log, anon can read the seeded row'
+);
+select is(
+  (select count(*) from job_runs where job_name = 'anon-access-test'),
+  1::bigint,
+  'control: with RLS disabled on job_runs, anon can read the seeded row'
 );
 
 reset role;

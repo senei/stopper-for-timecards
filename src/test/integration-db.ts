@@ -65,11 +65,19 @@ export async function seedProject(linkId: string, name: string): Promise<string>
   return idOf(data);
 }
 
-/** Removes every seeded link with its time entries and projects. A regenerated link keeps its id, so it is covered. */
+/**
+ * Removes every seeded link with its time entries, projects and access-log rows. A regenerated link keeps its id,
+ * so it is covered. A failed delete throws (after the rest ran), because a leftover link blocks the next smoke run.
+ */
 export async function cleanupSeeded(): Promise<void> {
+  const failures: string[] = [];
   for (const id of seededLinkIds.splice(0)) {
-    await admin().from("time_entries").delete().eq("link_id", id);
-    await admin().from("projects").delete().eq("link_id", id);
-    await admin().from("links").delete().eq("id", id);
+    for (const table of ["time_entries", "projects", "access_log"] as const) {
+      const { error } = await admin().from(table).delete().eq("link_id", id);
+      if (error) failures.push(`${table} for ${id}: ${error.message}`);
+    }
+    const { error } = await admin().from("links").delete().eq("id", id);
+    if (error) failures.push(`links ${id}: ${error.message}`);
   }
+  if (failures.length > 0) throw new Error(`cleanup failed: ${failures.join("; ")}`);
 }
