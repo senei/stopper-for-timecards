@@ -279,4 +279,4 @@ None: no schema or data changes.
 #### Manual
 
 - [x] 4.2 `test-plan.md` §3 row 2 shows `complete` and §6 has the new cookbook entries — ffb7864
-- [x] 4.3 Surviving Stryker mutants on `weekly-grid.ts` were each triaged — ffb7864
+- [ ] 4.3 Surviving Stryker mutants on `weekly-grid.ts` were each triaged

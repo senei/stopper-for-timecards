@@ -7,7 +7,9 @@ import { fetchWeekEntries } from "./weekly-grid-query";
 // SUPABASE_SERVICE_ROLE_KEY taken from `npx supabase status -o env` (API_URL / SERVICE_ROLE_KEY).
 const url = process.env.SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const hasEnv = Boolean(url) && Boolean(serviceKey);
+// Only ever run against a local stack: the test inserts and deletes rows with the service-role key.
+const isLocal = url !== undefined && URL.canParse(url) && ["127.0.0.1", "localhost"].includes(new URL(url).hostname);
+const hasEnv = isLocal && Boolean(serviceKey);
 
 // UTC Monday 2026-09-21 .. Sunday 2026-09-27; the week's exclusive end is Monday 2026-09-28T00:00Z.
 const WEEK_START = new Date("2026-09-21T00:00:00.000Z");
@@ -25,7 +27,7 @@ function idOf(row: unknown): string {
 
 const title = hasEnv
   ? "fetchWeekEntries (real database)"
-  : "fetchWeekEntries (real database) — skipped: set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY";
+  : "fetchWeekEntries (real database) — skipped: set SUPABASE_URL (a local 127.0.0.1/localhost stack) and SUPABASE_SERVICE_ROLE_KEY";
 
 describe.skipIf(!hasEnv)(title, () => {
   // Created in beforeAll, not at collection time: createClient throws on an empty URL, which would fail the run

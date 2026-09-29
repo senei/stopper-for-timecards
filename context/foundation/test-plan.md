@@ -137,7 +137,7 @@ phase lands; before that, the gate is `planned`.
 | Gate | Where | Required? | Catches |
 |---|---|---|---|
 | lint + typecheck | local + CI (`ci.yml`) | required | syntactic / type drift |
-| unit + integration (Vitest + pgTAP) | local + CI (`ci.yml`) | required | logic and data-integrity regressions |
+| unit (Vitest, `npx vitest run`) + integration (pgTAP) | local + CI (`ci.yml`) | required | logic and data-integrity regressions; the Vitest-vs-database integration run (`npm run test:integration`) is ad hoc, local only |
 | pre-prod HTTP smoke | CI, against built preview (`ci.yml` `smoke` job) | required | environment/deploy-specific failures reachable over HTTP |
 | e2e on critical flows (real browser) | CI on PR | required after §3 Phase 2 | browser-only failures (forms, redirects, cookies) that HTTP smoke cannot see |
 | post-edit hook | local (agent loop) | recommended | regressions at edit time — configured in Lesson 3, not this lesson |
@@ -178,7 +178,7 @@ codebase are documented now; patterns the rollout will add read "TBD — see
 - **Query layer**: `fetchWeekEntries` is a PostgREST call, so pgTAP would only test a copy of its filter. Use `src/lib/weekly-grid-query.integration.test.ts` (real function, real local DB, seeded links/projects/entries, cleanup in `afterAll`). Run: `SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… npm run test:integration`. Open-entry cases need their own link (one open entry per link).
 - **Deliberate-break**: before committing, break the production line in a worktree-only edit (`ceil`→`round`, drop the day-end clamp, change `.lt`/`.gt`, drop the link scope), confirm red, restore. Run the integration break-check with the env vars actually set — with them unset every test is skipped and proves nothing.
 - **Mutation check (Stryker)**: tried once on 2026-09-29 for `src/lib/weekly-grid.ts` (`npx stryker run --mutate src/lib/weekly-grid.ts --testRunner vitest`, `@stryker-mutator/core` + `vitest-runner` 10.0.0, installed with `--no-save`) against vitest 5.0.1. It reported 0 of 64 mutants killed even though manual breaks of the same lines turn tests red, so the result is invalid and was not triaged. Treat the manual deliberate-break checks as the current gate; retry when the runner supports vitest 5.
-- **Known gaps**: the week helpers inside `src/pages/w/[token]/grid.astro` (`utcMondayOf`, `parseViewedWeekStart`, `toWeekParam`, `formatMinutes`) are untested and `utcMondayOf` is duplicated from `weekly-grid-retention.ts`; extracting them is a production refactor. The PRD (`prd.md:98`) says "nearest 15 minutes" while the roadmap and code round up — tests follow the roadmap.
+- **Known gaps**: the week helpers inside `src/pages/w/[token]/grid.astro` (`utcMondayOf`, `parseViewedWeekStart`, `toWeekParam`, `formatMinutes`) are untested and `utcMondayOf` is duplicated from `weekly-grid-retention.ts`; extracting them is a production refactor. The PRD Business Logic section (`prd.md:98`) was updated on 2026-09-29 to state the round-up-per-day rule and the UTC day boundary, so the PRD, roadmap and code now agree; the roadmap S-06 timezone unknown is still listed as open.
 
 ### 6.5 Adding an irreversible-action or multi-user-isolation test
 

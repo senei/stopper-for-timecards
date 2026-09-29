@@ -103,6 +103,8 @@ For risk #5 ("weekly grid shows wrong per-day rounded totals or the wrong Mon–
 
 ## Open Questions
 
+> Update 2026-09-29: questions 1 and 2 were resolved during planning (round up; UTC documented as the current decision) and the PRD Business Logic section (`prd.md:98`) now states both. Question 3 was resolved (minimal fix allowed, done in Phase 1) and question 4 (helpers in `grid.astro`) was left untested.
+
 1. **Rounding wording conflict (user to confirm):** PRD says "nearest 15 minutes" (`prd.md:98`); roadmap and code say always up. This research uses roadmap round-up as the oracle because it is the later, explicit resolution. If "nearest" was intended, the G1/G2 expected values change.
 2. **Timezone:** Is UTC acceptable? For a user east of UTC, work after local midnight but before UTC midnight lands on the previous day. Roadmap marks this "Block: no", so tests should record UTC as a documented current decision, in the same "documents current behavior, not correctness" framing used in timer-guardrails Phase 2.
 3. **G2 fix ownership:** the G2 red test suits `/10x-tdd` (one-sentence first failing assertion), but the fix changes production code in `weekly-grid.ts`. Confirm that is in scope for a "testing" change.

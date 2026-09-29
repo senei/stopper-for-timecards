@@ -95,7 +95,7 @@ Coworkers are explicitly in scope alongside the primary persona: each coworker a
 
 The app converts raw start/switch/stop events into precise, 15-minute-rounded durations per project and automatically reshapes them into the exact weekly submission grid — so no manual reconstruction or reformatting is ever needed.
 
-The rule consumes the timestamps of when the user picks a project, switches to another, or stops for the day — nothing more is entered manually except optional corrections. Its output is a per-day, per-project duration rounded to the nearest 15 minutes. The user encounters this rule invisibly all week (as durations silently accrue while they work) and visibly at week's end, when those durations land pre-arranged in the Project/Task/Type/Work Type × Mon–Sun grid, ready to submit.
+The rule consumes the timestamps of when the user picks a project, switches to another, or stops for the day — nothing more is entered manually except optional corrections. Its output is a per-day duration for each Project/Task/Type/Work Type row, summed first and then rounded once, always up, to the next 15 minutes (exactly 15:00 stays 15 minutes; 15:01 becomes 30) — never rounded per individual segment. Days and weeks are bounded in UTC for the MVP (a Mon–Sun week runs Monday 00:00 to Sunday 24:00 UTC); a per-user timezone is a possible later change. The user encounters this rule invisibly all week (as durations silently accrue while they work) and visibly at week's end, when those durations land pre-arranged in the Project/Task/Type/Work Type × Mon–Sun grid, ready to submit.
 
 ## Access Control
 
