@@ -60,6 +60,30 @@ describe("buildWeeklyGrid", () => {
     expect(rows[0].dailyMinutes).toEqual([0, 0, 15, 0, 0, 0, 0]);
   });
 
+  // Roadmap rule: always round up, so a total of exactly 15 minutes stays 15. Summing fractional minutes as floats
+  // drifts above the boundary (45 x 20 s = 15.000000000000009 min) and would wrongly round up to 30.
+  it.each([
+    { segments: 45, seconds: 20 },
+    { segments: 90, seconds: 10 },
+    { segments: 30, seconds: 30 },
+  ])(
+    "keeps an exact 15-minute total at 15 when made of $segments contiguous $seconds-second segments",
+    ({ segments, seconds }) => {
+      const dayStartMs = new Date("2026-09-21T09:00:00.000Z").getTime();
+      const entries = Array.from({ length: segments }, (_, i) =>
+        entry({
+          startedAt: new Date(dayStartMs + i * seconds * 1000).toISOString(),
+          endedAt: new Date(dayStartMs + (i + 1) * seconds * 1000).toISOString(),
+        }),
+      );
+
+      const rows = buildWeeklyGrid(entries, WEEK_START, NOW);
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0].dailyMinutes).toEqual([15, 0, 0, 0, 0, 0, 0]);
+    },
+  );
+
   it("credits a still-open entry up to the fixed nowUtc parameter", () => {
     const rows = buildWeeklyGrid(
       [entry({ startedAt: "2026-09-24T08:00:00.000Z", endedAt: null })],

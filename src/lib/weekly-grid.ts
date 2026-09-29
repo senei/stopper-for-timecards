@@ -21,12 +21,13 @@ const MS_PER_DAY = 86_400_000;
 const DAYS_PER_WEEK = 7;
 const ROUND_UP_TO_MINUTES = 15;
 
-/** Raw (unrounded) per-day minute totals accumulated for one (Project, Task, Type, Work Type) row. */
-type RawDailyMinutes = [number, number, number, number, number, number, number];
+/** Raw (unrounded) per-day millisecond totals accumulated for one (Project, Task, Type, Work Type) row. Kept in
+ * integer milliseconds, not fractional minutes, so an exact quarter-hour total can't drift over the boundary. */
+type RawDailyMs = [number, number, number, number, number, number, number];
 
-/** `rawMinutes` rounded up to the next `ROUND_UP_TO_MINUTES` increment; `0` stays `0`. */
-function roundUpToQuarterHour(rawMinutes: number): number {
-  return Math.ceil(rawMinutes / ROUND_UP_TO_MINUTES) * ROUND_UP_TO_MINUTES;
+/** `rawMs` in minutes, rounded up to the next `ROUND_UP_TO_MINUTES` increment; `0` stays `0`. */
+function roundUpToQuarterHour(rawMs: number): number {
+  return Math.ceil(rawMs / (ROUND_UP_TO_MINUTES * MS_PER_MINUTE)) * ROUND_UP_TO_MINUTES;
 }
 
 /** Stable grouping key for the (Project, Task, Type, Work Type) tuple; distinct historical values never collapse. */
@@ -50,7 +51,7 @@ export function buildWeeklyGrid(entries: RawWeekEntry[], weekStartUtc: Date, now
     weekStartMs + (day + 1) * MS_PER_DAY,
   ]);
 
-  const rowsByKey = new Map<string, { header: Omit<GridRow, "dailyMinutes">; raw: RawDailyMinutes }>();
+  const rowsByKey = new Map<string, { header: Omit<GridRow, "dailyMinutes">; raw: RawDailyMs }>();
 
   for (const entry of entries) {
     const startMs = new Date(entry.startedAt).getTime();
@@ -72,7 +73,7 @@ export function buildWeeklyGrid(entries: RawWeekEntry[], weekStartUtc: Date, now
       const overlapStartMs = Math.max(startMs, dayStartMs);
       const overlapEndMs = Math.min(endMs, dayEndMs);
       if (overlapEndMs > overlapStartMs) {
-        bucket.raw[day] += (overlapEndMs - overlapStartMs) / MS_PER_MINUTE;
+        bucket.raw[day] += overlapEndMs - overlapStartMs;
       }
     }
   }
