@@ -313,6 +313,75 @@ if (!hasServiceAccess) {
     projectsAfterSwitches.length === 3,
     `${projectsAfterSwitches.length} project(s)`,
   );
+
+  // S-04: stopping and the long-running flag. "Acme Widgets" is still running from the switch checks above and
+  // is fresh, so the workspace must not carry the warning. The flag is matched by its marker attribute, not its prose.
+  const FLAG_MARKER = "data-long-running-warning";
+  r = await request(`/w/${token}`);
+  check(
+    "a freshly started timer is not flagged as long-running",
+    r.status === 200 && !r.text.includes(FLAG_MARKER),
+    describeResponse(r),
+  );
+
+  r = await request(`/api/w/${token}/timer/stop`, { method: "POST" });
+  check(
+    "stopping the timer redirects with the stopped status",
+    r.status === 303 && r.location === `/w/${token}?status=timer-stopped`,
+    describeResponse(r),
+  );
+
+  entries = await timeEntries();
+  check(
+    "the stop closes the running entry and leaves no open entry",
+    entries.all.length === 4 && entries.open.length === 0 && entries.closed.length === 4,
+    JSON.stringify(entries.all),
+  );
+
+  r = await request(`/w/${token}?status=timer-stopped`);
+  check(
+    "after stopping, the workspace shows the banner and the start form instead of the switch form",
+    r.status === 200 && r.text.includes("Timer stopped.") && !r.text.includes("Switch to a different project"),
+    describeResponse(r),
+  );
+
+  r = await request(`/api/w/${token}/timer/stop`, { method: "POST" });
+  check(
+    "a second stop with nothing running redirects quietly to the workspace",
+    r.status === 303 && r.location === `/w/${token}`,
+    describeResponse(r),
+  );
+
+  // Stopping is not "day closed": a new timer can be started straight away.
+  r = await request(`/api/w/${token}/timer/start`, { method: "POST", form: { projectName: "Acme Widgets" } });
+  entries = await timeEntries();
+  check(
+    "starting again after a stop opens a new entry",
+    r.status === 303 && entries.all.length === 5 && entries.open.length === 1,
+    JSON.stringify(entries.open),
+  );
+
+  // Seed a timer that started 13 hours ago: close the fresh one first (one open entry per link), then insert the old one.
+  await request(`/api/w/${token}/timer/stop`, { method: "POST" });
+  const thirteenHoursAgo = new Date(Date.now() - 13 * 60 * 60 * 1000).toISOString();
+  await rest("time_entries", {
+    method: "POST",
+    body: { link_id: linkId, project_id: usedProjectId, project_name: "Acme Widgets", started_at: thirteenHoursAgo },
+  });
+  r = await request(`/w/${token}`);
+  check(
+    "a timer running for 13 hours is flagged with its elapsed hours",
+    r.status === 200 && r.text.includes(FLAG_MARKER) && r.text.includes("13 hours"),
+    describeResponse(r),
+  );
+
+  r = await request(`/api/w/${token}/timer/stop`, { method: "POST" });
+  entries = await timeEntries();
+  check(
+    "stopping a flagged timer closes it like any other",
+    r.status === 303 && r.location === `/w/${token}?status=timer-stopped` && entries.open.length === 0,
+    JSON.stringify(entries.open),
+  );
 }
 
 r = await request(`/w/${"A".repeat(43)}`, { withCookies: false });

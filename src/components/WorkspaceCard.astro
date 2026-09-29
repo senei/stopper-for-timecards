@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/lib/projects";
 import type { CurrentTimer } from "@/lib/timer";
+import { elapsedWholeHours, isTimerFlagged } from "@/lib/timer-flag";
 import { headingAtIndex, headingForDate } from "@/lib/workspace-headings";
 
 interface Props {
@@ -17,7 +18,10 @@ interface Props {
   token: string;
   startAction: string;
   switchAction: string;
+  stopAction: string;
   workspaceUrl: string;
+  /** The moment used to decide whether the running timer is flagged as long-running. Defaults to now; the kitchen sink pins it. */
+  now?: Date;
   /** Pins the daily heading to this index and turns the browser-side date correction off (kitchen sink, screenshots). */
   headingIndex?: number;
   /** Render only the card, without the full-height page wrapper. */
@@ -37,7 +41,9 @@ const {
   token,
   startAction,
   switchAction,
+  stopAction,
   workspaceUrl,
+  now = new Date(),
   headingIndex,
   embedded = false,
   busy = false,
@@ -46,6 +52,10 @@ const {
 
 // The running project is left out of the switch list by id (not name), so switching to it can't happen from here.
 const otherProjects = currentTimer ? projects.filter((project) => project.id !== currentTimer.projectId) : [];
+
+// Long-running flag: computed here when the page renders, from the timer's start; nothing is stored.
+const flagged = currentTimer !== null && isTimerFlagged(currentTimer.startedAt, now);
+const elapsedHours = currentTimer ? elapsedWholeHours(currentTimer.startedAt, now) : 0;
 
 // The server picks by its own date (UTC); the script below corrects it to the viewer's local date.
 const pair = headingIndex === undefined ? headingForDate(new Date()) : headingAtIndex(headingIndex);
@@ -102,6 +112,25 @@ function formatUtcTime(iso: string): string {
               Currently tracking <span class="font-semibold text-card-foreground">{currentTimer.projectName}</span> —
               started at <span data-started-at={currentTimer.startedAt}>{formatUtcTime(currentTimer.startedAt)}</span>
             </p>
+            {flagged && (
+              <Alert variant="warning" className="mt-4" data-long-running-warning>
+                <AlertDescription>
+                  This timer has been running for {elapsedHours} hours. Did you forget to stop it? Stopping or switching
+                  now records all of that time.
+                </AlertDescription>
+              </Alert>
+            )}
+            <form method="post" action={stopAction} class="mt-4">
+              <Button
+                type="submit"
+                variant="secondary"
+                className={actionWidth}
+                disabled={busy}
+                aria-busy={busy ? "true" : undefined}
+              >
+                Stop
+              </Button>
+            </form>
             <div class="mt-6">
               <h2 class="mb-2 text-sm font-semibold tracking-wide text-heading uppercase">
                 Switch to a different project
@@ -182,6 +211,13 @@ function formatUtcTime(iso: string): string {
             )}
           </div>
         )}
+
+        <div class="mt-8 border-t border-border pt-6">
+          <h2 class="mb-2 text-sm font-semibold tracking-wide text-heading uppercase">Weekly summary</h2>
+          <a href={`/w/${token}/grid`} class:list={buttonVariants({ variant: "secondary" })}>
+            View weekly grid
+          </a>
+        </div>
 
         <div class="mt-8 border-t border-border pt-6">
           <h2 class="mb-2 text-sm font-semibold tracking-wide text-heading uppercase">Your private link</h2>
