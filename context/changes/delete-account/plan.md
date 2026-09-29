@@ -279,7 +279,7 @@ One new migration, additive (a function and a constraint comment). It never runs
 
 - [x] 3.5 In a real browser, the delete button stays disabled until `DELETE` is typed, submitting lands on the home page with the "permanently deleted" banner, and no link is remembered — 25e0d44
 - [x] 3.6 In a real browser, a wrong phrase shows the "Type DELETE exactly" error and deletes nothing — 25e0d44
-- [ ] 3.7 CI `smoke` job is green after the push
+- [x] 3.7 CI `smoke` job is green after the push — 25e0d44
 
 ### Phase 4: Roadmap and test-plan sync
 
