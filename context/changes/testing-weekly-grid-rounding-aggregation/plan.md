@@ -237,24 +237,24 @@ None: no schema or data changes.
 
 #### Automated
 
-- [x] 1.1 The new exact-15-minute cases fail before the fix and pass after: `npx vitest run src/lib/weekly-grid.test.ts`
-- [x] 1.2 All 12 existing tests still pass: `npx vitest run src/lib/weekly-grid.test.ts src/lib/weekly-grid-retention.test.ts`
+- [x] 1.1 The new exact-15-minute cases fail before the fix and pass after: `npx vitest run src/lib/weekly-grid.test.ts` — b09a520
+- [x] 1.2 All 12 existing tests still pass: `npx vitest run src/lib/weekly-grid.test.ts src/lib/weekly-grid-retention.test.ts` — b09a520
 
 #### Manual
 
-- [x] 1.3 The captured failing assertion messages show 30 vs expected 15
+- [x] 1.3 The captured failing assertion messages show 30 vs expected 15 — b09a520
 
 ### Phase 2: Boundary and edge unit cases
 
 #### Automated
 
-- [ ] 2.1 All unit tests pass: `npx vitest run src/lib/weekly-grid.test.ts src/lib/weekly-grid-retention.test.ts`
-- [ ] 2.2 Default suite still passes with no database: `npx vitest run`
+- [x] 2.1 All unit tests pass: `npx vitest run src/lib/weekly-grid.test.ts src/lib/weekly-grid-retention.test.ts`
+- [x] 2.2 Default suite still passes with no database: `npx vitest run`
 
 #### Manual
 
-- [ ] 2.3 Each new test group was seen red under its deliberate break and green after restoring
-- [ ] 2.4 The UTC-boundary group is worded as "current decision", not "correct"
+- [x] 2.3 Each new test group was seen red under its deliberate break and green after restoring
+- [x] 2.4 The UTC-boundary group is worded as "current decision", not "correct"
 
 ### Phase 3: Integration test for `fetchWeekEntries`
 

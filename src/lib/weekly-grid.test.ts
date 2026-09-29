@@ -148,3 +148,140 @@ describe("buildWeeklyGrid", () => {
     expect(rows.map((row) => row.projectName)).toEqual(["Acme", "Mango", "Zebra"]);
   });
 });
+
+// Roadmap rule (context/foundation/roadmap.md, S-03): always round up to the next 15 minutes, never to the nearest.
+describe("buildWeeklyGrid rounding boundaries", () => {
+  it.each([
+    { label: "1 second", endedAt: "2026-09-21T09:00:01.000Z", expected: 15 },
+    { label: "exactly 15 minutes", endedAt: "2026-09-21T09:15:00.000Z", expected: 15 },
+    { label: "15 minutes 1 second", endedAt: "2026-09-21T09:15:01.000Z", expected: 30 },
+    { label: "exactly 60 minutes", endedAt: "2026-09-21T10:00:00.000Z", expected: 60 },
+  ])("rounds $label up to $expected minutes", ({ endedAt, expected }) => {
+    const rows = buildWeeklyGrid([entry({ startedAt: "2026-09-21T09:00:00.000Z", endedAt })], WEEK_START, NOW);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].dailyMinutes).toEqual([expected, 0, 0, 0, 0, 0, 0]);
+  });
+});
+
+// These tests document the CURRENT decision that day and week boundaries are UTC (weekly-grid-summary plan-brief);
+// the roadmap still lists the timezone as an open question. They are not proof that UTC is the right boundary.
+describe("buildWeeklyGrid day and week boundaries (documents the current UTC decision)", () => {
+  it("credits a Sunday-to-Monday segment to Sunday in its own week and to Monday in the next week", () => {
+    const crossing = entry({ startedAt: "2026-09-27T23:50:00.000Z", endedAt: "2026-09-28T00:10:00.000Z" });
+
+    const thisWeek = buildWeeklyGrid([crossing], WEEK_START, NOW);
+    const nextWeek = buildWeeklyGrid([crossing], new Date("2026-09-28T00:00:00.000Z"), NOW);
+
+    // 10 raw min on each side of the boundary, each rounded up to 15.
+    expect(thisWeek[0].dailyMinutes).toEqual([0, 0, 0, 0, 0, 0, 15]);
+    expect(nextWeek[0].dailyMinutes).toEqual([15, 0, 0, 0, 0, 0, 0]);
+  });
+
+  it("credits nothing to the next day when a segment ends exactly at UTC midnight", () => {
+    const rows = buildWeeklyGrid(
+      [entry({ startedAt: "2026-09-21T23:00:00.000Z", endedAt: "2026-09-22T00:00:00.000Z" })],
+      WEEK_START,
+      NOW,
+    );
+
+    expect(rows[0].dailyMinutes).toEqual([60, 0, 0, 0, 0, 0, 0]);
+  });
+
+  it("credits nothing to the week when a segment ends exactly at the week start", () => {
+    const rows = buildWeeklyGrid(
+      [entry({ startedAt: "2026-09-20T23:00:00.000Z", endedAt: "2026-09-21T00:00:00.000Z" })],
+      WEEK_START,
+      NOW,
+    );
+
+    expect(rows).toEqual([]);
+  });
+
+  it("splits a segment longer than 24 hours across every UTC day it touches, rounding each day's portion", () => {
+    // Mon 22:00 -> Thu 01:10: Mon 120 min, Tue 1440, Wed 1440, Thu 70 raw -> 75.
+    const rows = buildWeeklyGrid(
+      [entry({ startedAt: "2026-09-21T22:00:00.000Z", endedAt: "2026-09-24T01:10:00.000Z" })],
+      WEEK_START,
+      NOW,
+    );
+
+    expect(rows[0].dailyMinutes).toEqual([120, 1440, 1440, 75, 0, 0, 0]);
+  });
+
+  it("splits a still-open entry that crosses midnight, crediting each day up to nowUtc", () => {
+    const rows = buildWeeklyGrid(
+      [entry({ startedAt: "2026-09-21T23:50:00.000Z", endedAt: null })],
+      WEEK_START,
+      new Date("2026-09-22T00:10:00.000Z"),
+    );
+
+    // 10 raw min on Monday and 10 raw min on Tuesday, each rounded up to 15.
+    expect(rows[0].dailyMinutes).toEqual([15, 15, 0, 0, 0, 0, 0]);
+  });
+
+  it("credits nothing for a still-open entry whose start is after nowUtc", () => {
+    const rows = buildWeeklyGrid(
+      [entry({ startedAt: "2026-09-22T08:00:00.000Z", endedAt: null })],
+      WEEK_START,
+      new Date("2026-09-22T07:00:00.000Z"),
+    );
+
+    expect(rows).toEqual([]);
+  });
+});
+
+describe("buildWeeklyGrid row grouping and per-row rounding", () => {
+  it("treats a null task and an empty-string task as two distinct rows", () => {
+    const rows = buildWeeklyGrid(
+      [
+        entry({ task: null, startedAt: "2026-09-21T09:00:00.000Z", endedAt: "2026-09-21T09:15:00.000Z" }),
+        entry({ task: "", startedAt: "2026-09-21T10:00:00.000Z", endedAt: "2026-09-21T10:15:00.000Z" }),
+      ],
+      WEEK_START,
+      NOW,
+    );
+
+    expect(rows).toHaveLength(2);
+    expect(rows.map((row) => row.task).sort()).toEqual(["", null]);
+  });
+
+  it("merges segments of one tuple into one row even when another row's segment sits between them", () => {
+    const rows = buildWeeklyGrid(
+      [
+        entry({ projectName: "Acme", startedAt: "2026-09-21T10:00:00.000Z", endedAt: "2026-09-21T10:10:00.000Z" }),
+        entry({ projectName: "Other", startedAt: "2026-09-21T10:20:00.000Z", endedAt: "2026-09-21T10:35:00.000Z" }),
+        entry({ projectName: "Acme", startedAt: "2026-09-21T11:00:00.000Z", endedAt: "2026-09-21T11:10:00.000Z" }),
+      ],
+      WEEK_START,
+      NOW,
+    );
+
+    // Acme: 10 + 10 = 20 raw min summed before rounding -> 30. Other: 15 raw -> 15.
+    expect(rows.map((row) => [row.projectName, row.dailyMinutes[0]])).toEqual([
+      ["Acme", 30],
+      ["Other", 15],
+    ]);
+  });
+
+  it("rounds each row separately on the same day instead of pooling minutes across rows", () => {
+    const rows = buildWeeklyGrid(
+      [
+        entry({ projectName: "Acme", startedAt: "2026-09-21T09:00:00.000Z", endedAt: "2026-09-21T09:10:00.000Z" }),
+        entry({ projectName: "Zebra", startedAt: "2026-09-21T10:00:00.000Z", endedAt: "2026-09-21T10:10:00.000Z" }),
+      ],
+      WEEK_START,
+      NOW,
+    );
+
+    // Pooled 20 raw min would round to 30 in total; per-row rounding gives 15 + 15.
+    expect(rows.map((row) => row.dailyMinutes[0])).toEqual([15, 15]);
+  });
+
+  it.each([
+    { label: "zero-length", startedAt: "2026-09-21T09:00:00.000Z", endedAt: "2026-09-21T09:00:00.000Z" },
+    { label: "negative-length", startedAt: "2026-09-21T09:30:00.000Z", endedAt: "2026-09-21T09:00:00.000Z" },
+  ])("adds no minutes for a $label entry", ({ startedAt, endedAt }) => {
+    expect(buildWeeklyGrid([entry({ startedAt, endedAt })], WEEK_START, NOW)).toEqual([]);
+  });
+});
