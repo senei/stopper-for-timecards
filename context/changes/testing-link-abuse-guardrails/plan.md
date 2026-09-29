@@ -257,27 +257,27 @@ None: no schema or data changes.
 
 #### Automated
 
-- [x] 1.1 Default suite passes with no database and no env vars: `npx vitest run`
-- [x] 1.2 Integration suite passes against the local stack: `npm run test:integration`
-- [x] 1.3 Integration suite skips with a clear message when the env vars are unset or the URL is not local
-- [x] 1.4 The existing weekly-grid integration test still passes after switching to the shared helper
+- [x] 1.1 Default suite passes with no database and no env vars: `npx vitest run` — aa35cf0
+- [x] 1.2 Integration suite passes against the local stack: `npm run test:integration` — aa35cf0
+- [x] 1.3 Integration suite skips with a clear message when the env vars are unset or the URL is not local — aa35cf0
+- [x] 1.4 The existing weekly-grid integration test still passes after switching to the shared helper — aa35cf0
 
 #### Manual
 
-- [x] 1.5 Each deliberate break turned its test red, and every file was restored
-- [x] 1.6 `npx supabase status` shows the expected stack and no seeded rows remain afterward
+- [x] 1.5 Each deliberate break turned its test red, and every file was restored — aa35cf0
+- [x] 1.6 `npx supabase status` shows the expected stack and no seeded rows remain afterward — aa35cf0
 
 ### Phase 2: Cookie unit tests (G3)
 
 #### Automated
 
-- [ ] 2.1 New file passes: `npx vitest run src/lib/link-cookie.test.ts`
-- [ ] 2.2 Default suite passes: `npx vitest run`
+- [x] 2.1 New file passes: `npx vitest run src/lib/link-cookie.test.ts`
+- [x] 2.2 Default suite passes: `npx vitest run`
 
 #### Manual
 
-- [ ] 2.3 Each deliberate break turned the matching case red and was restored
-- [ ] 2.4 Test titles read as "documents current behavior", not "is required"
+- [x] 2.3 Each deliberate break turned the matching case red and was restored
+- [x] 2.4 Test titles read as "documents current behavior", not "is required"
 
 ### Phase 3: Leak-surface headers in smoke (G4)
 
