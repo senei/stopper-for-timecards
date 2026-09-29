@@ -3,7 +3,7 @@ project: "Stopper for Timecards"
 version: 1
 status: draft
 created: 2026-09-21
-updated: 2026-09-28
+updated: 2026-09-29
 prd_version: 4
 main_goal: speed
 top_blocker: capacity
@@ -46,7 +46,7 @@ People who work across several projects a day don't capture time as it happens, 
 | S-03 | timer-switch-rounding    | switch the running timer to another project with 15-min-rounded splits   | S-02          | FR-003                       | done |
 | S-04 | timer-stop-and-flags     | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                       | done |
 | S-05 | time-corrections         | correct logged time at end of day or start of next day                   | S-03, S-04    | FR-005                       | proposed |
-| S-06 | weekly-grid-summary      | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001               | in-progress |
+| S-06 | weekly-grid-summary      | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001               | done |
 | S-07 | link-regeneration        | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02                | proposed |
 | S-08 | time-entry-purge-verified| have entries older than 3 months purged automatically                    | S-02          | FR-008                       | done |
 | S-09 | delete-project            | delete a project from their list, blocked if it has any logged time      | S-02          | FR-009                       | done |
@@ -156,7 +156,7 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Unknowns:**
   - Which time zone defines the Mon–Sun day boundaries? — Owner: user. Block: no.
 - **Risk:** This slice is the product's differentiator (output shaped like the company grid). Unblocked 2026-09-22 — see S-02's data model and Open Roadmap Questions for the resolution (Task optional per project, Type fixed to "Regular", Work Type blank).
-- **Status:** in-progress
+- **Status:** done
 
 ### S-07: Regenerate own link
 
@@ -247,3 +247,4 @@ GitHub issues created 2026-09-21 in `senei/stopper-for-timecards`.
 - **S-03: user can switch the active timer to another project mid-day, with time split between projects at 15-minute precision** — Archived 2026-09-24 → `context/archive/2026-09-23-timer-switch-rounding/`. Lesson: —.
 - **S-08: user's time entries older than 3 months are purged automatically, while project definitions remain** — Archived 2026-09-25 → `context/archive/2026-09-25-time-entry-purge-verified/`. Lesson: —.
 - **S-04: user can stop the timer for the day and is prompted to correct a timer that has been running suspiciously long** — Archived 2026-09-25 → `context/archive/2026-09-25-timer-stop-and-flags/`. Lesson: —.
+- **S-06: user can view a weekly table laid out exactly as Project/Task/Type/Work Type × Mon–Sun, ready to copy into the company timesheet** — Archived 2026-09-29 → `context/archive/2026-09-28-weekly-grid-summary/`. Lesson: —.
