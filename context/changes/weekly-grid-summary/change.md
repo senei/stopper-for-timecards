@@ -1,7 +1,7 @@
 ---
 change_id: weekly-grid-summary
 title: Weekly grid summary
-status: implemented
+status: impl_reviewed
 created: 2026-09-28
 updated: 2026-09-29
 archived_at: null

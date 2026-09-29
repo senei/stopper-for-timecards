@@ -5,7 +5,7 @@ const DAYS_PER_WEEK = 7;
 const RETENTION_MONTHS = 3;
 
 /** UTC Monday 00:00:00.000 of the week containing `date`. */
-function utcMondayOf(date: Date): Date {
+export function utcMondayOf(date: Date): Date {
   const dayNumber = Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / MS_PER_DAY);
   // getUTCDay(): 0 = Sunday .. 6 = Saturday; days elapsed since the most recent Monday.
   const daysSinceMonday = (date.getUTCDay() + 6) % 7;

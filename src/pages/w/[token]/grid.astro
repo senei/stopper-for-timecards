@@ -7,7 +7,7 @@ import { findLinkByToken } from "@/lib/links";
 import type { GridRow } from "@/lib/weekly-grid";
 import { buildWeeklyGrid } from "@/lib/weekly-grid";
 import { fetchWeekEntries } from "@/lib/weekly-grid-query";
-import { earliestNavigableWeekStart } from "@/lib/weekly-grid-retention";
+import { earliestNavigableWeekStart, utcMondayOf } from "@/lib/weekly-grid-retention";
 
 const MS_PER_DAY = 86_400_000;
 const MS_PER_WEEK = 7 * MS_PER_DAY;
@@ -32,15 +32,6 @@ try {
   link = await findLinkByToken(token);
 } catch {
   unavailable = true;
-}
-
-/** UTC Monday 00:00:00.000 of the week containing `date` (mirrors weekly-grid-retention.ts's unexported helper,
- * which isn't exported for reuse here). */
-function utcMondayOf(date: Date): Date {
-  const dayNumber = Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / MS_PER_DAY);
-  // getUTCDay(): 0 = Sunday .. 6 = Saturday; days elapsed since the most recent Monday.
-  const daysSinceMonday = (date.getUTCDay() + 6) % 7;
-  return new Date((dayNumber - daysSinceMonday) * MS_PER_DAY);
 }
 
 const nowUtc = new Date();
@@ -78,8 +69,14 @@ if (unavailable) {
 } else if (!link) {
   return Astro.rewrite("/404");
 } else {
-  const entries = await fetchWeekEntries(link.id, viewedWeekStart);
-  rows = buildWeeklyGrid(entries, viewedWeekStart, nowUtc);
+  try {
+    const entries = await fetchWeekEntries(link.id, viewedWeekStart);
+    rows = buildWeeklyGrid(entries, viewedWeekStart, nowUtc);
+  } catch {
+    // Same "temporarily unavailable" page as a failed link lookup, instead of an unhandled server error.
+    unavailable = true;
+    Astro.response.status = 503;
+  }
 }
 
 const showPrevious = viewedWeekStart.getTime() > earliestWeekStart.getTime();
