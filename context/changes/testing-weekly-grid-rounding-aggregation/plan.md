@@ -248,27 +248,27 @@ None: no schema or data changes.
 
 #### Automated
 
-- [x] 2.1 All unit tests pass: `npx vitest run src/lib/weekly-grid.test.ts src/lib/weekly-grid-retention.test.ts`
-- [x] 2.2 Default suite still passes with no database: `npx vitest run`
+- [x] 2.1 All unit tests pass: `npx vitest run src/lib/weekly-grid.test.ts src/lib/weekly-grid-retention.test.ts` — 5ffecac
+- [x] 2.2 Default suite still passes with no database: `npx vitest run` — 5ffecac
 
 #### Manual
 
-- [x] 2.3 Each new test group was seen red under its deliberate break and green after restoring
-- [x] 2.4 The UTC-boundary group is worded as "current decision", not "correct"
+- [x] 2.3 Each new test group was seen red under its deliberate break and green after restoring — 5ffecac
+- [x] 2.4 The UTC-boundary group is worded as "current decision", not "correct" — 5ffecac
 
 ### Phase 3: Integration test for `fetchWeekEntries`
 
 #### Automated
 
-- [ ] 3.1 Default suite passes with no database and no env vars: `npx vitest run`
-- [ ] 3.2 Integration suite passes against local Supabase: `npm run test:integration`
-- [ ] 3.3 Integration suite skips with a clear message when env vars are absent
-- [ ] 3.4 Lint passes: `npm run lint`
+- [x] 3.1 Default suite passes with no database and no env vars: `npx vitest run`
+- [x] 3.2 Integration suite passes against local Supabase: `npm run test:integration`
+- [x] 3.3 Integration suite skips with a clear message when env vars are absent
+- [x] 3.4 Lint passes: `npm run lint`
 
 #### Manual
 
-- [ ] 3.5 Deliberate-break of the overlap filter turns the integration suite red, and restoring turns it green
-- [ ] 3.6 `supabase status` confirmed for this worktree and no seeded rows remain afterward
+- [x] 3.5 Deliberate-break of the overlap filter turns the integration suite red, and restoring turns it green
+- [x] 3.6 `supabase status` confirmed for this worktree and no seeded rows remain afterward
 
 ### Phase 4: Cookbook and rollout-status sync
 

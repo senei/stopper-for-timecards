@@ -9,5 +9,7 @@ export default defineConfig({
   },
   test: {
     include: ["src/**/*.test.{ts,tsx}"],
+    // Integration tests need the local Supabase stack; run them with `npm run test:integration`.
+    exclude: ["**/node_modules/**", "src/**/*.integration.test.ts"],
   },
 });

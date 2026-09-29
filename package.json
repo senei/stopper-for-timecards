@@ -13,6 +13,7 @@
     "smoke": "node scripts/smoke.mjs",
     "smoke:local": "node scripts/smoke-local.mjs",
     "test": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:ui": "vitest --ui"
   },
   "dependencies": {
