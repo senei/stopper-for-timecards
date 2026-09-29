@@ -93,7 +93,7 @@ orchestrator updates Status as artifacts appear on disk.
 |---|---|---|---|---|---|---|
 | 1 | Timer precision & attribution regression guard | Harden the two guardrail risks the team trusts least, extending existing db coverage with deliberate-break checks | #1, #2 | integration | complete | `context/changes/testing-timer-guardrails/` |
 | 2 | Weekly grid rounding & aggregation | Pin the rounding rule and Mon–Sun boundary of the weekly grid (S-06, already built) with oracle-derived tests, and cover its overlap query | #5 | unit + integration | complete | `context/archive/2026-09-29-testing-weekly-grid-rounding-aggregation/` |
-| 3 | Irreversible-action & link-abuse guardrails | Cover irreversible full-account delete (S-10) and link leak/regeneration (S-07) before/alongside those slices | #6, #4 | integration + e2e | not started | — |
+| 3 | Irreversible-action & link-abuse guardrails | Cover irreversible full-account delete (S-10) and link leak/regeneration (S-07) before/alongside those slices | #6, #4 | integration + e2e | changes opened | `context/changes/testing-link-abuse-guardrails/` (#4), `context/changes/testing-delete-account-guardrails/` (#6) |
 | 4 | Real-browser flow coverage | Bootstrap a real-browser (e2e) layer to close the proven blind spot that HTTP-only smoke checks can't see | #3 | e2e | not started | — |
 
 Order rationale: Phase 1 protects the highest-ranked risks first at the
@@ -119,7 +119,7 @@ The classic test base for this project. AI-native tools (if any) carry a
 | integration (application code vs real DB) | Vitest, opt-in (`vitest.integration.config.ts`) | ^5.0.1 | `src/**/*.integration.test.ts`; needs the local Supabase stack and `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` (from `npx supabase status -o env`: `API_URL` / `SERVICE_ROLE_KEY`); run with `npm run test:integration`; **ad hoc gate — not in CI and not in the default `npm test`**, skips when the env vars are absent |
 | integration (database) | pgTAP via `supabase test db` | Supabase CLI ^2.23.4 | `supabase/tests/database/`; runs against a real local Postgres, no mocking |
 | HTTP smoke | custom Node script (`scripts/smoke.mjs`) | n/a | exercises the deployed preview over HTTP; sets its own `Origin` header — this is the known blind spot behind Risk #3 |
-| e2e (real browser) | none yet — see §3 Phase 2 | n/a | category example: Playwright; final choice is `/10x-research`'s job for that phase |
+| e2e (real browser) | none yet — see §3 Phase 4 | n/a | category example: Playwright; final choice is `/10x-research`'s job for that phase |
 | lint + typecheck | ESLint (type-aware) + `astro check` | eslint ^10.10.0 | already wired in CI |
 
 **Stack grounding tools (current session):**
@@ -168,7 +168,7 @@ codebase are documented now; patterns the rollout will add read "TBD — see
 
 ### 6.3 Adding a real-browser (e2e) test
 
-- TBD — see §3 Phase 2 (bootstraps the tool choice, location, and CI wiring).
+- TBD — see §3 Phase 4 (bootstraps the tool choice, location, and CI wiring).
 
 ### 6.4 Adding a weekly-grid / rounding-aggregation test
 
@@ -182,7 +182,7 @@ codebase are documented now; patterns the rollout will add read "TBD — see
 
 ### 6.5 Adding an irreversible-action or multi-user-isolation test
 
-- TBD — see §3 Phase 4.
+- TBD — see §3 Phase 3.
 
 ### 6.6 Per-rollout-phase notes
 
