@@ -92,7 +92,7 @@ orchestrator updates Status as artifacts appear on disk.
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|---|---|---|---|---|---|
 | 1 | Timer precision & attribution regression guard | Harden the two guardrail risks the team trusts least, extending existing db coverage with deliberate-break checks | #1, #2 | integration | complete | `context/changes/testing-timer-guardrails/` |
-| 2 | Weekly grid rounding & aggregation | Pin the rounding rule and Mon–Sun boundary of the weekly grid (S-06, already built) with oracle-derived tests, and cover its overlap query | #5 | unit + integration | complete | `context/changes/testing-weekly-grid-rounding-aggregation/` |
+| 2 | Weekly grid rounding & aggregation | Pin the rounding rule and Mon–Sun boundary of the weekly grid (S-06, already built) with oracle-derived tests, and cover its overlap query | #5 | unit + integration | complete | `context/archive/2026-09-29-testing-weekly-grid-rounding-aggregation/` |
 | 3 | Irreversible-action & link-abuse guardrails | Cover irreversible full-account delete (S-10) and link leak/regeneration (S-07) before/alongside those slices | #6, #4 | integration + e2e | not started | — |
 | 4 | Real-browser flow coverage | Bootstrap a real-browser (e2e) layer to close the proven blind spot that HTTP-only smoke checks can't see | #3 | e2e | not started | — |
 
@@ -189,7 +189,7 @@ codebase are documented now; patterns the rollout will add read "TBD — see
 (Fills in after each phase lands, per that phase's final `/10x-plan`
 sub-phase.)
 
-- **§3 Phase 2 — weekly grid rounding & aggregation** (`context/changes/testing-weekly-grid-rounding-aggregation/`, complete 2026-09-29): 1 test-first bug fix (integer-ms accumulation), 15 unit boundary/edge tests, 3 opt-in integration tests for `fetchWeekEntries`; see §6.4 for patterns and known gaps.
+- **§3 Phase 2 — weekly grid rounding & aggregation** (`context/archive/2026-09-29-testing-weekly-grid-rounding-aggregation/`, complete 2026-09-29): 1 test-first bug fix (integer-ms accumulation), 15 unit boundary/edge tests, 3 opt-in integration tests for `fetchWeekEntries`; see §6.4 for patterns and known gaps.
 
 ## 7. What We Deliberately Don't Test
 
