@@ -93,7 +93,7 @@ orchestrator updates Status as artifacts appear on disk.
 |---|---|---|---|---|---|---|
 | 1 | Timer precision & attribution regression guard | Harden the two guardrail risks the team trusts least, extending existing db coverage with deliberate-break checks | #1, #2 | integration | complete | `context/changes/testing-timer-guardrails/` |
 | 2 | Weekly grid rounding & aggregation | Pin the rounding rule and Mon–Sun boundary of the weekly grid (S-06, already built) with oracle-derived tests, and cover its overlap query | #5 | unit + integration | complete | `context/archive/2026-09-29-testing-weekly-grid-rounding-aggregation/` |
-| 3 | Irreversible-action & link-abuse guardrails | Cover irreversible full-account delete (S-10) and link leak/regeneration (S-07) before/alongside those slices | #6, #4 | integration + e2e | changes opened | `context/changes/testing-link-abuse-guardrails/` (#4), `context/changes/testing-delete-account-guardrails/` (#6) |
+| 3 | Irreversible-action & link-abuse guardrails | Cover irreversible full-account delete (S-10) and link leak/regeneration (S-07) before/alongside those slices | #6, #4 | integration + e2e | changes opened — `testing-link-abuse-guardrails` (#4) complete (CI smoke job pending its first push); `testing-delete-account-guardrails` (#6) pending | `context/changes/testing-link-abuse-guardrails/` (#4), `context/changes/testing-delete-account-guardrails/` (#6) |
 | 4 | Real-browser flow coverage | Bootstrap a real-browser (e2e) layer to close the proven blind spot that HTTP-only smoke checks can't see | #3 | e2e | not started | — |
 
 Order rationale: Phase 1 protects the highest-ranked risks first at the
@@ -116,7 +116,7 @@ The classic test base for this project. AI-native tools (if any) carry a
 | Layer | Tool | Version | Notes |
 |---|---|---|---|
 | unit | Vitest | ^5.0.1 | `src/lib/*.test.ts`, `src/__tests__/`; happy-dom env |
-| integration (application code vs real DB) | Vitest, opt-in (`vitest.integration.config.ts`) | ^5.0.1 | `src/**/*.integration.test.ts`; needs the local Supabase stack and `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` (from `npx supabase status -o env`: `API_URL` / `SERVICE_ROLE_KEY`); run with `npm run test:integration`; **ad hoc gate — not in CI and not in the default `npm test`**, skips when the env vars are absent |
+| integration (application code vs real DB) | Vitest, opt-in (`vitest.integration.config.ts`) | ^5.0.1 | `src/**/*.integration.test.ts`; needs the local Supabase stack and `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` (from `npx supabase status -o env`: `API_URL` / `SERVICE_ROLE_KEY`); run with `npm run test:integration`; **ad hoc gate — not in CI and not in the default `npm test`**, skips when the env vars are absent; shared seeding/gating in `src/test/integration-db.ts`; files: `weekly-grid-query`, `links`, `projects` (`*.integration.test.ts`) |
 | integration (database) | pgTAP via `supabase test db` | Supabase CLI ^2.23.4 | `supabase/tests/database/`; runs against a real local Postgres, no mocking |
 | HTTP smoke | custom Node script (`scripts/smoke.mjs`) | n/a | exercises the deployed preview over HTTP; sets its own `Origin` header — this is the known blind spot behind Risk #3 |
 | e2e (real browser) | none yet — see §3 Phase 4 | n/a | category example: Playwright; final choice is `/10x-research`'s job for that phase |
@@ -182,7 +182,21 @@ codebase are documented now; patterns the rollout will add read "TBD — see
 
 ### 6.5 Adding an irreversible-action or multi-user-isolation test
 
-- TBD — see §3 Phase 3.
+Established by `testing-link-abuse-guardrails` (risk #4). The delete-account half (risk #6, `testing-delete-account-guardrails`) reuses these patterns.
+
+- **Two-person seed**: `seedPerson()` in `src/test/integration-db.ts` inserts a `links` row directly (`token_hash = hashToken(token)`) and returns `{ linkId, token }`; `seedProject(linkId, name)` adds a project. Seed with direct inserts, not `createLink()`, because `create_link` is capped at 10 people. Every test gets two people, A and B, so scoping bugs show up; a single-person fixture cannot tell correct scoping from "returns everything".
+- **Real function, not a SQL copy**: ownership and lookup rules that live in TypeScript (`findLinkByToken`, `regenerateLink`, and the `link_id`-scoped `listProjects`, `getProject`, `deleteProject`, `getCurrentTimer`) are tested by calling the real function against the local stack (`src/lib/links.integration.test.ts`, `src/lib/projects.integration.test.ts`). A pgTAP test with a hand-written SQL delete would still pass if `.eq("link_id", …)` were removed from the code.
+- **Local-only gating**: the shared helper skips every integration test unless `SUPABASE_URL` is a local host and the service key is set, so a run against a real project cannot delete data. Run the break-check with the env vars actually set; an unset run skips everything and proves nothing.
+- **Database exposure**: the claim "no public access" is about grants and RLS themselves, so it is a pgTAP test (`supabase/tests/database/anon_access.test.sql`): as the `anon` role, read one seeded row per data table and expect 0 rows, plus a control that disables RLS inside the transaction and shows the same read then returns the row.
+- **Cookie logic**: pure logic with the link lookup mocked and an in-test fake cookie jar (`src/lib/link-cookie.test.ts`). Its oracle is the code comment, not a PRD line, so the `describe` says "documents current behavior".
+- **Leak-surface headers**: `scripts/smoke.mjs` asserts `Referrer-Policy: strict-origin`, `Cache-Control: no-store` and `X-Robots-Tag: noindex` on the four token pages (workspace, regenerate, grid, delete-project), via `checkLeakHeaders`. Use `strict-origin`, never `no-referrer` (`lessons.md`).
+- **Decided oracle labels** (decisions of 2026-09-29, recorded in the tests, not as PRD changes):
+  - Lockout by a leaked-link holder is accepted: whoever holds a link can regenerate it. Tests say "documents the current PRD-accepted model".
+  - The old URL returns 404 with no grace window after regeneration.
+  - Cookie behavior is a current decision, not a requirement.
+  - The three headers above are required behavior.
+  - Regenerate audit rows (`access_log`) are not tested; the PRD has no such line.
+- **Deferred to §3 Phase 4 (e2e)**: the confirm form under a real browser `Origin`, and cookie replacement in a browser. The smoke script sets `Origin` itself, so it cannot see those.
 
 ### 6.6 Per-rollout-phase notes
 
@@ -190,6 +204,7 @@ codebase are documented now; patterns the rollout will add read "TBD — see
 sub-phase.)
 
 - **§3 Phase 2 — weekly grid rounding & aggregation** (`context/archive/2026-09-29-testing-weekly-grid-rounding-aggregation/`, complete 2026-09-29): 1 test-first bug fix (integer-ms accumulation), 15 unit boundary/edge tests, 3 opt-in integration tests for `fetchWeekEntries`; see §6.4 for patterns and known gaps.
+- **§3 Phase 3 (link half) — link leak & regeneration** (`context/changes/testing-link-abuse-guardrails/`, implemented 2026-09-29): opt-in integration tests for the link lookup, regeneration and `link_id` scoping, hermetic cookie tests, leak-surface header checks in smoke, and a pgTAP anon-exposure test; see §6.5. Delete-account half still pending.
 
 ## 7. What We Deliberately Don't Test
 

@@ -295,21 +295,21 @@ None: no schema or data changes.
 
 #### Automated
 
-- [x] 4.1 pgTAP passes with the new file: `npx supabase db reset && npx supabase test db`
-- [x] 4.2 Lint passes: `npm run lint`
-- [x] 4.3 Type check passes: `npx astro check`
+- [x] 4.1 pgTAP passes with the new file: `npx supabase db reset && npx supabase test db` — d15fd46
+- [x] 4.2 Lint passes: `npm run lint` — d15fd46
+- [x] 4.3 Type check passes: `npx astro check` — d15fd46
 
 #### Manual
 
-- [x] 4.4 The control assertion turned the check red when RLS was disabled, and `plan(N)` matches the assertion count
+- [x] 4.4 The control assertion turned the check red when RLS was disabled, and `plan(N)` matches the assertion count — d15fd46
 
 ### Phase 5: Cookbook and rollout-status sync
 
 #### Automated
 
-- [ ] 5.1 Whole unit suite still passes: `npx vitest run`
+- [x] 5.1 Whole unit suite still passes: `npx vitest run`
 
 #### Manual
 
-- [ ] 5.2 `test-plan.md` §6.5 has the new entries and §3 row 3 shows the split status
-- [ ] 5.3 The decisions (lockout accepted, 404, cookie as current decision, headers required, no audit test) appear in the cookbook
+- [x] 5.2 `test-plan.md` §6.5 has the new entries and §3 row 3 shows the split status
+- [x] 5.3 The decisions (lockout accepted, 404, cookie as current decision, headers required, no audit test) appear in the cookbook
