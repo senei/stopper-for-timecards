@@ -271,24 +271,24 @@ None: no schema or data changes.
 
 #### Automated
 
-- [x] 2.1 New file passes: `npx vitest run src/lib/link-cookie.test.ts`
-- [x] 2.2 Default suite passes: `npx vitest run`
+- [x] 2.1 New file passes: `npx vitest run src/lib/link-cookie.test.ts` — 3ac72ec
+- [x] 2.2 Default suite passes: `npx vitest run` — 3ac72ec
 
 #### Manual
 
-- [x] 2.3 Each deliberate break turned the matching case red and was restored
-- [x] 2.4 Test titles read as "documents current behavior", not "is required"
+- [x] 2.3 Each deliberate break turned the matching case red and was restored — 3ac72ec
+- [x] 2.4 Test titles read as "documents current behavior", not "is required" — 3ac72ec
 
 ### Phase 3: Leak-surface headers in smoke (G4)
 
 #### Automated
 
-- [ ] 3.1 Syntax and format pass: `node --check scripts/smoke.mjs` and `npx prettier --check scripts/smoke.mjs`
-- [ ] 3.2 Smoke passes locally, one lane at a time: `ASTRO_DEV_BACKGROUND=1 npm run smoke:local -- --yes`
+- [x] 3.1 Syntax and format pass: `node --check scripts/smoke.mjs` and `npx prettier --check scripts/smoke.mjs`
+- [x] 3.2 Smoke passes locally, one lane at a time: `ASTRO_DEV_BACKGROUND=1 npm run smoke:local -- --yes`
 
 #### Manual
 
-- [ ] 3.3 Removing one header line from one token page fails smoke for that page, and the file was restored
+- [x] 3.3 Removing one header line from one token page fails smoke for that page, and the file was restored
 - [ ] 3.4 CI `smoke` job is green after the push
 
 ### Phase 4: Anon-role exposure test in pgTAP (G5)

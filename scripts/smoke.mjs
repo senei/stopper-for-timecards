@@ -60,6 +60,8 @@ async function request(path, { method = "GET", form, json, withCookies = true } 
     status: response.status,
     location: response.headers.get("location") ?? "",
     referrerPolicy: response.headers.get("referrer-policy") ?? "",
+    cacheControl: response.headers.get("cache-control") ?? "",
+    robotsTag: response.headers.get("x-robots-tag") ?? "",
     setsLinkCookie,
     text: await response.text(),
   };
@@ -88,6 +90,18 @@ function check(name, ok, detail = "") {
 
 function describeResponse(r) {
   return `${r.status} ${r.location}`.trim();
+}
+
+// Every page that carries the token in its URL must keep it out of referrers, caches and search indexes.
+function checkLeakHeaders(label, r) {
+  check(
+    `${label} keeps the token out of referrers, caches and search indexes (strict-origin, no-store, noindex)`,
+    r.status === 200 &&
+      r.referrerPolicy === "strict-origin" &&
+      r.cacheControl === "no-store" &&
+      r.robotsTag === "noindex",
+    `${r.status} Referrer-Policy: ${r.referrerPolicy || "(none)"}, Cache-Control: ${r.cacheControl || "(none)"}, X-Robots-Tag: ${r.robotsTag || "(none)"}`,
+  );
 }
 
 if (hasServiceAccess) {
@@ -132,6 +146,13 @@ check(
   r.referrerPolicy === "strict-origin",
   r.referrerPolicy || "(no Referrer-Policy header)",
 );
+checkLeakHeaders("the workspace", r);
+
+r = await request(`/w/${token}/regenerate`);
+checkLeakHeaders("the regenerate page", r);
+
+r = await request(`/w/${token}/grid`);
+checkLeakHeaders("the grid page", r);
 
 r = await request(`/w/${token}`, { withCookies: false });
 check("a browser with no link remembers the one it opens", r.status === 200 && r.setsLinkCookie, describeResponse(r));
@@ -201,6 +222,11 @@ if (!hasServiceAccess) {
 
   // R-04: a project with logged time must not be deletable through the real HTTP route.
   const usedProjectId = projectsAfterSecondStart[0]?.id;
+
+  // The delete confirmation page 404s for a missing project, so it is checked here, while a project still exists.
+  r = await request(`/w/${token}/projects/${usedProjectId}/delete`);
+  checkLeakHeaders("the delete-project page", r);
+
   r = await request(`/api/w/${token}/projects/${usedProjectId}/delete`, { method: "POST" });
   check(
     "deleting a project with logged time redirects with the in-use error",
