@@ -21,6 +21,8 @@ const hasServiceAccess = Boolean(SMOKE_SUPABASE_URL && SMOKE_SERVICE_ROLE_KEY);
 // Cloudflare's documented dummy token; only the dummy secret key accepts it.
 const DUMMY_TURNSTILE_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
 const WORKSPACE_LOCATION = /^\/w\/([A-Za-z0-9_-]{43})$/;
+// The regenerate route redirects with the status query that shows the save-the-new-link banner.
+const REGENERATED_LOCATION = /^\/w\/([A-Za-z0-9_-]{43})\?status=link-regenerated$/;
 
 const jar = new Map();
 let failed = 0;
@@ -472,7 +474,7 @@ if (!hasServiceAccess) {
   const { json: entriesBeforeRegen } = await rest("time_entries?select=id");
 
   r = await request(`/api/w/${token}/regenerate`, { method: "POST" });
-  const regeneratedToken = WORKSPACE_LOCATION.exec(r.location)?.[1];
+  const regeneratedToken = REGENERATED_LOCATION.exec(r.location)?.[1];
   check(
     "regenerating redirects to a new workspace URL with a fresh token",
     r.status === 303 && Boolean(regeneratedToken) && regeneratedToken !== token,
