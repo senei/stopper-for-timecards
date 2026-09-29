@@ -1,7 +1,7 @@
 ---
 change_id: testing-link-abuse-guardrails
 title: Testing link leak and regeneration guardrails
-status: new
+status: implementing
 created: 2026-09-29
 updated: 2026-09-29
 archived_at: null

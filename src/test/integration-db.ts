@@ -1,0 +1,75 @@
+import { createClient } from "@supabase/supabase-js";
+import { generateToken, hashToken } from "../lib/link-token";
+
+// Shared setup for the opt-in integration tests against the real local Supabase stack: `npm run test:integration`
+// with SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY taken from `npx supabase status -o env` (API_URL / SERVICE_ROLE_KEY).
+const url = process.env.SUPABASE_URL;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Only ever run against a local stack: the tests insert and delete rows with the service-role key.
+const isLocal = url !== undefined && URL.canParse(url) && ["127.0.0.1", "localhost"].includes(new URL(url).hostname);
+
+export const hasEnv = isLocal && Boolean(serviceKey);
+
+/** A `describe` title that says why the suite was skipped when the local stack is not configured. */
+export function integrationTitle(name: string): string {
+  return hasEnv
+    ? name
+    : `${name} — skipped: set SUPABASE_URL (a local 127.0.0.1/localhost stack) and SUPABASE_SERVICE_ROLE_KEY`;
+}
+
+export function makeAdmin() {
+  return createClient(url ?? "", serviceKey ?? "", { auth: { persistSession: false } });
+}
+
+export type Admin = ReturnType<typeof makeAdmin>;
+
+/** The `id` of a just-inserted row, checked rather than asserted so the untyped client stays lint-clean. */
+export function idOf(row: unknown): string {
+  const id = typeof row === "object" && row !== null && "id" in row ? row.id : undefined;
+  if (typeof id !== "string") throw new Error("seeded row has no string id");
+  return id;
+}
+
+const seededLinkIds: string[] = [];
+
+// Created on first use, not at import time: createClient throws on an empty URL, which would fail the run
+// instead of skipping it when the env vars are absent.
+let sharedAdmin: Admin | undefined;
+
+/** The admin client the seed helpers use, for tests that seed or inspect extra rows (e.g. time entries). */
+export function admin(): Admin {
+  sharedAdmin ??= makeAdmin();
+  return sharedAdmin;
+}
+
+/**
+ * Seeds one person with a real token, inserting the link row directly so the 10-person cap of `create_link`
+ * does not apply. Returns the raw token: the caller holds the secret, the database only the hash.
+ */
+export async function seedPerson(): Promise<{ linkId: string; token: string }> {
+  const token = generateToken();
+  const { data, error } = await admin()
+    .from("links")
+    .insert({ token_hash: await hashToken(token) })
+    .select("id")
+    .single();
+  if (error) throw new Error(`seed link failed: ${error.message}`);
+  const linkId = idOf(data);
+  seededLinkIds.push(linkId);
+  return { linkId, token };
+}
+
+export async function seedProject(linkId: string, name: string): Promise<string> {
+  const { data, error } = await admin().from("projects").insert({ link_id: linkId, name }).select("id").single();
+  if (error) throw new Error(`seed project failed: ${error.message}`);
+  return idOf(data);
+}
+
+/** Removes every seeded link with its time entries and projects. A regenerated link keeps its id, so it is covered. */
+export async function cleanupSeeded(): Promise<void> {
+  for (const id of seededLinkIds.splice(0)) {
+    await admin().from("time_entries").delete().eq("link_id", id);
+    await admin().from("projects").delete().eq("link_id", id);
+    await admin().from("links").delete().eq("id", id);
+  }
+}
