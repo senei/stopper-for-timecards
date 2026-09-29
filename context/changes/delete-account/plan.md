@@ -285,8 +285,8 @@ One new migration, additive (a function and a constraint comment). It never runs
 
 #### Automated
 
-- [x] 4.1 Whole unit suite still passes: `npx vitest run`
+- [x] 4.1 Whole unit suite still passes: `npx vitest run` — 1046623
 
 #### Manual
 
-- [x] 4.2 The roadmap S-10 block records both decisions and the test-plan row is accurate
+- [x] 4.2 The roadmap S-10 block records both decisions and the test-plan row is accurate — 1046623

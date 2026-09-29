@@ -71,7 +71,7 @@ const bannerError = errorMessage(Astro.url.searchParams.get("error"));
             data-confirm-input
           />
           <div class="mt-4 flex gap-2">
-            <Button type="submit" variant="destructive" disabled data-confirm-submit>
+            <Button type="submit" variant="destructive" data-confirm-submit>
               Delete everything
             </Button>
             <a href={cancelUrl} class:list={buttonVariants({ variant: "secondary" })}>
@@ -86,7 +86,8 @@ const bannerError = errorMessage(Astro.url.searchParams.get("error"));
 
 <script>
   // The button stays disabled until the field reads DELETE. This is only a guard against slips: the server checks the
-  // phrase again and deletes nothing without it.
+  // phrase again and deletes nothing without it. The button is enabled in the markup and disabled here, so a browser
+  // without scripts can still submit and the server decides.
   const PHRASE = "DELETE";
 
   for (const form of document.querySelectorAll<HTMLFormElement>("[data-delete-form]")) {

@@ -8,6 +8,8 @@
 //   SMOKE_SUPABASE_URL (API_URL), SMOKE_SERVICE_ROLE_KEY (SERVICE_ROLE_KEY), SMOKE_ANON_KEY (ANON_KEY)
 // The app under test must use Cloudflare's dummy Turnstile keys and a freshly reset local database.
 
+import { randomUUID } from "node:crypto";
+
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:4321";
 const host = new URL(BASE_URL).hostname;
 if (host !== "localhost" && host !== "127.0.0.1") {
@@ -548,14 +550,34 @@ if (!hasServiceAccess) {
   check("the old (already-regenerated) token can no longer regenerate either", r.status === 404, describeResponse(r));
 
   // S-10: a person can delete all their data. Placed after the regenerate checks and last in the file, since it
-  // removes the link the earlier checks used. Only `regeneratedToken`'s person has projects and entries, so the
-  // global counts are an exact proxy for that person's rows.
+  // removes the link the earlier checks used. Only `regeneratedToken`'s person has projects and entries so far, so
+  // their link id is the one on those rows; another person is then given a project and an entry of their own, which
+  // the delete must leave alone.
+  const { json: ownedProjects } = await rest("projects?select=link_id&limit=1");
+  const deletedLinkId = ownedProjects[0]?.link_id;
+  const { json: allLinks } = await rest("links?select=id");
+  const bystanderLinkId = allLinks.find((l) => l.id !== deletedLinkId)?.id;
+  const bystanderProjectId = randomUUID();
+  await rest("projects", {
+    method: "POST",
+    body: { id: bystanderProjectId, link_id: bystanderLinkId, name: "Bystander project" },
+  });
+  await rest("time_entries", {
+    method: "POST",
+    body: {
+      link_id: bystanderLinkId,
+      project_id: bystanderProjectId,
+      project_name: "Bystander project",
+      started_at: new Date().toISOString(),
+    },
+  });
+
   r = await request(`/w/${regeneratedToken}/delete-account`);
   check("the delete-account confirmation page opens", r.status === 200, describeResponse(r));
 
   const { json: linksBeforeDelete } = await rest("links?select=id");
-  const { json: projectsBeforeDelete } = await rest("projects?select=id");
-  const { json: entriesBeforeDelete } = await rest("time_entries?select=id");
+  const { json: projectsBeforeDelete } = await rest("projects?select=id,link_id");
+  const { json: entriesBeforeDelete } = await rest("time_entries?select=id,link_id");
   const CONFIRM_ERROR_LOCATION = `/w/${regeneratedToken}/delete-account?error=confirm-phrase`;
 
   r = await request(`/api/w/${regeneratedToken}/delete-account`, { method: "POST" });
@@ -590,13 +612,11 @@ if (!hasServiceAccess) {
     describeResponse(r),
   );
 
-  // Only this person owns projects, so their link id is the one on those rows. Their workspace views wrote access-log
-  // rows, which the delete must remove too.
-  const { json: ownedProjects } = await rest("projects?select=link_id&limit=1");
-  const deletedLinkId = ownedProjects[0]?.link_id;
+  // Their workspace views wrote access-log rows, which the delete must remove too.
   const { json: accessBeforeDelete } = await rest(`access_log?select=id&link_id=eq.${deletedLinkId}`);
   check("the access log holds rows for the person's link before the delete", accessBeforeDelete.length > 0);
 
+  const cookieBeforeDelete = jar.get("stopper_link");
   r = await request(`/api/w/${regeneratedToken}/delete-account`, { method: "POST", form: { confirm: "DELETE" } });
   check(
     "deleting with the phrase redirects to the home page with the deleted status",
@@ -605,7 +625,7 @@ if (!hasServiceAccess) {
   );
   check(
     "deleting the remembered link clears the browser's link cookie",
-    !jar.has("stopper_link"),
+    cookieBeforeDelete === regeneratedToken && !jar.has("stopper_link"),
     jar.get("stopper_link") ?? "(no cookie)",
   );
 
@@ -616,17 +636,27 @@ if (!hasServiceAccess) {
   check("the deleted link's token 404s", r.status === 404, describeResponse(r));
 
   const { json: linksAfterDelete } = await rest("links?select=id");
-  const { json: projectsAfterDelete } = await rest("projects?select=id");
-  const { json: entriesAfterDelete } = await rest("time_entries?select=id");
+  const { json: projectsAfterDelete } = await rest("projects?select=id,link_id");
+  const { json: entriesAfterDelete } = await rest("time_entries?select=id,link_id");
+  const ownProjects = projectsBeforeDelete.filter((p) => p.link_id === deletedLinkId).length;
+  const ownEntries = entriesBeforeDelete.filter((e) => e.link_id === deletedLinkId).length;
   check(
     "the delete removes exactly that person's rows: one link, all their projects and all their time entries",
     linksAfterDelete.length === linksBeforeDelete.length - 1 &&
-      linksAfterDelete.length === 9 &&
-      projectsBeforeDelete.length > 0 &&
-      entriesBeforeDelete.length > 0 &&
-      projectsAfterDelete.length === 0 &&
-      entriesAfterDelete.length === 0,
+      !linksAfterDelete.some((l) => l.id === deletedLinkId) &&
+      ownProjects > 0 &&
+      ownEntries > 0 &&
+      projectsAfterDelete.length === projectsBeforeDelete.length - ownProjects &&
+      entriesAfterDelete.length === entriesBeforeDelete.length - ownEntries &&
+      !projectsAfterDelete.some((p) => p.link_id === deletedLinkId) &&
+      !entriesAfterDelete.some((e) => e.link_id === deletedLinkId),
     `${linksAfterDelete.length} link(s), ${projectsAfterDelete.length} project(s), ${entriesAfterDelete.length} entr(y/ies)`,
+  );
+  check(
+    "another person's project and time entry survive the delete untouched",
+    projectsAfterDelete.some((p) => p.id === bystanderProjectId && p.link_id === bystanderLinkId) &&
+      entriesAfterDelete.some((e) => e.link_id === bystanderLinkId),
+    `${projectsAfterDelete.length} project(s), ${entriesAfterDelete.length} entr(y/ies) left`,
   );
 
   const { json: accessForDeleted } = await rest(`access_log?select=id&link_id=eq.${deletedLinkId}`);

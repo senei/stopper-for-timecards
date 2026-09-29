@@ -34,6 +34,7 @@ function call({ token, phrase, cookie }: { token: string; phrase?: string; cooki
 beforeEach(() => {
   findLink.mockReset();
   removeAccount.mockReset();
+  vi.restoreAllMocks();
 });
 
 describe("POST /api/w/[token]/delete-account", () => {
@@ -88,5 +89,41 @@ describe("POST /api/w/[token]/delete-account", () => {
 
     expect(removeAccount).not.toHaveBeenCalled();
     expect(rewrite).toHaveBeenCalledWith("/404");
+  });
+
+  it("goes back to the confirm page with the generic error and keeps the remembered link when the delete throws", async () => {
+    const token = generateToken();
+    findLink.mockResolvedValue({ id: "link-1" });
+    removeAccount.mockRejectedValue(new Error("database down"));
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const { response, del } = call({ token, phrase: "DELETE", cookie: token });
+    const result = await response;
+
+    expect(result.status).toBe(303);
+    expect(result.headers.get("Location")).toBe(`/w/${token}/delete-account?error=1`);
+    expect(del).not.toHaveBeenCalled();
+  });
+
+  it("is a 404 and keeps the remembered link when the link was already gone by the time of the delete", async () => {
+    const token = generateToken();
+    findLink.mockResolvedValue({ id: "link-1" });
+    removeAccount.mockResolvedValue(false);
+
+    const { response, del, rewrite } = call({ token, phrase: "DELETE", cookie: token });
+    await response;
+
+    expect(rewrite).toHaveBeenCalledWith("/404");
+    expect(del).not.toHaveBeenCalled();
+  });
+
+  it("answers 503 and deletes nothing when the link lookup fails", async () => {
+    findLink.mockRejectedValue(new Error("database down"));
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const result = await call({ token: generateToken(), phrase: "DELETE" }).response;
+
+    expect(result.status).toBe(503);
+    expect(removeAccount).not.toHaveBeenCalled();
   });
 });
