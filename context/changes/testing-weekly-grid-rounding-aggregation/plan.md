@@ -274,9 +274,9 @@ None: no schema or data changes.
 
 #### Automated
 
-- [x] 4.1 Whole unit suite still passes: `npx vitest run`
+- [x] 4.1 Whole unit suite still passes: `npx vitest run` — ffb7864
 
 #### Manual
 
-- [x] 4.2 `test-plan.md` §3 row 2 shows `complete` and §6 has the new cookbook entries
-- [x] 4.3 Surviving Stryker mutants on `weekly-grid.ts` were each triaged
+- [x] 4.2 `test-plan.md` §3 row 2 shows `complete` and §6 has the new cookbook entries — ffb7864
+- [x] 4.3 Surviving Stryker mutants on `weekly-grid.ts` were each triaged — ffb7864
