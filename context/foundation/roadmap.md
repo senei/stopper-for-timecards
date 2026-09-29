@@ -50,7 +50,7 @@ People who work across several projects a day don't capture time as it happens, 
 | S-07 | link-regeneration        | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02                | in-progress |
 | S-08 | time-entry-purge-verified| have entries older than 3 months purged automatically                    | S-02          | FR-008                       | done |
 | S-09 | delete-project            | delete a project from their list, blocked if it has any logged time      | S-02          | FR-009                       | done |
-| S-10 | delete-account            | permanently delete all their own data and their link, freeing their slot | S-02          | FR-010, FR-007               | planning |
+| S-10 | delete-account            | permanently delete all their own data and their link, freeing their slot | S-02          | FR-010, FR-007               | done |
 
 ## Streams
 
@@ -207,7 +207,7 @@ None. Deploy/infra is already present, and every other technical element (link i
   - Confirmation UX: a typed phrase, `DELETE`, checked on the server as well as in the page.
   - Audit entry: none. The deletion leaves no record, and the person's `access_log` rows (IP and user agent) are deleted with everything else.
 - **Risk:** Fully irreversible, no-admin, no-recovery action — the highest-consequence single click in the app. Confirmation UX needs real scrutiny at plan time; a careless implementation here is the one mistake in this codebase with no undo path at all.
-- **Status:** planning
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -248,3 +248,4 @@ GitHub issues created 2026-09-21 in `senei/stopper-for-timecards`.
 - **S-08: user's time entries older than 3 months are purged automatically, while project definitions remain** — Archived 2026-09-25 → `context/archive/2026-09-25-time-entry-purge-verified/`. Lesson: —.
 - **S-04: user can stop the timer for the day and is prompted to correct a timer that has been running suspiciously long** — Archived 2026-09-25 → `context/archive/2026-09-25-timer-stop-and-flags/`. Lesson: —.
 - **S-06: user can view a weekly table laid out exactly as Project/Task/Type/Work Type × Mon–Sun, ready to copy into the company timesheet** — Archived 2026-09-29 → `context/archive/2026-09-28-weekly-grid-summary/`. Lesson: —.
+- **S-10: permanently delete all their own data and their link, freeing their slot** — Archived 2026-09-29 → `context/archive/2026-09-29-delete-account/`. Lesson: —.
