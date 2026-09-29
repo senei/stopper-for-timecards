@@ -5,11 +5,15 @@
 //   npm run smoke:local -- --serve       reset the DB and start the dev server for manual testing (Ctrl+C to stop)
 //   npm run smoke:local -- --dry-run     read Supabase status and print what would happen; changes nothing
 //   npm run smoke:local -- --restore     stop the dev server and put .env / .dev.vars back after an interrupted run
-//                                        (runs `astro dev stop`, so it stops ANY running Astro dev server, including one
-//                                        you started yourself)
+//                                        (runs `astro dev stop` only when this worktree's dev server lock file puts the
+//                                        server on the configured port; a server on another port is left alone)
 //
 // Options: --yes (no confirmation prompt), --skip-check (skip the `astro check` Vite cache warm-up),
 //          --keep-data (do not reset the DB again after the smoke run).
+//
+// Environment: SMOKE_LOCAL_PORT sets the dev-server port (default 4321); give each lane its own, see
+//          context/foundation/parallel-goals.md. `astro dev stop` only ever reaches the dev server registered in this
+//          worktree's .astro/dev.json, never another worktree's.
 //
 // What it changes, and puts back: `npx supabase db reset` (wipes the local DB), and .env / .dev.vars, which are
 // backed up to *.smoke-bak and restored at the end so the app runs with Cloudflare's dummy Turnstile keys and no
@@ -22,7 +26,10 @@ import { join } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { setTimeout as sleep } from "node:timers/promises";
 
-const BASE_URL = "http://localhost:4321";
+const PORT = parsePort(process.env.SMOKE_LOCAL_PORT);
+const BASE_URL = `http://localhost:${PORT}`;
+// Astro's lock file for the dev server started from this directory (see readDevLock).
+const DEV_LOCK = join(".astro", "dev.json");
 const ENV_FILES = [".env", ".dev.vars"];
 const BACKUP_SUFFIX = ".smoke-bak";
 const ABSENT_MARKER = "__file did not exist before the smoke run__";
@@ -42,6 +49,16 @@ const npx = (args, options = {}) => spawnSync("npx", args, { shell: true, stdio:
 function fail(message) {
   console.error(`\nsmoke-local: ${message}`);
   process.exit(1);
+}
+
+/** SMOKE_LOCAL_PORT: an integer from 1 to 65535; unset or empty means 4321. Checked before anything else runs. */
+function parsePort(raw) {
+  if (raw === undefined || raw === "") return 4321;
+  const port = Number(raw);
+  if (!/^\d+$/.test(raw) || port < 1 || port > 65535) {
+    fail(`SMOKE_LOCAL_PORT must be an integer from 1 to 65535 (got "${raw}").`);
+  }
+  return port;
 }
 
 function supabaseEnv() {
@@ -88,17 +105,73 @@ async function isServerUp() {
   }
 }
 
-/** Stops the dev server: Astro's background daemon (`astro dev stop`) and the foreground process we spawned. */
-function stopDevServer(child) {
-  npx(["astro", "dev", "stop"], { stdio: "ignore" });
-  if (!child?.pid) return;
-  if (process.platform === "win32") spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+function isProcessAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error.code === "EPERM";
+  }
+}
+
+/**
+ * The dev server Astro's lock file records for this worktree (`astro dev stop` reads the same file, so it can only
+ * ever reach this worktree's server), or null when there is no readable lock or its process is gone. Under an agent
+ * Astro runs the server as a background daemon, so the pid here is the daemon's, not the child we spawn.
+ */
+function readDevLock() {
+  try {
+    const { pid, port } = JSON.parse(readFileSync(DEV_LOCK, "utf8"));
+    return Number.isInteger(pid) && Number.isInteger(port) && isProcessAlive(pid) ? { pid, port } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Why a real run would refuse to start, or null. Shared by the real refusal and the --dry-run note. */
+async function refusalReason() {
+  const lock = readDevLock();
+  if (lock) {
+    return `an Astro dev server is already running in this worktree (port ${lock.port}, pid ${lock.pid}); stop it with \`npx astro dev stop\`.`;
+  }
+  if (await isServerUp()) {
+    return `something is already listening on ${BASE_URL}; stop it first (it would not use the test configuration) or set SMOKE_LOCAL_PORT to a free port.`;
+  }
+  return null;
+}
+
+function killProcessTree(pid) {
+  if (process.platform === "win32") spawnSync("taskkill", ["/pid", String(pid), "/T", "/F"], { stdio: "ignore" });
   else
     try {
-      process.kill(-child.pid);
+      process.kill(-pid);
     } catch {
       // already gone
     }
+}
+
+/**
+ * Stops the dev server. When this run spawned it (`child`), the start-time refusal guaranteed that no dev server was
+ * live then, so whatever lock is live now is ours, even if Astro fell back to another port because the requested one
+ * was busy. Without a child (--restore) there is no memory of the run, so only a server the lock file puts on the
+ * configured port is stopped.
+ */
+function stopDevServer(child) {
+  const lock = readDevLock();
+  if (child?.pid) killProcessTree(child.pid);
+  if (child) {
+    if (lock) npx(["astro", "dev", "stop"], { stdio: "ignore" });
+    console.log(`smoke-local: stopped the dev server this run started${lock ? ` (port ${lock.port})` : ""}.`);
+  } else if (!lock) {
+    console.log("smoke-local: no dev server to stop.");
+  } else if (lock.port === PORT) {
+    npx(["astro", "dev", "stop"], { stdio: "ignore" });
+    console.log(`smoke-local: stopped the dev server on port ${lock.port}.`);
+  } else {
+    console.log(
+      `smoke-local: left the dev server on port ${lock.port} alone (this run is for port ${PORT}; set SMOKE_LOCAL_PORT=${lock.port} to stop it).`,
+    );
+  }
 }
 
 /** Puts back .env / .dev.vars from their *.smoke-bak backups, if a run left any. */
@@ -138,7 +211,7 @@ async function waitForServer(child) {
 if (flags.has("--restore")) {
   stopDevServer(null);
   restoreEnvFiles();
-  console.log("smoke-local: dev server stopped and .env / .dev.vars restored (if a run had left backups).");
+  console.log("smoke-local: .env / .dev.vars restored (if a run had left backups).");
   process.exit(0);
 }
 
@@ -162,6 +235,8 @@ const steps = [
 console.log(`Supabase is running at ${API_URL}. Plan:`);
 steps.forEach((step, index) => console.log(`  ${index + 1}. ${step}`));
 if (dryRun) {
+  const reason = await refusalReason();
+  if (reason) console.log(`\nnote: a real run would refuse: ${reason}`);
   console.log("\n--dry-run: nothing was changed.");
   process.exit(0);
 }
@@ -173,9 +248,8 @@ for (const file of ENV_FILES) {
     );
   }
 }
-if (await isServerUp()) {
-  fail(`something is already listening on ${BASE_URL}; stop it first, it would not use the test configuration.`);
-}
+const refusal = await refusalReason();
+if (refusal) fail(refusal);
 await confirm("This resets your local Supabase database. Continue?");
 
 let server = null;
@@ -208,7 +282,7 @@ try {
   if (!skipCheck && npx(["astro", "check"]).status !== 0) throw new Error("`npx astro check` failed");
 
   const log = openSync(SERVER_LOG, "w");
-  server = spawn("npx", ["astro", "dev", "--port", "4321"], {
+  server = spawn("npx", ["astro", "dev", "--port", String(PORT)], {
     shell: true,
     detached: process.platform !== "win32",
     stdio: ["ignore", log, log],
