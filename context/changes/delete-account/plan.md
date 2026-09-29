@@ -41,7 +41,7 @@ Mirror regenerate end to end so review is a diff against a known-good shape. Dat
 
 ## Critical Implementation Details
 
-- **Ordering and locking**: inside `delete_account`, take the `start_timer` advisory lock for the link first, then delete `time_entries`, `projects`, `access_log`, and last `links`. Without the lock, a concurrent timer start can insert a `time_entries` row after the child delete and make the link delete fail on the foreign key.
+- **Ordering and locking**: inside `delete_account`, take the `start_timer` advisory lock for the link, then lock the `links` row with `select ... for update`, then delete `time_entries`, `projects`, `access_log`, and last `links`. The row lock is what matters: inserts into the child tables (a workspace page view writes `access_log` on every load; timer actions write `time_entries`) need a key-share lock on that row, so they wait instead of landing between the child deletes and the link delete and failing its foreign key. Found in plan review; the timer functions use a different advisory key (`public.timer:<id>`), so the advisory lock alone would not cover them.
 - **Server-side confirmation**: the route must refuse unless the submitted phrase equals `DELETE` exactly after trimming, even though the page also disables the button client-side. The check runs after the link lookup and before any database delete.
 
 ## Phase 1: `delete_account` database function and pgTAP test
@@ -58,7 +58,7 @@ The one place the delete happens, with proof that it deletes exactly one person'
 
 **Intent**: Add the atomic delete, and refresh the stale "links are never deleted" note.
 
-**Contract**: `delete_account(p_link_id uuid) returns boolean`, `security definer`, `set search_path = public`. Takes the `hashtext('public.start_timer:' || p_link_id::text)` advisory lock, returns `false` without changes when no `links` row has that id, otherwise deletes that link's `time_entries`, `projects`, `access_log` rows, then the `links` row, and returns `true`. `revoke execute ... from public, anon, authenticated`; `grant execute ... to service_role`. Also `comment on constraint access_log_link_id_fkey on access_log` stating that links are now deleted only through `delete_account`, which removes the child rows first.
+**Contract**: `delete_account(p_link_id uuid) returns boolean`, `security definer`, `set search_path = public`. Takes the `hashtext('public.start_timer:' || p_link_id::text)` advisory lock, then `select id from links where id = p_link_id for update`; returns `false` without changes when no `links` row has that id, otherwise deletes that link's `time_entries`, `projects`, `access_log` rows, then the `links` row, and returns `true`. `revoke execute ... from public, anon, authenticated`; `grant execute ... to service_role`. Also `comment on constraint access_log_link_id_fkey on access_log` stating that links are now deleted only through `delete_account`, which removes the child rows first.
 
 #### 2. pgTAP test
 
@@ -251,8 +251,8 @@ One new migration, additive (a function and a constraint comment). It never runs
 
 #### Manual
 
-- [ ] 1.2 Removing the `access_log` delete or the bystander guard turned the matching pgTAP assertion red, and the file was restored
-- [ ] 1.3 `plan(N)` matches the assertion count and the migration comment reads correctly
+- [x] 1.2 Removing the `access_log` delete or the bystander guard turned the matching pgTAP assertion red, and the file was restored
+- [x] 1.3 `plan(N)` matches the assertion count and the migration comment reads correctly
 
 ### Phase 2: Route and library
 
