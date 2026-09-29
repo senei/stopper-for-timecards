@@ -307,9 +307,9 @@ None: no schema or data changes.
 
 #### Automated
 
-- [x] 5.1 Whole unit suite still passes: `npx vitest run`
+- [x] 5.1 Whole unit suite still passes: `npx vitest run` — ea3379b
 
 #### Manual
 
-- [x] 5.2 `test-plan.md` §6.5 has the new entries and §3 row 3 shows the split status
-- [x] 5.3 The decisions (lockout accepted, 404, cookie as current decision, headers required, no audit test) appear in the cookbook
+- [x] 5.2 `test-plan.md` §6.5 has the new entries and §3 row 3 shows the split status — ea3379b
+- [x] 5.3 The decisions (lockout accepted, 404, cookie as current decision, headers required, no audit test) appear in the cookbook — ea3379b
