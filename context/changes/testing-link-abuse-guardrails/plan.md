@@ -289,7 +289,7 @@ None: no schema or data changes.
 #### Manual
 
 - [x] 3.3 Removing one header line from one token page fails smoke for that page, and the file was restored — 39a3587
-- [ ] 3.4 CI `smoke` job is green after the push
+- [x] 3.4 CI `smoke` job is green after the push — 9413c2c
 
 ### Phase 4: Anon-role exposure test in pgTAP (G5)
 
