@@ -247,12 +247,12 @@ One new migration, additive (a function and a constraint comment). It never runs
 
 #### Automated
 
-- [ ] 1.1 Migration applies and pgTAP passes: `npx supabase db reset && npx supabase test db`
+- [x] 1.1 Migration applies and pgTAP passes: `npx supabase db reset && npx supabase test db` — 344b8c4
 
 #### Manual
 
-- [x] 1.2 Removing the `access_log` delete or the bystander guard turned the matching pgTAP assertion red, and the file was restored
-- [x] 1.3 `plan(N)` matches the assertion count and the migration comment reads correctly
+- [x] 1.2 Removing the `access_log` delete or the bystander guard turned the matching pgTAP assertion red, and the file was restored — 344b8c4
+- [x] 1.3 `plan(N)` matches the assertion count and the migration comment reads correctly — 344b8c4
 
 ### Phase 2: Route and library
 
