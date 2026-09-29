@@ -1,89 +1,114 @@
 <!-- BEGIN @przeprogramowani/10x-cli -->
 
-## 10xDevs AI Toolkit - Module 3, Lesson 1
+## Zestaw narzędzi AI 10xDevs — Moduł 3, Lekcja 2
 
-Open Module 3 by producing a **durable, risk-first quality contract** before any test is written — then drive each rollout phase through the standard change chain.
+Lekcja 2 dotyczy **pisania testów, które faktycznie chronią kod** — a nie tylko maksymalizowania pokrycia. Problem wyroczni oraz antywzorce vibe-testingu wyjaśniają, dlaczego testy generowane przez LLM zawodzą na rzeczywistym kodzie; rozwiązaniem jest kontrakt jakości oparty na ryzyku z Lekcji 1.
 
 ```
-PRD + roadmap + archive
+context/foundation/test-plan.md (§3 Phased Rollout)
+        │
+        ▼  (one rollout phase at a time)
+   /10x-research  ──►  research.md  (oracle source: what code should do, not what it does)
         │
         ▼
-   /10x-test-plan  ──►  context/foundation/test-plan.md  (strategy §1–§5 frozen + cookbook §6 grows)
+   /10x-plan  ──►  plan.md  (cost × signal, two-layer strategy, ordered phases)
         │
-        ▼  (one rollout phase at a time, /clear between handoffs)
-   /10x-new ──► /10x-research ──► /10x-plan ──► /10x-implement
+        ▼
+   /10x-implement  or  /10x-tdd   ──►  working tests + §6 cookbook update
 ```
 
-`/10x-test-plan` is a **stateful orchestrator**, not a one-shot generator. On first run it writes the phased rollout to `context/foundation/test-plan.md`. On every subsequent run it re-derives state from on-disk artifacts and presents the next handoff. The lesson focus is **strategy and rollout sequencing, not configuration**. Hooks, MCP servers, and CI YAML are configured in later lessons of this module.
+`/10x-tdd` jest **opcjonalnym trybem test-first**, a nie zamiennikiem dla łańcucha. Odczytuje ten sam `plan.md`, zapisuje do tej samej sekcji `## Progress` i obejmuje te same fazy co `/10x-implement`. Używaj go tylko wtedy, gdy potrafisz nazwać pierwszą nieudaną asercję przed napisaniem jakiegokolwiek kodu.
 
-### Task Router - Where to start
+### Router zadań — od czego zacząć
 
-| Skill | Use it when |
+| Umiejętność / Prompt | Użyj, gdy |
 | --- | --- |
-| **Quality strategy as a rules-file (lesson focus)** | |
-| `/10x-test-plan` | You have a PRD (and ideally a roadmap and a few archived slices) and you are about to write the project's first tests, or you noticed that AI-generated tests are landing on helpers while critical flows go uncovered. First invocation runs discovery (PRD + roadmap + archive + hot-spot scan), a 5-question user interview, and a synthesis pass with a mandatory challenger check, then writes `test-plan.md` in `context/foundation/` with a risk map (5–7 failure scenarios), a phased rollout table, a stack table, a quality-gates table, a cookbook section (`§6`, fills in as phases ship), and a negative-space section (what we deliberately don't test). Subsequent invocations advance the rollout one handoff at a time. |
-| `/10x-test-plan --status` | A `test-plan.md` already exists and you want a compact snapshot of where the rollout stands — which phases are `not started`, `change opened`, `researched`, `planned`, `implementing`, or `complete`, and what the next action is. Does no work; safe to run any time. |
-| `/10x-test-plan --refresh` | A `test-plan.md` already exists and one of: a new top-3 risk surfaced from the roadmap or archive, a tool's `checked:` date is older than three months, the project's tech stack changed, or §7 negative-space no longer matches what the team believes. Opens a new `test-plan-refresh-<YYYY-MM-DD>` change folder rather than editing the guide in place. |
+| `/10x-research` | Przed napisaniem jakiegokolwiek testu dla ryzyka. Research tworzy wyrocznię — jakie zachowanie test musi udowodnić — na podstawie źródeł (PRD, tech-stack, dokumentacja), a nie kształtu implementacji. Ujawnia również, czy ryzyko jest już pokryte albo ma dwa odrębne oblicza (jedno bezpieczne, drugie rzeczywiste). |
+| `/10x-plan` | Research jest ukończony. Plan rozkłada ryzyko na uporządkowane fazy: najpierw konfiguracja środowiska, następnie reguły od niej zależne, potem hermetyczne stuby dla błędów, których rzeczywista infrastruktura nie potrafi wywołać, a na końcu aktualizacja cookbooka. Każda faza nazywa zachowanie, które potwierdza, oraz regresję, którą wykrywa. |
+| `/10x-implement` | Domyślny wykonawca faz planu. Używaj do konfiguracji środowiska, istniejącego kodu, scaffolding oraz każdej fazy, w której nie możesz zdefiniować czerwonego testu przed napisaniem kodu. |
+| `/10x-tdd` | Opcjonalne. Użyj zamiast `/10x-implement` dla fazy, w której potrafisz nazwać pierwszy czerwony test jednym zdaniem. Agent najpierw pisze nieudany test, potem minimalny kod, aby go zazielenić, a następnie refaktoryzuje. Zatrzymuje się na asercji przed dotknięciem implementacji — ta pauza jest sednem. |
+| Prompt `m3l2-ad-hoc-testing` | Masz pojedynczy plik i chcesz testów teraz, bez pełnego cyklu research→plan→implement. Prompt wymusza wyrocznię-ze-źródeł (odczytuje PRD + TECH_STACK przed asercjami), asercje behawioralne, przypadki brzegowe wynikające z ryzyka oraz tabelę regresji. Używaj go ze świadomością, że wymieniasz głębię na szybkość. |
 
-### Rollout chain — what happens after the guide is written
+### Kiedy używać `/10x-tdd` vs `/10x-implement`
 
-The guide's §3 *Phased Rollout* table is the orchestrator's state. For each non-`complete` row the orchestrator selects the next handoff based on which artifacts exist in `context/changes/<change-id>/`:
+Decydujące pytanie: *Czy potrafisz nazwać pierwszy czerwony test jednym zdaniem?*
 
-| State on disk | Next handoff | Status transitions to |
+Dobre warunki dla `/10x-tdd`:
+- "promuje wyłącznie drafty w stanie `accepted`, a `pending`/`rejected` nigdy nie trafiają do talii"
+- "zwraca `ok: true` i loguje `orphan_review_state`, gdy upsert stanu powtórek padnie w trakcie zapisu"
+- "zwraca 401, gdy użytkownik nie ma dostępu do kursu"
+- "resetuje interwał powtórki do jednego dnia, gdy ocena wynosi 0"
+
+Każdy z nich nazywa obserwowalny wynik, a nie wewnętrzny szczegół. Jeśli nie potrafisz stworzyć zdania takiego jak to, pozostań przy `/10x-implement` albo wróć do `/10x-research`.
+
+`/10x-tdd` **nie nadaje się** do: konfiguracji środowiska, konfiguracji CI/CD, dokumentacji, prostego łączenia elementów, gdzie test jedynie przepisywałby implementację, ani spike'a, podczas którego nadal odkrywasz kontrakt.
+
+Możesz łączyć oba tryby w jednym planie:
+
+```
+/10x-implement <change-id> phase 1   # environment
+/10x-tdd       <change-id> phase 2   # contract (new code)
+/10x-tdd       <change-id> phase 3   # contract (API endpoint)
+/10x-implement <change-id> phase 4   # cookbook + plan sync
+```
+
+Oba zapisują postęp do tej samej sekcji `## Progress` w `plan.md`.
+
+### Dwuwarstwowa strategia testów (koszt × sygnał)
+
+Dla każdego ryzyka wybierz **najtańszy test, który daje rzeczywisty sygnał**. Nie wybieraj domyślnie e2e „bo jest najbezpieczniej” i nie ścigaj się za procentem pokrycia.
+
+| Warstwa | Kiedy używać | Kiedy NIE używać |
 | --- | --- | --- |
-| change folder missing | `/10x-new <change-id>` | `change opened` |
-| `change.md` only | `/10x-research` (with a risks-to-verify brief) | `researched` |
-| `+ research.md` | `/10x-plan` (with cost × signal + cookbook-update constraints) | `planned` |
-| `+ plan.md` with pending `## Progress` items | `/10x-implement <change-id> phase <N>` | `implementing` / `complete` |
-| `+ plan.md` fully `[x]` | Mark §3 row `complete`; loop to next pending row | — |
+| Integracja (prawdziwa DB / prawdziwa infrastruktura) | Reguła obejmuje ograniczenia DB, kaskady, rzeczywisty SQL lub ograniczenia unikalności, co do których mock by kłamał. | Przepływy auth kontrolowane przez RLS, które należą do odrębnej fazy; wszystko, gdzie koszt konfiguracji przekracza wartość sygnału. |
+| Hermetyczna (stub klienta) | Częściowe błędy, których rzeczywista infrastruktura nie potrafi łatwo wywołać (np. druga operacja w sekwencji kończy się błędem). | Reguły zależne od faktycznego stanu DB — stub będzie kłamał w kwestii naruszeń ograniczeń i kaskad. |
 
-Each handoff is a **STOP point**. The orchestrator copies the next command to the clipboard, asks the user to `/clear` and run it, then exits. Re-invoke `/10x-test-plan` (no arguments) to advance.
+Nieatomowa sekwencja zapisu (wiele niezależnych operacji bez transakcji) oznacza: pisz hermetyczne testy dla gałęzi częściowych błędów, a nie testy integracyjne wymuszające błąd w środku sekwencji.
 
-### Risk-first prioritization rules
+### Reguły wyroczni
 
-- Risks are **failure scenarios in user / business terms**, not test names. "Logged-out user reaches paid content via stale token" is a risk; "test the login form" is not.
-- 5 to 7 risks. Fewer is too coarse; more makes prioritization useless.
-- Impact and likelihood are user/business ratings, not technical complexity.
-- Every risk traces to a source: PRD section, archived slice, roadmap entry, Phase 2 interview question, hot-spot **directory** with churn count, or a tech-stack constraint. No invented risks.
-- **Signal, not knowledge.** §2 cites *evidence that raised the risk*, never a file as "where the failure lives." File:line anchors, function names, schema names, and module names are forbidden in §2 — they belong in `/10x-research`'s output, produced per rollout phase against current code. The plan is a QA spec; it is not a code audit.
-- Coverage is not the metric. **Risk coverage** is the metric.
+- Wyrocznia — co kod *powinien* robić — musi pochodzić ze źródeł: PRD, dokumentacji, ograniczeń tech-stacku, wiedzy domenowej. **Nie może** pochodzić z odczytywania implementacji.
+- Jeśli implementacja zawiera błąd, skopiowanie jej wyniku jako oczekiwanej wartości tworzy test lustrzany, który przechodzi mimo błędu.
+- Gdy źródła nie rozstrzygają oczekiwanego zachowania jednoznacznie, **zatrzymaj się i zapytaj**, zamiast zgadywać.
+- Zadaniem researchu jest ujawnienie wyroczni, zanim zostanie napisany jakikolwiek test.
 
-### Dual-layer mapping rules
+### Antywzorce vibe-testingu, których należy unikać
 
-- Classic layer first: the cheapest test that gives a real signal wins. Promote to e2e only when no cheaper layer covers the risk.
-- AI-native layer second, and only where it adds signal classic tests do not give cheaply.
-- Every AI-native row has a **"When NOT to use"** line. If you cannot write one, drop the row.
-- Every tool name carries a `checked: <YYYY-MM-DD>` date. Tool names are examples of the category, not endorsements.
-- Both layers must be non-empty in the final guide if the project warrants them. Classic-only is a 2020 plan; AI-native-only is hype. AI-native phases are not mandatory — include them only when the brief justified them under cost × signal.
+| Antywzorzec | Jak wygląda | Co zrobić zamiast tego |
+| --- | --- | --- |
+| Implementacja lustrzana | Asercja oblicza oczekiwaną wartość tą samą logiką co testowany kod. | Asercja wobec wartości wyprowadzonej z wyroczni (PRD / reguła domenowa), a nie z implementacji. |
+| Tylko happy paths | Testy przepuszczają tylko prawidłowe dane wejściowe; brak przypadków brzegowych. | Dodaj co najmniej jeden przypadek brzegowy dla każdego ryzyka: `null`, pusty, błąd zależności, nieprawidłowe dane wejściowe. |
+| Nadmiarowe kopie | Sześć niemal identycznych testów sprawdzających ten sam brak sentinela. | Jeden sparametryzowany test (`it.each`) na właściwość; każdy test wykrywa inną regresję. |
 
-### Quality gates rules
+### Testowanie mutacyjne (Stryker) — selektywna bramka jakości
 
-- Required gates (lint, typecheck, unit+integration, e2e on critical flows) must map to actual CI steps. If a required gate is not yet wired, mark it as `required after §3 Phase <N>` and let the named rollout phase wire it.
-- Post-edit hook is **recommended local**, not a CI substitute.
-- Multimodal visual review is **selective**, applied to 1–3 critical screens, not to every page.
-- Vision-driven fallback (Anthropic Computer Use or OpenAI CUA) is reserved for DOM-unreachable surfaces; expensive per action.
+Pokrycie mówi „ta linia została wykonana”. Wynik mutacji mówi „czy test by nie przeszedł, gdybym zepsuł tę linię?”. Używaj Stryker jako **selektywnej bramki** po fazie ryzyka, a nie jako bramki CI przy każdym commicie.
 
-### Cookbook patterns (§6) — fills in over time
+Przebieg pracy:
+1. Testy przechodzą dla fazy ryzyka.
+2. Uruchom `npx stryker run --mutate "path/to/file.ts"` (zawęź zakres do zmienionego modułu).
+3. Otwórz raport HTML; znajdź mutacje, które przetrwały.
+4. Dla każdej przetrwałej mutacji zapytaj: „Czy ta zmiana zaszkodziłaby użytkownikowi lub firmie?”
+   - Tak → dodaj asercję, która zabija mutację.
+   - Nie (równoważna mutacja lub kosmetyczna zmiana) → świadomie ją zignoruj.
+5. Nie ścigaj 100% wyniku mutacji. Test, który przytwierdza szczegóły implementacji, aby zabić kosmetyczną mutację, sam jest testem vibe.
 
-`test-plan.md` is both a phased strategy and a **growing cookbook**. §6 starts as placeholders (`TBD — see §3 Phase <N>`) and fills in incrementally — each rollout phase's plan ends with a sub-phase that updates the relevant §6 entry (location, naming, reference test, run command). After Module 3 completes, §6 becomes the canonical answer to "how do I add a test for X in this project?" — and is what `/10x-tdd` reads in Lesson 2.
+Bramka integracyjna może pozostać **ad hoc** (nie przy każdym commicie), gdy uruchamianie lokalnej infrastruktury jest kosztowne. Oznacz to odpowiednio w `test-plan.md §4`.
 
-### Lesson boundaries
+### Granice lekcji
 
-- Do not write test code. That is Lesson 2 (`/10x-tdd` and unit-test authoring).
-- Do not configure hooks, hook lifecycle, or debugging hooks. That is Lesson 3.
-- Do not configure MCP servers, Playwright API, e2e code, or multimodal scenario code. That is Lesson 4.
-- Do not run the bug-to-fix-to-regression-test workflow. That is Lesson 5.
-- Do not author CI/CD pipelines from scratch or write GitHub Actions YAML. The guide names gates; configuration is owned by Module 1 Lesson 5 and Module 2 Lesson 5.
-- Do not benchmark multimodal models. Cite criteria (cost, latency, agent-friendliness), never a ranking.
-- Do not read the codebase for knowledge (call graphs, schemas, "which file owns this failure"). That is `/10x-research`'s job, per rollout phase.
+- Nie konfiguruj hooków, cyklu życia hooków ani debugowania hooków. To Lekcja 3.
+- Nie konfiguruj serwerów MCP, Playwright API, kodu e2e ani kodu scenariuszy multimodalnych. To Lekcja 4.
+- Nie uruchamiaj workflow bug-to-fix-to-regression-test. To Lekcja 5.
+- Nie twórz od zera pipeline'ów CI/CD. To Moduł 1 Lekcja 5 / Moduł 2 Lekcja 5.
+- Nie uruchamiaj `/10x-test-plan`, aby zmienić strategię ryzyka. To Lekcja 1. Użyj `/10x-test-plan --status`, aby odczytać bieżący stan.
+- Nie pisz testów bez kroku researchu, chyba że używasz promptu ad-hoc z pełną świadomością jego kompromisów.
 
-### Paths used by this lesson
+### Ścieżki używane w tej lekcji
 
-- `context/foundation/test-plan.md` — the quality contract produced and maintained by `/10x-test-plan`
-- `context/foundation/prd.md` — primary risk source
-- `context/foundation/roadmap.md` — likelihood weighting
-- `context/foundation/tech-stack.md` — stack input (when present)
-- `context/archive/<change-id>/plan.md` — implemented risk surface
-- `context/changes/<change-id>/` — per-rollout-phase change folder (one per row in §3)
+- `context/foundation/test-plan.md` — stan wdrożenia §3; cookbook §6 (uzupełniany w miarę dostarczania faz)
+- `context/changes/<change-id>/research.md` — źródło wyroczni dla każdej fazy wdrożenia
+- `context/changes/<change-id>/plan.md` — uporządkowane fazy z `## Progress` jako stanem wykonania
+- `.claude/prompts/m3l2-ad-hoc-testing.md` — prompt do testowania ad-hoc na poziomie pliku
 
 <!-- END @przeprogramowani/10x-cli -->

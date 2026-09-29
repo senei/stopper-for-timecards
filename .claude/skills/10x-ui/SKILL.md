@@ -13,201 +13,200 @@ description: >
   first. Not a component catalog. Not parallel multi-agent Innovate work.
   Not a Playwright course.
 ---
+# 10x-ui — kontrakt systemu projektowego dla pojedynczej zmiany wizualnej
 
-# 10x-ui — design-system contract for a single visual change
+UI to zwykła zmiana 10x. Nie otwieraj czatu vibes w wątku CRUD i nie zaczynaj
+od promptu mówiącego tylko „zrób to ładniej”.
 
-UI is a normal 10x change. Do not open a vibes chat on the CRUD thread, and do not start
-from a prompt that says only "make it nicer".
+**Ta umiejętność iteruje po UI, które już istnieje.** Zakłada widok, który możesz otworzyć i
+zrzucić na screenie: markup się renderuje, dane przepływają, ekran wykonuje swoje zadanie i po prostu nie jest
+wystarczająco dobry. Wytworzenie tego pierwszego widoku to zwykła praca nad funkcją w ramach Core Skills Chain; ta
+umiejętność przejmuje pracę w momencie, gdy jest on na ekranie i chcesz go przeaudytować oraz poprawić.
 
-**This skill iterates on UI that is already there.** It assumes a view you can open and
-screenshot: the markup renders, the data flows, the screen does its job and just is not good
-enough. Producing that first view is ordinary feature work for the Core Skills Chain; this
-skill picks up the moment it is on screen and you want it audited and improved.
+Jeśli istnieje `context/foundation/lessons.md`, przeczytaj go raz pod kątem powtarzających się błędów UI w tym repozytorium.
 
-If `context/foundation/lessons.md` exists, read it once for recurring UI failures in this repo.
+## Kiedy pominąć
 
-## When to skip
-
-- Parallel agents, `/goal`, isolated checkouts for throughput — that is a later lesson (Innovate / m2l6).
-- Initializing a second design system (`shadcn init` and its equivalents) on a repo that already ships tokens and in-repo components. Extend the first one.
-- A view that does not exist yet. Build it through the ordinary chain first, then come back and audit it.
-- A design-tool file as the only source of truth: this skill works from the running app.
+- Agenci równolegli, `/goal`, izolowane checkouty dla przepustowości — to późniejsza lekcja (Innovate / m2l6).
+- Inicjalizowanie drugiego systemu projektowego (`shadcn init` i odpowiedniki) w repozytorium, które już dostarcza tokeny i komponenty w repozytorium. Rozszerz pierwszy.
+- Widok, który jeszcze nie istnieje. Najpierw zbuduj go zwykłym łańcuchem, potem wróć i go przeaudytuj.
+- Plik narzędzia projektowego jako jedyne źródło prawdy: ta umiejętność pracuje na uruchomionej aplikacji.
 
 ## Router
 
-1. `/10x-new <change-id>` — a folder for this visual change. In `change.md` name **one** view and one named motif or token source.
-2. `/10x-research <change-id>` — two directions. **Audit**: locate in *this* repo the **source of values** (token file, theme object, variables — whatever this stack calls it) and the **shared components directory**, then find which views actually read them. If neither exists, that is the first phase of the plan, not a blocker. **Reference**: a named motif or DS vocabulary to borrow from. Not a moodboard. Output is the charge list below.
-3. `/10x-plan` — phases: environment/library → values in that source → **one** view → states.
-4. `/10x-implement` phase by phase. After a visual phase: screenshot (desktop; one mobile width).
-5. Visual gate: kitchen sink or `toHaveScreenshot` on **that one view**. Do not blind-update baselines.
-6. `/10x-impl-review` — UI findings are not "cosmetic skip" by default. Then the review loop below.
+1. `/10x-new <change-id>` — folder dla tej zmiany wizualnej. W `change.md` nazwij **jeden** widok i jedno nazwane źródło motywu lub tokenów.
+2. `/10x-research <change-id>` — dwa kierunki. **Audit**: zlokalizuj w *tym* repozytorium **źródło wartości** (plik tokenów, obiekt motywu, zmienne — jakkolwiek ten stack je nazywa) oraz **katalog współdzielonych komponentów**, a następnie znajdź widoki, które faktycznie je odczytują. Jeśli nie istnieje żadne z nich, jest to pierwsza faza planu, a nie blokada. **Reference**: nazwany motyw lub słownictwo DS, z którego można zaczerpnąć. Nie moodboard. Wynikiem jest poniższa lista zarzutów.
+3. `/10x-plan` — fazy: środowisko/biblioteka → wartości w tym źródle → **jeden** widok → stany.
+4. `/10x-implement` faza po fazie. Po fazie wizualnej: screenshot (desktop; jedna szerokość mobilna).
+5. Bramka wizualna: kitchen sink lub `toHaveScreenshot` dla **tego jednego widoku**. Nie aktualizuj bezmyślnie baseline'ów.
+6. `/10x-impl-review` — ustalenia UI domyślnie nie są „kosmetyczne do pominięcia”. Następnie wykonaj poniższą pętlę przeglądu.
 
-## The audit: three categories of charge
+## Audyt: trzy kategorie zarzutów
 
-This is the technique the rest of the skill depends on. Before any CSS, walk the view and write
-3–5 charges. Each charge gets a **file and line**, and **one sentence about the effect on the user**.
-A charge list is the input to the plan; "make it nicer" is not.
+To technika, od której zależy reszta tej umiejętności. Przed jakimkolwiek CSS przejdź przez widok i zapisz
+3–5 zarzutów. Każdy zarzut otrzymuje **plik i linię** oraz **jedno zdanie o wpływie na użytkownika**.
+Lista zarzutów jest wejściem do planu; „zrób to ładniej” nim nie jest.
 
 | Category | What it looks like | Evidence to record | Typical fix |
 | --- | --- | --- | --- |
-| **Missing tokens** | one-off hex/rgb in the view, three shades of the same "primary", spacing invented per file | file:line of the literal, plus the token that should have covered it | move the value into this repo's token source and reference it by role (e.g. `bg-primary` / `text-muted-foreground` in the Tailwind variant) |
-| **Missing shared component** | a second `Button` built from `div`+classes, a card that copies a DS card, copy-pasted form field | file:line of the duplicate, plus the component it shadows | import the real component, or add it through the stack's own path (e.g. `npx shadcn add <name>`) |
-| **Accidental architecture** | the screen or flow mirrors the order features were added: unauthenticated route returning raw JSON, a modal that is a page, a "settings" tab holding four unrelated things | the route/component path, plus what the user sees when they arrive that way | fix the entry point (guard, redirect, layout), not the color |
+| **Brakujące tokeny** | jednorazowy hex/rgb w widoku, trzy odcienie tego samego „primary”, odstępy wymyślane osobno dla każdego pliku | plik:linia literału oraz token, który powinien go obejmować | przenieś wartość do źródła tokenów tego repozytorium i odwołuj się do niej według roli (np. `bg-primary` / `text-muted-foreground` w wariancie Tailwind) |
+| **Brakujący współdzielony komponent** | drugi `Button` zbudowany z `div`+klas, karta kopiująca kartę DS, kopiowane pole formularza | plik:linia duplikatu oraz komponent, który jest przez niego zacieniany | zaimportuj rzeczywisty komponent albo dodaj go ścieżką właściwą dla stacka (np. `npx shadcn add <name>`) |
+| **Przypadkowa architektura** | ekran lub przepływ odzwierciedla kolejność dodawania funkcji: nieuwierzytelniona trasa zwracająca surowy JSON, modal będący stroną, karta „settings” zawierająca cztery niepowiązane rzeczy | ścieżka trasy/komponentu oraz to, co widzi użytkownik, gdy trafia tam tą drogą | napraw punkt wejścia (guard, redirect, layout), nie kolor |
 
-The third category is the hardest to see on a screenshot and the easiest to skip. Ask explicitly:
-*what happens if someone reaches this view logged out, with no data, or straight from a link?*
+Trzecią kategorię najtrudniej zobaczyć na screenie i najłatwiej pominąć. Zapytaj wprost:
+*co się dzieje, jeśli ktoś trafi do tego widoku wylogowany, bez danych lub bezpośrednio z linku?*
 
-Record the list in the change folder. Charges that the plan does not address stay visible as
-deferred, not deleted.
+Zapisz listę w folderze zmiany. Zarzuty, których plan nie adresuje, pozostają widoczne jako
+odroczone, a nie usunięte.
 
-## Design-system contract
+## Kontrakt systemu projektowego
 
-The contract has two halves, and neither names a tool:
+Kontrakt składa się z dwóch połówek i żadna nie wskazuje narzędzia:
 
-1. **Semantic tokens** — one source of values, with names describing the **role** (`primary`, `surface`, `muted`, `destructive`), never the colour (`purple-600`).
-2. **Importable components that live in the repo** — readable by the agent, not a black-box dependency it can only guess at.
+1. **Tokeny semantyczne** — jedno źródło wartości, z nazwami opisującymi **rolę** (`primary`, `surface`, `muted`, `destructive`), nigdy kolor (`purple-600`).
+2. **Importowalne komponenty, które znajdują się w repozytorium** — czytelne dla agenta, a nie zależność typu black box, którą może jedynie zgadywać.
 
-Without both, the agent reinvents primitives on every view. With both, it has somewhere to look.
+Bez obu agent odtwarza prymitywy w każdym widoku. Z obiema ma miejsce, do którego może zajrzeć.
 
-How the two halves are realised depends on the stack. Find yours, then read it before proposing values:
+Sposób realizacji obu połówek zależy od stacka. Znajdź swój, a następnie przeczytaj go przed zaproponowaniem wartości:
 
-| Stack | Where the values live | Where the components live |
+| Stack | Gdzie znajdują się wartości | Gdzie znajdują się komponenty |
 | --- | --- | --- |
-| **Tailwind v4 + shadcn/ui** (the course variant) | `:root` / `.dark` in CSS, published through `@theme` / `@theme inline` | copied into the repo, usually `src/components/ui` |
-| **CSS Modules / plain CSS variables** | a variables file (`:root`, often `theme.css` / `variables.css`) | a shared components directory, imported by path |
-| **CSS-in-JS with a theme** (styled-components, vanilla-extract, Panda) | a theme object or `.css.ts` token file | styled primitives exported from one module |
-| **Component library with a theme** (MUI, Chakra, Mantine) | the library's theme/config object, extended in your code | the library's components, wrapped locally where you customise them |
-| **Nothing yet** | — | — |
+| **Tailwind v4 + shadcn/ui** (wariant kursu) | `:root` / `.dark` w CSS, publikowane przez `@theme` / `@theme inline` | kopiowane do repozytorium, zwykle `src/components/ui` |
+| **CSS Modules / zwykłe zmienne CSS** | plik zmiennych (`:root`, często `theme.css` / `variables.css`) | katalog współdzielonych komponentów, importowany ścieżką |
+| **CSS-in-JS z motywem** (styled-components, vanilla-extract, Panda) | obiekt motywu lub plik tokenów `.css.ts` | stylowane prymitywy eksportowane z jednego modułu |
+| **Biblioteka komponentów z motywem** (MUI, Chakra, Mantine) | obiekt motywu/konfiguracji biblioteki, rozszerzany w twoim kodzie | komponenty biblioteki, lokalnie opakowane tam, gdzie je dostosowujesz |
+| **Jeszcze nic** | — | — |
 
-Tailwind detail, for that variant only: `:root` / `.dark` hold the **values**, `@theme inline`
-**publishes** them as `--color-*`, and only then does `bg-primary` exist. Raw colours written straight
-into `@theme inline` are the classic dark-mode break — the `.dark` values are there, the toggle does
-nothing. Other stacks have their own version of this split; find it before you edit.
+Szczegół Tailwind, tylko dla tego wariantu: `:root` / `.dark` przechowują **wartości**, `@theme inline`
+je **publikuje** jako `--color-*` i dopiero wtedy istnieje `bg-primary`. Surowe kolory zapisane bezpośrednio
+w `@theme inline` są klasycznym błędem dark mode — wartości `.dark` są obecne, ale przełącznik nic nie
+robi. Inne stacki mają własną wersję tego rozdzielenia; znajdź ją przed edycją.
 
-- **Repo already has a system** — read it first: its value source, its shared components and any design notes, before you propose anything. Extend it; do not fork a second palette. An existing, worse system beats a better one you bring in.
-- **Repo has a value source nothing reads** — the most common greenfield case. A starter ships a token file, and the screens ignore it in favour of literal classes. The first phase is not choosing a theme; it is making the existing views read the tokens that are already there.
-- **Repo has no system at all** — see *Proposing a system* below.
-- **Tokens from a named motif or preset** — map them onto the existing variable names, keep the count small (primary, surface, border, muted, destructive, plus radius and spacing scale).
+- **Repozytorium ma już system** — najpierw go przeczytaj: jego źródło wartości, współdzielone komponenty i wszelkie notatki projektowe, zanim cokolwiek zaproponujesz. Rozszerz go; nie twórz drugiej palety. Istniejący, gorszy system jest lepszy niż lepszy system, który przynosisz.
+- **Repozytorium ma źródło wartości, którego nic nie odczytuje** — najczęstszy przypadek greenfield. Starter dostarcza plik tokenów, a ekrany ignorują go na rzecz klas literałowych. Pierwsza faza nie polega na wyborze motywu; polega na tym, by istniejące widoki odczytywały tokeny, które już tam są.
+- **Repozytorium nie ma żadnego systemu** — zobacz poniżej *Proponowanie systemu*.
+- **Tokeny z nazwanego motywu lub presetu** — zmapuj je na istniejące nazwy zmiennych, zachowaj małą liczbę (primary, surface, border, muted, destructive oraz radius i skala odstępów).
 
-Whatever the source of the values, **deposit them in the repo**: the raw values in a file inside the
-change folder, plus a line naming where they came from, next to the block you edited. Values that
-live only in a chat window are values the next session will invent again from scratch.
+Niezależnie od źródła wartości, **umieść je w repozytorium**: surowe wartości w pliku wewnątrz
+folderu zmiany oraz linię nazywającą źródło ich pochodzenia obok edytowanego bloku. Wartości, które
+istnieją tylko w oknie czatu, są wartościami, które następna sesja ponownie wymyśli od zera.
 
-Optional: a short design note (`DESIGN.md` or equivalent) recording tokens and why they were chosen.
-The obligation is tokens in the repo; the file is a convenience for the next change.
+Opcjonalnie: krótka notatka projektowa (`DESIGN.md` lub odpowiednik) dokumentująca tokeny i powody ich wyboru.
+Obowiązkiem są tokeny w repozytorium; plik jest wygodą dla następnej zmiany.
 
-Adding a component: use the stack's own path — e.g. `npx shadcn add <name>` (or shadcn MCP if
-already configured) in the course variant. Do not require `mcp init` to finish the change.
+Dodawanie komponentu: użyj ścieżki właściwej dla stacka — np. `npx shadcn add <name>` (lub shadcn MCP, jeśli
+jest już skonfigurowany) w wariancie kursu. Nie wymagaj `mcp init`, aby ukończyć zmianę.
 
-### Proposing a system
+### Proponowanie systemu
 
-"Use what you have" does not mean "never add anything". On an empty field, introducing the contract
-**is** the change. Propose it — under three conditions, stated out loud in `change.md`:
+„Używaj tego, co masz” nie oznacza „nigdy niczego nie dodawaj”. W pustym obszarze wprowadzenie kontraktu
+**jest** zmianą. Zaproponuj go — pod trzema warunkami, wypowiedzianymi wprost w `change.md`:
 
-1. **Marked as adding a dependency to the stack**, not slipped in as an assumption. The learner decides.
-2. **Scoped to what this change needs** — a token block plus the 2–3 components the view actually uses. Not a whole library.
-3. **It loses to what the repo already has.** If there is any system, even a worse one, extend it.
+1. **Oznaczone jako dodanie zależności do stacka**, a nie przemycone jako założenie. Decyzję podejmuje uczestnik.
+2. **Ograniczone do potrzeb tej zmiany** — blok tokenów oraz 2–3 komponenty, których widok faktycznie używa. Nie cała biblioteka.
+3. **Przegrywa z tym, co repozytorium już ma.** Jeśli istnieje jakikolwiek system, nawet gorszy, rozbuduj go.
 
-## States, breakpoints, a11y floor
+## Stany, breakpointy, minimalny poziom a11y
 
-- Name the states you touch: **default, hover, focus, disabled, error, empty, loading**. `disabled` and `error` are where agent-built UI drifts first, because nothing in the happy path exercises them.
-- Focus usually has its own token, separate from the accent (`--ring` in shadcn) — moving the accent does not move it, and on many stacks nobody has defined it at all, so the browser default shows through. Review focus separately, the way you review `disabled`.
-- Desktop plus **one** mobile width. Not a responsive matrix.
-- a11y floor, not a WCAG course: focus must be visible, every control needs an accessible name, and contrast on token changes must survive both themes if the app has dark mode.
-- Dark mode: change it at the token layer. A dark-mode pass that edits component classes is the missing-tokens charge in disguise.
+- Nazwij stany, których dotykasz: **default, hover, focus, disabled, error, empty, loading**. `disabled` i `error` to miejsca, w których UI tworzone przez agenta zaczyna dryfować jako pierwsze, ponieważ nic na szczęśliwej ścieżce ich nie ćwiczy.
+- Focus zwykle ma własny token, oddzielny od akcentu (`--ring` w shadcn) — zmiana akcentu go nie zmienia, a w wielu stackach nikt w ogóle go nie zdefiniował, więc przebija domyślny styl przeglądarki. Przeglądaj focus osobno, tak jak przeglądasz `disabled`.
+- Desktop plus **jedna** szerokość mobilna. Nie macierz responsywności.
+- Minimalny poziom a11y, nie kurs WCAG: focus musi być widoczny, każdy kontroler potrzebuje dostępnej nazwy, a kontrast przy zmianach tokenów musi działać w obu motywach, jeśli aplikacja ma dark mode.
+- Dark mode: zmieniaj go na warstwie tokenów. Przejście dark mode, które edytuje klasy komponentów, jest zamaskowanym zarzutem brakujących tokenów.
 
-## Visual gate
+## Bramka wizualna
 
-One view, every named state visible at once. The cheapest form needs no test runner at all: a
-**kitchen-sink page** that renders the view in all seven states side by side, screenshotted from the
-browser. It doubles as review evidence and it works on any stack.
+Jeden widok, każdy nazwany stan widoczny jednocześnie. Najtańsza forma nie potrzebuje w ogóle runnera testów:
+strona **kitchen-sink**, która renderuje widok we wszystkich siedmiu stanach obok siebie, ze screenshotem z
+przeglądarki. Służy jednocześnie jako dowód przeglądu i działa w każdym stacku.
 
-If the repo already has a screenshot-testing tool, wire the gate into it — e.g.
-`await expect(page).toHaveScreenshot({ maxDiffPixels: 100 })` with Playwright, masking volatile
-regions (dates, avatars, counters). Do not install one to satisfy this skill.
+Jeśli repozytorium ma już narzędzie do testów screenshotów, podłącz do niego bramkę — np.
+`await expect(page).toHaveScreenshot({ maxDiffPixels: 100 })` z Playwright, maskując niestabilne
+obszary (daty, avatary, liczniki). Nie instaluj go tylko po to, by spełnić tę umiejętność.
 
-This is a merge gate for **this change**, not an E2E course. Never update a baseline to make CI green
-without explaining the visual delta first.
+To bramka merge'a dla **tej zmiany**, nie kurs E2E. Nigdy nie aktualizuj baseline'u, aby CI było zielone,
+bez uprzedniego wyjaśnienia różnicy wizualnej.
 
-## Review loop: from charge to PR
+## Pętla przeglądu: od zarzutu do PR
 
-A view can be technically correct and still unreadable — heading competing with the primary button,
-every piece of information at the same weight, each small thing in its own card. Judge the layout
-**after** the view is built from tokens and repo components; on a screen glued together from one-off
-classes, layout criticism collapses into a list of cosmetic tweaks.
+Widok może być technicznie poprawny, a mimo to nieczytelny — nagłówek konkuruje z głównym przyciskiem,
+każda informacja ma tę samą wagę, każda drobna rzecz znajduje się na własnej karcie. Oceniaj layout
+**po tym**, jak widok zostanie zbudowany z tokenów i komponentów repozytorium; na ekranie sklejanym z jednorazowych
+klas krytyka layoutu sprowadza się do listy kosmetycznych poprawek.
 
-1. Get the critique: `/10x-impl-review`, plus an optional layout pass (Impeccable, `frontend-design`) if the learner has it installed. Do not vendor those tools into the repo.
-2. Triage each finding by **effect on the user**, the same way code-review findings are triaged: a missing focus ring or a dead tab deserves as concrete a decision as a logic bug.
-3. Fix, or record the finding as deferred with a reason. Silence is not triage.
-4. Re-run the visual gate. A finding that changed the view without changing the baseline is a warning sign.
+1. Uzyskaj krytykę: `/10x-impl-review` oraz opcjonalny przegląd layoutu (Impeccable, `frontend-design`), jeśli uczestnik ma je zainstalowane. Nie vendoryzuj tych narzędzi w repozytorium.
+2. Przeprowadź triage każdego ustalenia według **wpływu na użytkownika**, tak samo jak przeprowadza się triage ustaleń code review: brakujący focus ring lub martwy tab zasługuje na równie konkretną decyzję jak błąd logiki.
+3. Napraw albo zapisz ustalenie jako odroczone z uzasadnieniem. Milczenie nie jest triage'em.
+4. Ponownie uruchom bramkę wizualną. Ustalenie, które zmieniło widok bez zmiany baseline'u, jest sygnałem ostrzegawczym.
 
-Merge checklist: [`ui-quality-checklist`](references/ui-quality-checklist.md). Green CI alone is not the gate — a screenshot test
-passes happily on a view whose `disabled` state was never rendered.
+Lista kontrolna merge'a: [`ui-quality-checklist`](references/ui-quality-checklist.md). Samo zielone CI nie jest bramką — test screenshotu
+chętnie przechodzi na widoku, którego stan `disabled` nigdy nie został wyrenderowany.
 
-## Hard rules
+## Twarde zasady
 
-- No prompt that is only "make it nicer / prettier".
-- Colors, type, radius, spacing: a token from **this repo's** system (e.g. `bg-primary` in the Tailwind variant), not one-off hex in the view.
-- Reuse an existing component or add one through the stack's own path; do not invent a second `Button`.
-- One view plus global tokens per change. Not a whole-MVP rebrand.
-- Every charge carries file, line and user impact before it enters the plan.
-- Model: whatever you actually have — see *Model routing* below. The loop is what carries the change, not the model name.
+- Żaden prompt nie może brzmieć wyłącznie „zrób to ładniej / bardziej atrakcyjnie”.
+- Kolory, typografia, radius, odstępy: token z systemu **tego repozytorium** (np. `bg-primary` w wariancie Tailwind), a nie jednorazowy hex w widoku.
+- Użyj ponownie istniejącego komponentu lub dodaj go ścieżką właściwą dla stacka; nie wymyślaj drugiego `Button`.
+- Jeden widok oraz globalne tokeny na zmianę. Nie rebranding całego MVP.
+- Każdy zarzut zawiera plik, linię i wpływ na użytkownika, zanim trafi do planu.
+- Model: cokolwiek faktycznie masz — zobacz poniżej *Routing modeli*. Zmianę prowadzi pętla, nie nazwa modelu.
 
-## Model routing (phase first, availability second)
+## Routing modeli (najpierw faza, potem dostępność)
 
-No model is required to run this skill. The work needs two capabilities: **vision** (read a
-screenshot) and **tool use** (edit files, run the app). Beyond that, route by **phase**, not by
-vendor. Judgement is expensive and happens a few times; execution is cheap and happens many times.
+Do uruchomienia tej umiejętności nie jest wymagany żaden model. Praca wymaga dwóch możliwości: **vision** (odczyt
+screenshotu) oraz **tool use** (edycja plików, uruchamianie aplikacji). Poza tym kieruj według **fazy**, a nie
+dostawcy. Osąd jest kosztowny i występuje kilka razy; wykonanie jest tanie i występuje wielokrotnie.
 
 | Phase | What it needs | Tier |
 | --- | --- | --- |
-| Audit + plan — charge list, token contract | vision, long context, judgement | the strongest model you have; a wrong call here costs a dozen edits in the wrong direction |
-| Implement charges — render → compare → fix one charge | tool use, speed, price | a cheaper working tier; you run this loop many times against a finished list |
-| Review — layout, states, a11y | judgement, vision, a fresh read | strongest again, ideally not the one that wrote the code |
+| Audyt + plan — lista zarzutów, kontrakt tokenów | vision, długi kontekst, osąd | najsilniejszy model, jaki masz; błędna decyzja tutaj kosztuje tuzin edycji w złym kierunku |
+| Realizacja zarzutów — render → porównanie → naprawa jednego zarzutu | tool use, szybkość, cena | tańszy działający tier; tę pętlę uruchamiasz wiele razy względem gotowej listy |
+| Przegląd — layout, stany, a11y | osąd, vision, świeże spojrzenie | ponownie najsilniejszy, najlepiej nie ten, który napisał kod |
 
-Escalate from the working tier only when the **same charge survives two rounds**. That is the
-signal that the problem is judgement, not typing.
+Eskaluj z working tier dopiero wtedy, gdy **ten sam zarzut przetrwa dwie rundy**. To
+sygnał, że problemem jest osąd, a nie pisanie.
 
-Names date faster than this skill. As of September 2026 the top tier is Fable 5.1 or Opus 5
-(Anthropic), GPT-6 Astra (OpenAI), Gemini 3.1 Pro (Google); the working tier is Sonnet 5, an
-IDE-native model (Composer in Cursor), or open-weight coders (Kimi, GLM, Qwen Coder). Substitute
-whatever your plan actually gives you — the phase split is the part that transfers.
+Nazwy starzeją się szybciej niż ta umiejętność. Według stanu na wrzesień 2026 top tier to Fable 5.1 lub Opus 5
+(Anthropic), GPT-6 Astra (OpenAI), Gemini 3.1 Pro (Google); working tier to Sonnet 5,
+model natywny dla IDE (Composer w Cursor) albo kodery o otwartych wagach (Kimi, GLM, Qwen Coder). Zastąp je
+tym, co faktycznie oferuje twój plan — podział na fazy jest częścią, którą można przenieść.
 
-Notes that keep this honest:
+Uwagi, które zachowują uczciwość tego podejścia:
 
-- **No model here is a requirement, including Fable 5.1.** Access varies by plan and region. One
-  model for all three phases is fine: the split still holds, only the bill changes.
-- A cheap model in a tight loop beats an expensive model given one vague prompt. Charges, tokens
-  and a kitchen sink do more for the result than model choice.
-- **No vision model at all?** The change still works: render the kitchen sink, list the states in
-  text, and describe the delta yourself. The screenshot gate stays in CI.
-- Do not quote arena rankings as if they settled UI quality — they measure a pretty view written
-  from scratch, not the cleanup of someone else's module.
+- **Żaden model tutaj nie jest wymagany, w tym Fable 5.1.** Dostęp różni się zależnie od planu i regionu. Jeden
+  model dla wszystkich trzech faz jest w porządku: podział nadal obowiązuje, zmienia się tylko rachunek.
+- Tani model w ścisłej pętli jest lepszy niż drogi model otrzymujący jeden niejasny prompt. Zarzuty, tokeny
+  i kitchen sink robią dla wyniku więcej niż wybór modelu.
+- **Nie masz w ogóle modelu vision?** Zmiana nadal działa: wyrenderuj kitchen sink, wypisz stany w
+  tekście i sam opisz różnicę. Bramka screenshotu pozostaje w CI.
+- Nie cytuj rankingów areny, jakby rozstrzygały jakość UI — mierzą ładny widok napisany
+  od zera, a nie porządkowanie modułu stworzonego przez kogoś innego.
 
-## Failures to refuse
+## Błędy, których należy odmówić
 
 | Smell | Do this instead |
 | --- | --- |
-| Default purple/blue gradient "AI landing" | Change `--primary` / theme tokens first |
-| New primitive `div`+CSS that copies a DS component | Import the real component |
-| "Selected" tab that is only CSS, not clickable | Wire the state |
-| Unauthenticated or empty-state entry that dumps raw JSON / a blank frame | Fix the entry point; it is an architecture charge, not a style one |
-| Updating a Playwright baseline to make CI green | Explain the visual delta; update only if the change is intended |
-| Restyling the whole MVP in one change | One view + global tokens |
-| "Fix the design" as one agent task on the CRUD thread | New change folder, audit, plan, gate |
+| Domyślny fioletowo-niebieski gradient „AI landing” | Najpierw zmień `--primary` / tokeny motywu |
+| Nowy prymityw `div`+CSS kopiujący komponent DS | Zaimportuj rzeczywisty komponent |
+| Tab „Selected”, który jest tylko CSS i nie można go kliknąć | Podłącz stan |
+| Nieuwierzytelnione wejście lub wejście w stan pusty, które wyrzuca surowy JSON / pustą ramkę | Napraw punkt wejścia; to zarzut architektoniczny, nie stylistyczny |
+| Aktualizowanie baseline'u Playwright, aby CI było zielone | Wyjaśnij różnicę wizualną; aktualizuj tylko, jeśli zmiana jest zamierzona |
+| Restylizacja całego MVP w jednej zmianie | Jeden widok + globalne tokeny |
+| „Napraw design” jako zadanie jednego agenta w wątku CRUD | Nowy folder zmiany, audyt, plan, bramka |
 
-## Playbooks
+## Playbooki
 
-Short paths through the router for the usual entry points. All of them keep the charge list.
+Krótkie ścieżki przez router dla typowych punktów wejścia. Wszystkie zachowują listę zarzutów.
 
-- **Theme or restyle of one view** — the default path above, start at tokens.
-- **Inherited agent slop** (module built feature by feature, each one accepted because it worked) — audit first and expect all three categories; fix tokens and the shared component before touching layout.
-- **Single component** — skip the token phase only if the component's values already come from tokens; otherwise the token phase is the change.
-- **Dark mode** — token layer, both themes in the kitchen sink, contrast check in the gate.
-- **Focus/keyboard pass** — states phase carries it: visible focus, control names, tab order on the one view.
-- **Fresh starter whose screens ignore its own tokens** — do not start by picking a theme. Phase 1 is making the existing views read the value source that already ships in the repo; only then are new values worth choosing.
-- **Repo with no design system at all** — phase 1 is the contract (tokens + the components you need) under the three conditions in *Proposing a system*, phase 2 is the view. Resist shipping a library nobody asked for.
+- **Motyw lub restyle jednego widoku** — domyślna ścieżka powyżej, zacznij od tokenów.
+- **Odziedziczony agent slop** (moduł budowany funkcja po funkcji, każda zaakceptowana, bo działała) — najpierw audyt i spodziewaj się wszystkich trzech kategorii; napraw tokeny i współdzielony komponent przed dotknięciem layoutu.
+- **Pojedynczy komponent** — pomiń fazę tokenów tylko wtedy, gdy wartości komponentu już pochodzą z tokenów; w przeciwnym razie faza tokenów jest zmianą.
+- **Dark mode** — warstwa tokenów, oba motywy w kitchen sink, sprawdzenie kontrastu w bramce.
+- **Przejście focus/klawiatura** — niesie je faza stanów: widoczny focus, nazwy kontrolek, kolejność tabów w jednym widoku.
+- **Świeży starter, którego ekrany ignorują własne tokeny** — nie zaczynaj od wyboru motywu. Faza 1 polega na tym, aby istniejące widoki odczytywały źródło wartości już dostarczane w repozytorium; dopiero wtedy warto wybierać nowe wartości.
+- **Repozytorium bez żadnego systemu projektowego** — faza 1 to kontrakt (tokeny + komponenty, których potrzebujesz) przy trzech warunkach z *Proponowanie systemu*, faza 2 to widok. Oprzyj się dostarczaniu biblioteki, o którą nikt nie prosił.
 
-## Optional extras (not vendored by this skill)
+## Opcjonalne dodatki (nievendoryzowane przez tę umiejętność)
 
-Impeccable / `frontend-design`: the learner may install them; this skill does not add them to the repo.
+Impeccable / `frontend-design`: uczestnik może je zainstalować; ta umiejętność nie dodaje ich do repozytorium.

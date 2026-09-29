@@ -22,136 +22,135 @@ allowed-tools:
   - TaskCreate
   - TaskUpdate
 ---
+# Mapa drogowa: Mapa drogowa oparta na kamieniach milowych dla context/foundation/roadmap.md
 
-# Roadmap: Milestone-driven roadmap for context/foundation/roadmap.md
+Ta umiejętność jest pomostem między **produktem** (PRD lub innymi materiałami źródłowymi) a **planowaniem pojedynczych zmian** (`/10x-plan`) i działa jako **menedżer projektu na poziomie kamieni milowych**. Praca jest grupowana w **kamienie milowe**: partie powiązanych pionowych wycinków ograniczone wynikiem, przy czym dokładnie jeden może być otwarty naraz i jest śledzony w samym `roadmap.md`. Każde wywołanie najpierw rozdziela działanie według stanu kamienia milowego (Krok 0): jeśli żaden kamień milowy nie jest otwarty, umiejętność prosi o materiały źródłowe i otwiera go; jeśli kamień milowy jest aktywny, raportuje stan i rekomenduje kolejny ruch; jeśli każdy wycinek jest ukończony, zamyka kamień milowy i przechodzi do otwarcia następnego — na podstawie zaktualizowanych materiałów źródłowych lub własnego opisu użytkownika.
 
-This skill is the bridge between **product** (PRD or other source materials) and **per-change planning** (`/10x-plan`), and it acts as the project's **milestone-level project manager**. Work is grouped into **milestones**: an outcome-scoped batch of connected slices, exactly one open at a time, tracked in `roadmap.md` itself. Each invocation first dispatches on milestone state (Step 0): if no milestone is open, the skill asks for source materials and opens one; if a milestone is active, it reports status and recommends the next move; if every slice is done, it closes the milestone and loops into opening the next one — from updated source materials or from the user's own description.
+W ramach otwartego kamienia milowego zadanie dekompozycji pozostaje niezmienione: przeczytaj materiały źródłowe, automatycznie zbadaj stan bazowy kodu, **wywnioskuj zdecydowaną propozycję sekwencjonowania** (główny cel, wycinek gwiazdy przewodniej, obszary inwestycji, główna blokada), pokaż wyłącznie rzeczywistą niepewność, której artefakty nie potrafią rozstrzygnąć, i wygeneruj `context/foundation/roadmap.md`, który wymienia pionowe, widoczne dla użytkownika wycinki w kolejności zależności — gotowe do przekazania do `/10x-plan <change-id>`.
 
-Within an open milestone, the skill's decomposition job is unchanged: read the source materials, auto-probe the codebase baseline, **infer a decisive sequencing proposal** (main goal, north-star slice, investment areas, top blocker), surface only the genuine uncertainty the artifacts can't resolve, and emit a `context/foundation/roadmap.md` that lists vertical, user-visible slices in dependency order — ready to feed into `/10x-plan <change-id>`.
+## Warstwa kamieni milowych — maszyna stanów znajduje się w pliku referencyjnym
 
-## Milestone layer — state machine lives in a reference file
+Cykl życia kamienia milowego (stany, reguły wykrywania, przejścia, niezmienniki) jest określony w **`references/milestone-state.md`**, celowo utrzymywanym poza tym plikiem. **Czytaj go tylko wtedy, gdy wywołanie działa na poziomie kamienia milowego** — przy pierwszym uruchomieniu, wznowieniu/sprawdzeniu statusu, zamknięciu kamienia milowego lub otwieraniu następnego. Czysta ponowna dekompozycja już otwartego kamienia milowego go nie wymaga.
 
-The milestone lifecycle (states, detection rules, transitions, invariants) is specified in **`references/milestone-state.md`**, deliberately kept out of this file. **Read it only when the invocation operates at milestone level** — first launch, resume/status check, milestone closure, or opening the next milestone. A pure re-decomposition of an already-open milestone does not need it.
+Dwa fakty potrzebne przed podjęciem decyzji, czy go załadować:
 
-The two facts needed before deciding whether to load it:
+- Stan jest **wyprowadzany wyłącznie z `roadmap.md`** (frontmatter `milestone_id` / `milestone_status` + statusy elementów). Nie ma pomocniczego pliku stanu.
+- Identyfikatory kamieni milowych to `M-<seq>` z `milestone_id` w kebab-case; kamienie milowe są **ograniczone wynikiem, nigdy czasem** — kamień milowy zamyka się, gdy jego wycinki są `done`, a nie gdy mija data. To nie jest sprint.
 
-- State is **derived from `roadmap.md` alone** (frontmatter `milestone_id` / `milestone_status` + item statuses). There is no sidecar state file.
-- Milestone IDs are `M-<seq>` with a kebab-case `milestone_id`; milestones are **outcome-scoped, never time-boxed** — a milestone closes when its slices are `done`, not when a date passes. This is not a sprint.
+**Postawa: zdecydowany rekomendujący, zwięzły wywiad.** Umiejętność działa jak starszy lider techniczny, który przeczytał PRD, zbadał kod i przychodzi z rekomendacją — ale nadal pyta człowieka o 2–3 decyzje nośne przed zatwierdzeniem. Reguły wywiadu (limit 3 pytań, mocne rekomendacje, bez chochołów, wyjątek dla niestandardowego MVP) są określone raz, w Kroku 5.
 
-**Posture: opinionated recommender, lean interview.** The skill acts as a senior tech-lead who has read the PRD, probed the codebase, and arrived with a recommendation — but who still asks the human the 2-3 load-bearing calls before committing. The interview rules (3-question cap, strong Recommends, no strawmen, the custom-MVP exception) are specified once, in Step 5.
+Jest to umiejętność **dekompozycji + sekwencjonowania**, a nie planista niskiego poziomu. NIGDY nie wybiera frameworków, ścieżek plików, schematów, bibliotek ani szczegółów implementacyjnych — należą one do `/10x-plan`. NIGDY nie przypisuje estymacji czasu, rozmiarów koszulkowych, punktów ani dat z kalendarza ludzi — wykonanie przez agentów jest nieliniowe, a estymacje oparte na budżecie czasu byłyby kłamstwem. To, co ROBI, to: nazywa wycinki, sekwencjonuje je według zależności i zdefiniowanego celu, ujawnia blokady oraz kieruje otwarte pytania tam, gdzie mogą zostać rozstrzygnięte.
 
-It is a **decomposition + sequencing** skill, not a low-level planner. It NEVER picks frameworks, file paths, schemas, libraries, or implementation details — those belong to `/10x-plan`. It NEVER assigns time estimates, t-shirt sizes, points, or human-calendar dates — agentic execution is non-linear and time-budgeted estimates would lie. What it DOES is: name the slices, sequence them by dependency and by stated goal, surface what's blocking, and route open questions where they can be resolved.
+Umiejętność jest **natywna dla AI** na cztery konkretne sposoby: (1) wyraża kolejność jako graf zależności, nie kalendarz; (2) oznacza wycinki, które mogą być wykonywane równolegle przez osobne uruchomienia agentów; (3) przekazuje „blokujące niewiadome” wyżej, gdzie człowiek może je rozstrzygnąć, zamiast pozwolić im po cichu przedostać się do implementacji; (4) inwentaryzuje istniejący kod za pomocą subagentów zamiast pytać użytkownika, co już jest na miejscu.
 
-The skill is **AI-native** in four concrete ways: (1) it expresses ordering as a dependency graph, not a calendar; (2) it marks slices that can be executed in parallel by separate agent runs; (3) it pushes "blocking unknowns" up where a human can resolve them, instead of letting them silently slip into implementation; (4) it inventories the existing codebase with subagents instead of asking the user what's already in place.
+## Kiedy używać, kiedy pominąć
 
-## When to use, when to skip
+**Użyj, gdy**: użytkownik chce otworzyć kamień milowy i go zdekomponować (typowym pierwszym źródłem jest nietrywialny `context/foundation/prd.md` z wypełnionymi FR i historyjkami użytkownika), sprawdzić status kamienia milowego/mapy drogowej albo zamknąć ukończony kamień milowy i otworzyć następny. Typowe wyzwalacze: właśnie ukończono `/10x-prd`, właśnie ukończono bootstrap, powrót do projektu i pytanie „co dalej” albo zarchiwizowano wszystkie wycinki mapy drogowej.
 
-**Use when**: the user wants to open a milestone and decompose it (typical first source: a non-trivial `context/foundation/prd.md` with FRs and user stories populated), check milestone/roadmap status, or close a finished milestone and open the next. Typical triggers: just finished `/10x-prd`, just finished bootstrap, returning to a project and asking "what's next", or all roadmap slices have been archived.
+**Pomiń, gdy**: PRD jest pusty w środku (duże `## Open Questions`, `# TODO: domain rule`) — najpierw wskaż `/10x-prd` (lub nadrzędne `/10x-shape`); mapa drogowa z pustego PRD odziedziczy tę pustkę. Pomiń też, gdy użytkownik chce szczegółowo zaplanować *pojedynczą* zmianę — do tego służy `/10x-plan`. Mapa drogowa jest mnoga; plan jest pojedynczy.
 
-**Skip when**: the PRD is hollow (large `## Open Questions`, `# TODO: domain rule`) — point at `/10x-prd` (or upstream `/10x-shape`) first; a roadmap from a hollow PRD will inherit the hollowness. Also skip when the user wants to plan a *single* change in detail — that's `/10x-plan`. The roadmap is plural; the plan is singular.
+## Relacja z innymi umiejętnościami
 
-## Relationship to other skills
+- `/10x-shape` i `/10x-prd` — tworzą nadrzędny PRD konsumowany przez tę umiejętność. Jeśli `shape-notes.md` zawiera blok `## Forward: technical-roadmap` (gdzie kształtowanie odkłada treści związane z mapą drogową), ta umiejętność je podnosi.
+- `10x-tech-stack-selector` — działa między `/10x-prd` a tą umiejętnością w łańcuchu bootstrapu. Jeśli istnieje `context/foundation/tech-stack.md`, ta umiejętność czyta go jako dane wejściowe do wyprowadzenia `## Foundations` (szkielet uwierzytelniania, szkielet wdrożenia, obserwowalność — wszystko, co wynikało z kroku wyboru stosu technologicznego) oraz do skrócenia sond bazowych dla warstw już zadeklarowanych.
+- `/10x-plan` — konsument downstream. Użytkownik wybiera element mapy drogowej i wywołuje `/10x-plan <change-id>`; ta umiejętność tworzy folder zmiany, przygotowuje szczegółowy plan i przełącza `Status` pasującego elementu mapy drogowej na `planning`. Mapa drogowa NIE tworzy wcześniej folderów zmian; jeden wycinek może wygenerować wiele zmian, gdy `/10x-plan` odkryje, że element nadal jest zbyt szeroki (tylko pierwsza przesuwa status współdzielonego elementu).
+- `/10x-implement` (oraz jego autonomiczny odpowiednik `/10x-goal-implement`) — dalej downstream. Gdy implementacja *zaczyna się* dla zmiany, której `Change ID` pasuje do elementu mapy drogowej, przełącza `Status` tego elementu na `in-progress` — otwarty odpowiednik przełączenia na `done` przez `/10x-archive`. Ta umiejętność nadal generuje wyłącznie `proposed` / `ready` / `blocked`; pośrednie stany cyklu życia (`planning`, `in-progress`) są teraz zapisywane downstream, gdy zmiana przechodzi przez plan → implementację. Każde przełączenie downstream dopasowuje według `Change ID`, jest realizowane w trybie best-effort (brak dopasowania jest cichym pominięciem) i działa wyłącznie do przodu (nigdy nie cofa bardziej zaawansowanego statusu).
+- `/10x-archive` — zamyka pętlę na końcu. Gdy zmiana, której `Change ID` pasuje do elementu mapy drogowej, zostanie zarchiwizowana, `/10x-archive` przełącza `Status` tego elementu na `done` (w `## At a glance` i w bloku treści elementu) oraz dopisuje wpis do `## Done`. Ta umiejętność nigdy nie wypełnia wcześniej `## Done`; `/10x-archive` jest jego jedynym zapisującym.
+- `/10x-frame`, `/10x-research` — ortogonalne. Działają na pojedynczej zmianie, nie na mapie drogowej.
 
-- `/10x-shape` and `/10x-prd` — produce the upstream PRD this skill consumes. If `shape-notes.md` carries a `## Forward: technical-roadmap` block (where shape parks roadmap-bound content), this skill lifts it.
-- `10x-tech-stack-selector` — runs between `/10x-prd` and this skill in the bootstrap chain. If `context/foundation/tech-stack.md` exists, this skill reads it as input to derive `## Foundations` (auth scaffold, deploy skeleton, observability — anything the tech-stack-selection step implied) and to short-circuit baseline probes for layers already declared.
-- `/10x-plan` — downstream consumer. The user picks a roadmap item and invokes `/10x-plan <change-id>`; that skill creates the change folder, produces a detailed plan, and flips the matched roadmap item's `Status` to `planning`. The roadmap does NOT pre-create change folders; one slice can spawn multiple changes when `/10x-plan` discovers that the item is still too broad (only the first advances the shared item's status).
-- `/10x-implement` (and its autonomous sibling `/10x-goal-implement`) — further downstream. When implementation *starts* on a change whose `Change ID` matches a roadmap item, it flips that item's `Status` to `in-progress` — the open-work counterpart to `/10x-archive`'s `done` flip. This skill itself still emits only `proposed` / `ready` / `blocked` on generation; the intermediate lifecycle states (`planning`, `in-progress`) are now written downstream as the change moves through plan → implement. Every downstream flip matches by `Change ID`, is best-effort (a no-match is a silent skip), and is forward-only (never regresses a more-advanced status).
-- `/10x-archive` — closes the loop at the end. When a change whose `Change ID` matches a roadmap item is archived, `/10x-archive` flips that item's `Status` to `done` (in `## At a glance` and in the item's body block) and appends an entry to `## Done`. This skill never pre-populates `## Done`; `/10x-archive` is its sole writer.
-- `/10x-frame`, `/10x-research` — orthogonal. They operate on a single change, not the roadmap.
+## Odpowiedź początkowa — Krok 0: rozdzielenie według stanu kamienia milowego
 
-## Initial Response — Step 0: milestone state dispatch
+Gdy ta umiejętność zostanie wywołana, wykonaj rozdzielenie PRZED rozpoczęciem jakiejkolwiek pracy dekompozycyjnej:
 
-When this skill is invoked, dispatch BEFORE doing any decomposition work:
-
-1. **Probe milestone state** (cheap, no reference file needed yet):
+1. **Zbadaj stan kamienia milowego** (tanio, plik referencyjny nie jest jeszcze potrzebny):
 
    ```bash
    test -f context/foundation/roadmap.md && head -20 context/foundation/roadmap.md
    ```
 
-   - File absent, or present without a `milestone_id` frontmatter key → **no milestone open** (first launch, or legacy roadmap).
-   - `milestone_status: open` → milestone active or ready to close (depends on item statuses — read the full file to tell).
-   - `milestone_status: done` → previous milestone closed, next not yet opened.
+   - Brak pliku lub plik obecny bez klucza frontmatter `milestone_id` → **brak otwartego kamienia milowego** (pierwsze uruchomienie lub starsza mapa drogowa).
+   - `milestone_status: open` → kamień milowy aktywny lub gotowy do zamknięcia (zależy od statusów elementów — przeczytaj cały plik, aby stwierdzić).
+   - `milestone_status: done` → poprzedni kamień milowy zamknięty, następny jeszcze nieotwarty.
 
-2. **Unless a milestone is open with undone items and the user explicitly asked for a fresh decomposition** — i.e. on first launch, legacy adoption, status/next-move check, closure, or opening the next milestone — **read `references/milestone-state.md` now** and follow the matching transition. The transitions delegate back into Steps 1–10 below where decomposition is needed.
+2. **O ile kamień milowy nie jest otwarty z nieukończonymi elementami, a użytkownik wyraźnie nie poprosił o świeżą dekompozycję** — tj. przy pierwszym uruchomieniu, adopcji starszej wersji, sprawdzeniu statusu/kolejnego ruchu, zamknięciu lub otwieraniu kolejnego kamienia milowego — **przeczytaj teraz `references/milestone-state.md`** i wykonaj odpowiadające przejście. Przejścia delegują z powrotem do Kroków 1–10 poniżej, gdy potrzebna jest dekompozycja.
 
-3. **If a milestone is open and the user asked to regenerate the decomposition** (or passed a source path argument, e.g. `/10x-roadmap @path/to/prd.md`), skip the reference file: capture the path (strip a leading `@`), default to `context/foundation/prd.md` otherwise, and proceed straight to Step 1. Regeneration preserves milestone frontmatter and `## Milestone History` verbatim and carries item statuses forward by `Change ID` (forward-only).
+3. **Jeśli kamień milowy jest otwarty, a użytkownik poprosił o ponowne wygenerowanie dekompozycji** (lub przekazał argument ścieżki źródłowej, np. `/10x-roadmap @path/to/prd.md`), pomiń plik referencyjny: przechwyć ścieżkę (usuń wiodące `@`), w przeciwnym razie domyślnie użyj `context/foundation/prd.md` i przejdź od razu do Kroku 1. Ponowne generowanie zachowuje frontmatter kamienia milowego oraz `## Milestone History` dosłownie i przenosi statusy elementów według `Change ID` (wyłącznie do przodu).
 
-## Interactive prompts — host-agnostic
+## Interaktywne pytania — niezależne od hosta
 
-Whenever the procedure says *"ask the user"*, use whatever structured interactive-question tool the host agent exposes (Claude Code → `AskUserQuestion`; on other hosts, any tool that asks the user a question with labelled options). If none is available, fall back to a plain conversational message listing the labelled options — do not block the procedure. State which tool you selected (or that you fell back to plain chat) the first time you ask, so the user can correct you.
+Ilekroć procedura mówi *„zapytaj użytkownika”*, użyj dowolnego narzędzia strukturalnych pytań interaktywnych udostępnianego przez agenta hosta (Claude Code → `AskUserQuestion`; na innych hostach dowolne narzędzie, które zadaje użytkownikowi pytanie z opisanymi opcjami). Jeśli żadne nie jest dostępne, użyj zwykłej wiadomości konwersacyjnej z listą opisanych opcji — nie blokuj procedury. Gdy pytasz po raz pierwszy, podaj, które narzędzie wybrałeś (lub że wróciłeś do zwykłego czatu), aby użytkownik mógł cię poprawić.
 
-Question blocks appear in Steps 1, 3, 4, 5, and 9 and in the milestone transitions of `references/milestone-state.md` — short structured choices. Step 5 asks each anchor as its own structured question; its synthesis recap is plain markdown (no extra question).
+Bloki pytań występują w Krokach 1, 3, 4, 5 i 9 oraz w przejściach kamieni milowych w `references/milestone-state.md` — są to krótkie strukturalne wybory. Krok 5 zadaje każdą kotwicę jako osobne pytanie strukturalne; jego podsumowanie syntezy to zwykły markdown (bez dodatkowego pytania).
 
-## Parallel baseline research — host-agnostic
+## Równoległe badanie stanu bazowego — niezależne od hosta
 
-Whenever the procedure says to use subagents or run parallel probes, use whatever background-research / task-spawn tool the host exposes (Claude Code → `Agent` with an Explore/general-purpose subagent type; on other hosts, any tool that spawns an isolated agent and returns a summary), fanning the probes out in one batched call. If none exists, run the same probes sequentially in the main context. Either path must return the same baseline summary shape with file evidence.
+Ilekroć procedura mówi o użyciu subagentów lub uruchamianiu równoległych sond, użyj dowolnego narzędzia badań w tle / tworzenia zadań udostępnianego przez hosta (Claude Code → `Agent` z typem subagenta Explore/general-purpose; na innych hostach dowolne narzędzie, które uruchamia izolowanego agenta i zwraca podsumowanie), rozsyłając sondy w jednym wsadowym wywołaniu. Jeśli żadne nie istnieje, uruchom te same sondy sekwencyjnie w głównym kontekście. Każda ścieżka musi zwrócić ten sam kształt podsumowania stanu bazowego z dowodami plikowymi.
 
-## Process
+## Proces
 
-### Step 1: Elicit and read source materials
+### Krok 1: Pozyskaj i przeczytaj materiały źródłowe
 
-**When opening a milestone** (first launch or next-milestone transition from `references/milestone-state.md`), ask what the milestone should be built from — do not assume, but Recommend the PRD:
+**Podczas otwierania kamienia milowego** (pierwsze uruchomienie lub przejście do następnego kamienia milowego z `references/milestone-state.md`) zapytaj, na czym kamień milowy ma być zbudowany — nie zakładaj, ale rekomenduj PRD:
 
-Interactive question:
-- question: "What are the source materials for this milestone?"
-  header: "Sources"
+Pytanie interaktywne:
+- question: "Jakie są materiały źródłowe dla tego kamienia milowego?"
+  header: "Źródła"
   options:
-  - label: "PRD at context/foundation/prd.md (Recommended)"
-    description: "The standard path: milestone scoped from the PRD's FRs and user stories. Run /10x-prd first if it doesn't exist yet."
-  - label: "Other document(s) — I'll give paths"
-    description: "Specs, briefs, research docs. Slices will trace to their content, recorded as scope anchors in the milestone charter."
-  - label: "I'll describe the milestone myself"
-    description: "Free-form description, no document. I'll distill it into MS-NN scope anchors that slices trace to."
+  - label: "PRD w context/foundation/prd.md (Recommended)"
+    description: "Standardowa ścieżka: zakres kamienia milowego wynika z FR i historyjek użytkownika PRD. Najpierw uruchom /10x-prd, jeśli jeszcze nie istnieje."
+  - label: "Inne dokumenty — podam ścieżki"
+    description: "Specyfikacje, briefy, dokumenty badawcze. Wycinki będą śledzić ich treść, zapisaną jako kotwice zakresu w karcie kamienia milowego."
+  - label: "Sam opiszę kamień milowy"
+    description: "Opis swobodny, bez dokumentu. Wydestyluję go do kotwic zakresu MS-NN, które będą śledzone przez wycinki."
   - label: "Cancel"
-    description: "Exit without changes."
+    description: "Zakończ bez zmian."
   multiSelect: false
 
-For subsequent milestones, `references/milestone-state.md` refines these options (updated PRD vs next tranche of the same PRD). When the invocation carried an explicit path argument, skip the question and use that path.
+Dla kolejnych kamieni milowych `references/milestone-state.md` doprecyzowuje te opcje (zaktualizowany PRD vs kolejna transza tego samego PRD). Gdy wywołanie zawierało jawny argument ścieżki, pomiń pytanie i użyj tej ścieżki.
 
-Resolve and verify the input path(s):
+Rozwiąż i zweryfikuj ścieżki wejściowe:
 
 ```bash
 test -f "<resolved-path>"
 ```
 
-If a file exists, **read it FULLY** (no `limit`/`offset`). If the user chose self-description, capture their description verbatim instead — it becomes the `## Milestone` charter with numbered `MS-NN` scope anchors, and Steps 3's PRD-readiness check is replaced by an anchor check (< 2 distillable `MS-NN` anchors → ask the user to firm up the description, then STOP if they can't).
+Jeśli plik istnieje, **przeczytaj go W CAŁOŚCI** (bez `limit`/`offset`). Jeśli użytkownik wybrał własny opis, przechwyć zamiast tego jego opis dosłownie — staje się on kartą `## Milestone` z numerowanymi kotwicami zakresu `MS-NN`, a sprawdzenie gotowości PRD z Kroku 3 zostaje zastąpione sprawdzeniem kotwic (< 2 możliwe do wydestylowania kotwice `MS-NN` → poproś użytkownika o doprecyzowanie opisu, a następnie ZATRZYMAJ, jeśli nie może).
 
-If a named file does not exist, ask with the selected interactive-question tool:
+Jeśli wskazany plik nie istnieje, zapytaj za pomocą wybranego narzędzia interaktywnych pytań:
 
-Interactive question:
-- question: "No source found at `<resolved-path>`. How would you like to proceed?"
-  header: "Input?"
+Pytanie interaktywne:
+- question: "Nie znaleziono źródła pod `<resolved-path>`. Jak chcesz kontynuować?"
+  header: "Dane wejściowe?"
   options:
-  - label: "Run /10x-prd first (Recommended)"
-    description: "Stop here. Run /10x-prd to produce prd.md, then re-invoke /10x-roadmap."
-  - label: "Provide a different path"
-    description: "I'll wait for you to give me the path."
+  - label: "Najpierw uruchom /10x-prd (Recommended)"
+    description: "Zatrzymaj się tutaj. Uruchom /10x-prd, aby utworzyć prd.md, a następnie ponownie wywołaj /10x-roadmap."
+  - label: "Podaj inną ścieżkę"
+    description: "Poczekam, aż podasz ścieżkę."
   - label: "Cancel"
-    description: "Exit without changes."
+    description: "Zakończ bez zmian."
   multiSelect: false
 
-On "Run /10x-prd first": print the redirect message and STOP.
+Po wybraniu „Najpierw uruchom /10x-prd”: wyświetl komunikat przekierowania i ZATRZYMAJ.
 
-### Step 2: Read supplementary inputs (best effort)
+### Krok 2: Przeczytaj dodatkowe dane wejściowe (best effort)
 
-Read these if they exist; otherwise note their absence and continue:
+Przeczytaj je, jeśli istnieją; w przeciwnym razie odnotuj ich brak i kontynuuj:
 
-- `context/foundation/shape-notes.md` — look for a `## Forward: technical-roadmap` section. If present, lift its bullets verbatim as candidate roadmap inputs (the user already parked them there during shaping).
-- `context/foundation/tech-stack.md` — informs the `## Foundations` section AND short-circuits baseline probes (a layer already declared here is reported as "per tech-stack.md" without re-probing).
-- `context/foundation/roadmap.md` — if it already exists, hold it for Step 9 (collision handling). Do NOT mutate it yet.
-- `context/foundation/lessons.md` — if present, scan for any rules that touch ordering or readiness (e.g., "always ship the riskiest slice first"). Treat as priors, not gospel.
+- `context/foundation/shape-notes.md` — poszukaj sekcji `## Forward: technical-roadmap`. Jeśli istnieje, podnieś jej wypunktowania dosłownie jako kandydatów na dane wejściowe mapy drogowej (użytkownik już odłożył je tam podczas kształtowania).
+- `context/foundation/tech-stack.md` — zasila sekcję `## Foundations` ORAZ skraca sondy stanu bazowego (warstwa już zadeklarowana tutaj jest zgłaszana jako „per tech-stack.md” bez ponownego badania).
+- `context/foundation/roadmap.md` — jeśli już istnieje, zachowaj go dla Kroku 9 (obsługa kolizji). NIE modyfikuj go jeszcze.
+- `context/foundation/lessons.md` — jeśli istnieje, przeskanuj pod kątem reguł dotyczących kolejności lub gotowości (np. „zawsze najpierw dostarczaj najbardziej ryzykowny wycinek”). Traktuj jako założenia wstępne, nie dogmat.
 
-### Step 3: PRD readiness check
+### Krok 3: Sprawdzenie gotowości PRD
 
-Before generating, score the PRD on a 0–4 readiness heuristic. Each signal contributes 1 point:
+Przed wygenerowaniem oceń PRD według heurystyki gotowości 0–4. Każdy sygnał daje 1 punkt:
 
-1. **Vision & Problem Statement is non-trivial** — section exists, contains ≥ 2 sentences, does NOT contain `# TODO`.
-2. **At least one populated user story** — `### US-NN:` heading exists with a Given/When/Then block beneath it (not `# TODO`).
-3. **At least one `must-have` FR** — line matching `^- FR-\d{3}: .* (P|p)riority: must-have$` exists.
-4. **Business Logic populated** — `## Business Logic` section's first non-blank line is a declarative sentence (not `# TODO: domain rule`).
+1. **Vision & Problem Statement jest nietrywialne** — sekcja istnieje, zawiera ≥ 2 zdania, NIE zawiera `# TODO`.
+2. **Co najmniej jedna wypełniona historyjka użytkownika** — istnieje nagłówek `### US-NN:` z blokiem Given/When/Then pod nim (nie `# TODO`).
+3. **Co najmniej jeden FR `must-have`** — istnieje linia pasująca do `^- FR-\d{3}: .* (P|p)riority: must-have$`.
+4. **Business Logic jest wypełnione** — pierwsza niepusta linia sekcji `## Business Logic` jest zdaniem deklaratywnym (nie `# TODO: domain rule`).
 
-Document the heuristic explicitly in the conversation:
+Udokumentuj heurystykę wyraźnie w rozmowie:
 
 ```
 PRD readiness check (heuristic, 4 signals, 1 point each):
@@ -164,9 +163,9 @@ PRD readiness check (heuristic, 4 signals, 1 point each):
   Open Questions in PRD: <count>
 ```
 
-**Score ≥ 3**: PRD is roadmap-ready; proceed to Step 4.
+**Wynik ≥ 3**: PRD jest gotowy do mapy drogowej; przejdź do Kroku 4.
 
-**Score < 3**: warn explicitly. Name what's missing and why it matters for the roadmap (NOT a generic "your PRD is thin"):
+**Wynik < 3**: ostrzeż wyraźnie. Wymień, czego brakuje i dlaczego ma to znaczenie dla mapy drogowej (NIE ogólne „twoje PRD jest zbyt cienkie”):
 
 ```
 This PRD scored <N>/4 on the roadmap-readiness heuristic. Missing signals:
@@ -180,44 +179,44 @@ state — the roadmap surfaces what's blocking — but if you have time to firm
 up the PRD first, the resulting roadmap will be substantially more actionable.
 ```
 
-Then ask with the selected interactive-question tool:
+Następnie zapytaj za pomocą wybranego narzędzia interaktywnych pytań:
 
-Interactive question:
-- question: "How would you like to proceed?"
-  header: "Thin PRD"
+Pytanie interaktywne:
+- question: "Jak chcesz kontynuować?"
+  header: "Cienki PRD"
   options:
-  - label: "Firm up PRD first (Recommended)"
-    description: "Stop here. Resolve PRD's Open Questions / TODOs, then re-invoke /10x-roadmap."
-  - label: "Proceed anyway"
-    description: "Generate from what's there. Hollow areas surface as blocked slices with PRD gap as their Unknown."
+  - label: "Najpierw dopracuj PRD (Recommended)"
+    description: "Zatrzymaj się tutaj. Rozwiąż Open Questions / TODOs PRD, a następnie ponownie wywołaj /10x-roadmap."
+  - label: "Kontynuuj mimo to"
+    description: "Wygeneruj na podstawie dostępnych danych. Puste obszary pojawią się jako zablokowane wycinki z luką PRD jako ich Unknown."
   - label: "Cancel"
-    description: "Exit without changes."
+    description: "Zakończ bez zmian."
   multiSelect: false
 
-On "Firm up PRD first": print the redirect and STOP. On "Proceed anyway": continue with the score recorded so Step 6 can flag thin areas.
+Po „Najpierw dopracuj PRD”: wyświetl przekierowanie i ZATRZYMAJ. Po „Kontynuuj mimo to”: kontynuuj z zapisanym wynikiem, aby Krok 6 mógł oznaczyć cienkie obszary.
 
-### Step 4: Auto-research baseline
+### Krok 4: Automatyczne badanie stanu bazowego
 
-The "what's already in place" assessment shouldn't fall on the user — the codebase is the source of truth. Use the selected background research / task-spawn tool, if available, to inventory each layer in parallel. If no such tool exists, run the same probes sequentially in the main context. Each probe returns a one-paragraph verdict: **present** (with file evidence), **absent**, or **partial** (scaffold exists but not wired). Then surface the inventory for user confirmation before it feeds Foundations.
+Ocena „co już jest na miejscu” nie powinna spadać na użytkownika — kod jest źródłem prawdy. Użyj wybranego narzędzia badań w tle / tworzenia zadań, jeśli jest dostępne, aby równolegle zinwentaryzować każdą warstwę. Jeśli takie narzędzie nie istnieje, uruchom te same sondy sekwencyjnie w głównym kontekście. Każda sonda zwraca jednoakapitowy werdykt: **present** (z dowodami plikowymi), **absent** lub **partial** (szkielet istnieje, ale nie jest podłączony). Następnie pokaż inwentaryzację użytkownikowi do potwierdzenia, zanim zasili Foundations.
 
-**Layers to probe** (skip a layer if `tech-stack.md` already names that layer's choice — report "per tech-stack.md: <choice>" instead of probing):
+**Warstwy do zbadania** (pomiń warstwę, jeśli `tech-stack.md` już podaje wybór tej warstwy — zgłoś „per tech-stack.md: <choice>” zamiast badać):
 
-| Layer          | What the probe looks for                                                                                          |
+| Warstwa | Czego szuka sonda |
 | -------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Frontend       | UI framework, build tooling, routing, component libraries — `package.json` deps, framework config files           |
-| Backend / API  | Server framework, API routes, request handlers — entrypoints, route files, controllers                            |
-| Data           | DB driver, ORM/query builder, schema/migration tooling, seeded data — schema files, migration directories         |
-| Auth           | Auth provider integration, session/token handling, auth middleware — auth config, middleware files                |
-| Deploy / infra | Hosting target, container config, CI/CD workflows, infra-as-code — `Dockerfile`, `.github/workflows`, deploy YAML |
-| Observability  | Logging library, error tracking, metrics, dashboards — sentry/datadog/otel imports, log middleware                |
+| Frontend | Framework UI, narzędzia budowania, routing, biblioteki komponentów — zależności `package.json`, pliki konfiguracji frameworka |
+| Backend / API | Framework serwera, trasy API, handlery żądań — entrypointy, pliki tras, kontrolery |
+| Data | Sterownik DB, ORM/query builder, narzędzia schematów/migracji, dane seedowane — pliki schematów, katalogi migracji |
+| Auth | Integracja dostawcy auth, obsługa sesji/tokenów, middleware auth — konfiguracja auth, pliki middleware |
+| Deploy / infra | Cel hostingu, konfiguracja kontenera, workflowy CI/CD, infra-as-code — `Dockerfile`, `.github/workflows`, deploy YAML |
+| Observability | Biblioteka logowania, śledzenie błędów, metryki, dashboardy — importy sentry/datadog/otel, middleware logów |
 
-**Run all probes in one batched delegation when the host supports it.** Each prompt is short and self-contained; delegated agents return only a paragraph each, so the main context stays small. Example for Auth:
+**Uruchom wszystkie sondy w jednej delegacji wsadowej, gdy host to obsługuje.** Każdy prompt jest krótki i samowystarczalny; delegowani agenci zwracają tylko po jednym akapicie, więc główny kontekst pozostaje mały. Przykład dla Auth:
 
-> Inventory the auth/identity layer of this codebase. Report in under 100 words: (1) is there an auth provider integration? Name it. (2) Are there session/token issuing or verification code paths? Cite a file:line. (3) Is there route-level auth middleware? Cite. If a layer is absent, say "absent" — don't speculate. Don't suggest changes. Don't write or edit files.
+> Zinwentaryzuj warstwę auth/tożsamości tego kodu. Raportuj w mniej niż 100 słowach: (1) czy istnieje integracja z dostawcą auth? Podaj nazwę. (2) Czy istnieją ścieżki kodu wystawiające lub weryfikujące sesje/tokeny? Przytocz plik:linię. (3) Czy istnieje middleware auth na poziomie tras? Przytocz. Jeśli warstwa nie istnieje, powiedz „absent” — nie spekuluj. Nie proponuj zmian. Nie zapisuj ani nie edytuj plików.
 
-Adapt the same template per layer. Always require: present/absent/partial verdict, ≤ 100 words, file evidence when present, no speculation, no edits.
+Dostosuj ten sam szablon do każdej warstwy. Zawsze wymagaj: werdyktu present/absent/partial, ≤ 100 słów, dowodów plikowych, gdy jest obecna, bez spekulacji, bez edycji.
 
-After all probes return, present a one-screen baseline summary to the user:
+Po zwróceniu wszystkich sond przedstaw użytkownikowi jednoopcjanowe podsumowanie stanu bazowego:
 
 ```
 Codebase baseline (auto-researched):
@@ -230,45 +229,45 @@ Codebase baseline (auto-researched):
   Observability: <…>
 ```
 
-Then confirm:
+Następnie potwierdź:
 
-Interactive question:
-- question: "Does this baseline match your understanding? Anything to correct or add before it informs Foundations?"
-  header: "Baseline"
+Pytanie interaktywne:
+- question: "Czy ten stan bazowy odpowiada twojemu rozumieniu? Czy jest coś do poprawienia lub dodania, zanim zasili Foundations?"
+  header: "Stan bazowy"
   options:
-  - label: "Looks right — proceed"
-    description: "Use this baseline as input for Foundations and the roadmap's ## Baseline section."
-  - label: "Correct one or more layers — I'll explain"
-    description: "Free-form correction. I'll re-record the layer(s) before proceeding."
-  - label: "Add something not listed"
-    description: "Free-form. Things the probes missed (planned-but-not-wired, scaffold from another repo, etc.)."
+  - label: "Wygląda dobrze — kontynuuj"
+    description: "Użyj tego stanu bazowego jako danych wejściowych dla Foundations i sekcji ## Baseline mapy drogowej."
+  - label: "Popraw jedną lub więcej warstw — wyjaśnię"
+    description: "Poprawka swobodna. Ponownie zapiszę warstwę lub warstwy przed kontynuowaniem."
+  - label: "Dodaj coś, czego nie ma na liście"
+    description: "Swobodnie. Rzeczy pominięte przez sondy (planowane, ale niepodłączone, szkielet z innego repozytorium itd.)."
   multiSelect: true
 
-Save the confirmed baseline. It feeds Step 6a (Foundations) directly: **present** layers → Foundations skips them; **absent** or **partial** → Foundations slot opens. It also feeds the roadmap's `## Baseline` section verbatim.
+Zapisz potwierdzony stan bazowy. Zasila on bezpośrednio Krok 6a (Foundations): warstwy **present** → Foundations je pomija; **absent** lub **partial** → otwiera się miejsce Foundations. Zasila także sekcję `## Baseline` mapy drogowej dosłownie.
 
-### Step 5: Lean interview — 2-3 anchor questions, each with a strong Recommend
+### Krok 5: Zwięzły wywiad — 2–3 pytania kotwiczące, każde z mocną rekomendacją
 
-The PRD captures the **product**. The baseline (Step 4) captures **what already exists**. This step produces the roadmap's framing — `main_goal`, `north_star`, investment areas, `top_blocker` — through a capped interview: at most **three anchor questions**, each carrying one strong **Recommend** grounded in a quoted artifact line plus 1-2 alternatives with a one-line "why this is also reasonable" rationale. The user picks the Recommend, picks an alternative, or overrides freely; investment areas are *derived* from the answers, not asked. This is the sweet spot between the two failure modes the skill has lived through: **silent auto-framing** (deciding load-bearing calls without a human gate) and **unbounded discovery** (asking what the artifacts already answer). If `shape-notes.md` carried a `## Forward: technical-roadmap` block, feed it into the Recommends — don't re-elicit content the user already parked there. If an anchor is still undecided when the cap is hit, **make the call** using the Recommend, record it in frontmatter with a one-line rationale, and proceed — the user can override at any point.
+PRD opisuje **produkt**. Stan bazowy (Krok 4) opisuje **to, co już istnieje**. Ten krok tworzy ramy mapy drogowej — `main_goal`, `north_star`, obszary inwestycji, `top_blocker` — przez ograniczony wywiad: maksymalnie **trzy pytania kotwiczące**, każde zawierające jedną mocną **Rekomendację** opartą na cytowanej linii artefaktu oraz 1–2 alternatywy z jednowierszowym uzasadnieniem „dlaczego to też jest rozsądne”. Użytkownik wybiera Rekomendację, wybiera alternatywę lub swobodnie ją nadpisuje; obszary inwestycji są *wyprowadzane* z odpowiedzi, nie są pytane. To optymalny punkt między dwoma trybami awarii, których umiejętność już doświadczyła: **cichym automatycznym ramowaniem** (podejmowanie decyzji nośnych bez bramki człowieka) i **nieograniczonym odkrywaniem** (pytanie o to, na co artefakty już odpowiadają). Jeśli `shape-notes.md` zawierał blok `## Forward: technical-roadmap`, wykorzystaj go w Rekomendacjach — nie pozyskuj ponownie treści, które użytkownik już tam odłożył. Jeśli kotwica nadal jest nierozstrzygnięta po osiągnięciu limitu, **podejmij decyzję** zgodnie z Rekomendacją, zapisz ją we frontmatter z jednowierszowym uzasadnieniem i kontynuuj — użytkownik może ją nadpisać w dowolnym momencie.
 
-**5a. Infer recommendations and the alternatives that are actually reasonable.**
+**5a. Wywnioskuj rekomendacje oraz faktycznie rozsądne alternatywy.**
 
-For each anchor below, derive *both* the Recommend AND the alternatives — grounded in specific quotes from PRD frontmatter / `## Vision` / `## Success Criteria` / `## NFRs` / `## Open Questions` / baseline / `tech-stack.md`. An alternative is "reasonable" only if a real signal in the artifacts supports it OR it is a common, defensible default for the product shape. **Do not list strawmen.** If only one value is plausible (no real alternative supportable from the artifacts), say so — that anchor will be presented with a single Recommend and an "override in your own words" fallback option.
+Dla każdej poniższej kotwicy wyprowadź *zarówno* Rekomendację, JAK I alternatywy — na podstawie konkretnych cytatów z frontmatter PRD / `## Vision` / `## Success Criteria` / `## NFRs` / `## Open Questions` / stanu bazowego / `tech-stack.md`. Alternatywa jest „rozsądna” tylko wtedy, gdy prawdziwy sygnał w artefaktach ją wspiera LUB jest powszechnym, możliwym do obrony ustawieniem domyślnym dla kształtu produktu. **Nie wymieniaj chochołów.** Jeśli tylko jedna wartość jest wiarygodna (brak prawdziwej alternatywy możliwej do wsparcia artefaktami), powiedz to — ta kotwica zostanie przedstawiona z pojedynczą Rekomendacją oraz zapasową opcją „nadpisz własnymi słowami”.
 
-- **`main_goal`** — pick from `market-feedback` | `quality` | `low-complexity` | `speed` | `learn` | `other`. Signals: `timeline_budget` (tight → speed or low-complexity), `target_scale` (small → low-complexity; mass-market → quality), Success Criteria phrasing ("learn from real users" → market-feedback; "validate the riskiest assumption" → market-feedback; "no incidents at launch" → quality), Vision tone (exploratory hobby → learn; hard deadline → speed). Alternatives are *adjacent* values that the same evidence could reasonably support — e.g., `market-feedback` and `speed` often coexist when the PRD says "ship to learn fast".
+- **`main_goal`** — wybierz spośród `market-feedback` | `quality` | `low-complexity` | `speed` | `learn` | `other`. Sygnały: `timeline_budget` (napięty → speed lub low-complexity), `target_scale` (mały → low-complexity; masowy rynek → quality), sformułowania kryteriów sukcesu („learn from real users” → market-feedback; „validate the riskiest assumption” → market-feedback; „no incidents at launch” → quality), ton Vision (eksploracyjne hobby → learn; twardy termin → speed). Alternatywy są *sąsiednimi* wartościami, które te same dowody mogą rozsądnie wspierać — np. `market-feedback` i `speed` często współistnieją, gdy PRD mówi „ship to learn fast”.
 
-- **`north_star`** — the smallest end-to-end user-visible flow that, if shipped first, proves the core hypothesis of the PRD's Vision. Usually traces to a high-priority US-NN AND the primary Success Criterion. Reasonable alternatives are *other* candidate slices that also trace to the primary Success Criterion or to a high-priority US-NN, with fewer Prerequisites or with different sequencing consequences. When more than three candidates exist, present the top three.
+- **`north_star`** — najmniejszy kompleksowy przepływ widoczny dla użytkownika, który dostarczony jako pierwszy udowadnia główną hipotezę Vision PRD. Zwykle śledzi historyjkę US-NN o wysokim priorytecie ORAZ główne kryterium sukcesu. Rozsądne alternatywy to *inne* kandydackie wycinki, które również śledzą główne kryterium sukcesu lub historyjkę US-NN o wysokim priorytecie, z mniejszą liczbą Prerequisites lub z innymi konsekwencjami sekwencjonowania. Gdy kandydatów jest więcej niż trzech, przedstaw trzy najlepsze.
 
-- **`top_blocker`** — pick from `skills` | `capacity` | `time` | `decisions` | `external` | `motivation` | `none`. Signals: ≥ 3 unresolved PRD `## Open Questions` → `decisions`; ambitious scope vs `timeline_budget` mismatch → `time` or `capacity`; vendor dependency named in PRD that's not yet contracted → `external`; tech-stack lists a layer the team has never shipped → `skills`; none fire → `none`. Reasonable alternatives are *adjacent* blocker types that fire on similar signals — e.g., `time` and `capacity` often both fire on scope-vs-deadline tension.
+- **`top_blocker`** — wybierz spośród `skills` | `capacity` | `time` | `decisions` | `external` | `motivation` | `none`. Sygnały: ≥ 3 nierozstrzygnięte `## Open Questions` PRD → `decisions`; ambitny zakres vs niedopasowanie `timeline_budget` → `time` lub `capacity`; zależność od dostawcy nazwana w PRD, która nie została jeszcze zakontraktowana → `external`; tech-stack wymienia warstwę, której zespół nigdy nie wdrażał → `skills`; jeśli żaden warunek nie zachodzi → `none`. Rozsądne alternatywy są *sąsiednimi* typami blokad uruchamianymi przez podobne sygnały — np. `time` i `capacity` często uruchamiają się razem przy napięciu zakresu i terminu.
 
-- **Investment areas** (NOT asked — derived in 5d) — for each of `frontend`, `backend`, `data`, `infra`: decide `invest deeply` vs `go simple`. Signals: PRD NFRs that gate launch in a layer (privacy / latency / correctness → invest there), baseline gaps that map to PRD must-haves (auth absent + multi-user must-have → invest in auth), Open Questions concentrated in one layer (decisions unresolved there → invest), and the chosen `main_goal` (`quality` boosts privacy/observability layers; `learn` boosts the unfamiliar layer; `speed` / `low-complexity` keeps everything simple by default). Do NOT promote a layer to "invest" without naming the PRD/baseline/main_goal signal.
+- **Obszary inwestycji** (NIE pytane — wyprowadzane w 5d) — dla każdego z `frontend`, `backend`, `data`, `infra`: zdecyduj `invest deeply` vs `go simple`. Sygnały: NFR PRD, które warunkują uruchomienie w warstwie (prywatność / opóźnienia / poprawność → inwestuj tam), luki stanu bazowego mapujące się na FR must-have (brak auth + must-have wielu użytkowników → inwestuj w auth), Open Questions skoncentrowane w jednej warstwie (nierozstrzygnięte decyzje tam → inwestuj) oraz wybrany `main_goal` (`quality` wzmacnia warstwy prywatności/obserwowalności; `learn` wzmacnia nieznaną warstwę; `speed` / `low-complexity` domyślnie utrzymuje wszystko prosto). NIE promuj warstwy do „invest” bez nazwania sygnału PRD/stanu bazowego/main_goal.
 
-**5b. Skip an anchor only when the artifact is unambiguous.** If PRD frontmatter or Success Criteria *literally states* the value (e.g., `timeline_budget: "1 week to ship"` plus "we need to launch before X" → `main_goal: speed`), skip that question and announce the skip with the chosen value and the quote that locks it. Never skip when any plausible alternative exists — the user's confirmation on a real choice is worth more than the seconds saved. In practice you will usually ask 2-3 questions; you may ask fewer, but NEVER more than 3.
+**5b. Pomiń kotwicę tylko wtedy, gdy artefakt jest jednoznaczny.** Jeśli frontmatter PRD lub Success Criteria *dosłownie podaje* wartość (np. `timeline_budget: "1 week to ship"` plus „we need to launch before X” → `main_goal: speed`), pomiń to pytanie i ogłoś pominięcie wraz z wybraną wartością i cytatem, który ją przesądza. Nigdy nie pomijaj, gdy istnieje jakakolwiek wiarygodna alternatywa — potwierdzenie użytkownika przy rzeczywistym wyborze jest warte więcej niż zaoszczędzone sekundy. W praktyce zwykle zadasz 2–3 pytania; możesz zadać mniej, ale NIGDY więcej niż 3.
 
-**5c. Run the interview — one structured question per anchor, in order.**
+**5c. Przeprowadź wywiad — jedno pytanie strukturalne na kotwicę, w kolejności.**
 
-For each non-skipped anchor — `main_goal`, then `north_star`, then `top_blocker` — use the selected interactive-question tool. Each question is its own call (sequential, not batched). Format:
+Dla każdej niepominiętej kotwicy — `main_goal`, następnie `north_star`, potem `top_blocker` — użyj wybranego narzędzia interaktywnych pytań. Każde pytanie to osobne wywołanie (sekwencyjnie, nie wsadowo). Format:
 
-Interactive question:
+Pytanie interaktywne:
 - question: "<plain-language anchor question, in the user's language>"
   header: "<short header — e.g., Cel | Gwiazda | Główne ryzyko / Goal | North star | Blocker>"
   options:
@@ -282,20 +281,20 @@ Interactive question:
     description: "Free-form. Name the value and the reason; I'll record both and sequence accordingly."
   multiSelect: false
 
-Rules for the options block:
-- **The Recommend is always option 1**, with the "(Recommended)" suffix on the label.
-- **Each alternative carries its own "why reasonable" clause** tied to artifact signal — not "alternative: quality" but "alternative: quality — reasonable when launch correctness matters more than first-user signal". An alternative without one is a strawman; remove it.
-- **At most 2 alternatives** plus the free-form fallback (2-4 options total). Longer lists fatigue the user without adding signal.
-- **North star options name slice candidates, not abstract values** — each label is `<US-NN candidate> — <one-line outcome>`.
-- **If only one value is plausible** (5a found no reasonable alternative), present just the Recommend and "Something else — I'll explain", and disclose in the question text: "the artifacts only support one reading here; flag if your read differs".
+Reguły dla bloku opcji:
+- **Rekomendacja jest zawsze opcją 1**, z sufiksem „(Recommended)” w etykiecie.
+- **Każda alternatywa zawiera własną klauzulę „dlaczego rozsądna”** powiązaną z sygnałem artefaktu — nie „alternative: quality”, lecz „alternative: quality — reasonable when launch correctness matters more than first-user signal”. Alternatywa bez takiej klauzuli jest chochołem; usuń ją.
+- **Najwyżej 2 alternatywy** oraz zapasowa opcja swobodna (łącznie 2–4 opcje). Dłuższe listy męczą użytkownika bez dodawania sygnału.
+- **Opcje gwiazdy przewodniej nazywają kandydatów na wycinki, nie abstrakcyjne wartości** — każda etykieta to `<US-NN candidate> — <one-line outcome>`.
+- **Jeśli tylko jedna wartość jest wiarygodna** (5a nie znalazło rozsądnej alternatywy), przedstaw tylko Rekomendację i „Something else — I'll explain” oraz ujawnij w treści pytania: „the artifacts only support one reading here; flag if your read differs”.
 
-**5d. Derive investment areas (no question).**
+**5d. Wyprowadź obszary inwestycji (bez pytania).**
 
-After the 2-3 anchor answers land, derive investment areas from: (1) the chosen `main_goal`, (2) PRD NFRs gating launch in a layer, (3) baseline gaps mapped to must-have FRs, (4) Open-Question concentration. Announce the derived investment in the synthesis recap (5e). The user can override in one line; they are not asked to pick.
+Po otrzymaniu 2–3 odpowiedzi kotwiczących wyprowadź obszary inwestycji z: (1) wybranego `main_goal`, (2) NFR PRD warunkujących uruchomienie w warstwie, (3) luk stanu bazowego zmapowanych do FR must-have, (4) koncentracji Open Questions. Ogłoś wyprowadzone inwestycje w podsumowaniu syntezy (5e). Użytkownik może je nadpisać jedną linią; nie jest proszony o wybór.
 
-**5e. Synthesis recap — confirm without asking.**
+**5e. Podsumowanie syntezy — potwierdź bez pytania.**
 
-Emit a single plain-markdown message that locks in the framing. No new questions. Mirror the user's language end-to-end (Polish PRD → Polish recap). Shape:
+Wyemituj pojedynczą wiadomość w zwykłym markdownie, która ustala ramy. Bez nowych pytań. Odzwierciedl język użytkownika od początku do końca (polski PRD → polskie podsumowanie). Kształt:
 
 ```markdown
 Locking in the roadmap framing:
@@ -308,118 +307,116 @@ Locking in the roadmap framing:
 Powiedz "go" żeby ruszyć dalej, albo nadpisz dowolną linię ("inwestycja powinna być w data, nie infra"). Nie będę pytał ponownie o to, co już ustaliliśmy.
 ```
 
-When the user says "go" or stays silent past the next step boundary, proceed with the locked framing. Per-line overrides are accepted and re-recorded without re-asking the other anchors.
+Gdy użytkownik powie „go” lub pozostanie cicho po następnej granicy kroku, kontynuuj z ustalonymi ramami. Nadpisania pojedynczych linii są akceptowane i zapisywane ponownie bez ponownego pytania o pozostałe kotwice.
 
-**5f. Custom-MVP-shape exception.**
+**5f. Wyjątek dla niestandardowego kształtu MVP.**
 
-A "custom MVP shape" is a product that doesn't map onto a familiar pattern: not a SaaS dashboard, not a CRUD app, not a content platform, not an obvious AI-wrapper, not a marketing site. Signals: PRD `## Vision` describes a novel interaction or domain; `## User Stories` don't cluster around a familiar entity (create/read/update/delete a `<thing>`); `tech-stack.md` declares non-obvious tooling (game engines, hardware bridges, specialized runtimes, novel agent shapes); user wording emphasizes a new mechanic, not a known pattern.
+„Niestandardowy kształt MVP” to produkt, który nie pasuje do znanego wzorca: nie jest dashboardem SaaS, aplikacją CRUD, platformą treści, oczywistym wrapperem AI ani stroną marketingową. Sygnały: `## Vision` PRD opisuje nową interakcję lub domenę; `## User Stories` nie grupują się wokół znanej encji (create/read/update/delete a `<thing>`); `tech-stack.md` deklaruje nieoczywiste narzędzia (silniki gier, mosty sprzętowe, wyspecjalizowane środowiska uruchomieniowe, nowe kształty agentów); sformułowania użytkownika podkreślają nową mechanikę, nie znany wzorzec.
 
-When the PRD looks custom-shaped:
+Gdy PRD wygląda na niestandardowo ukształtowany:
 
-1. **Open the interview by disclosing it** in the message preceding the first anchor question: *"This PRD doesn't fit a familiar MVP pattern (no SaaS dashboard / CRUD / content / AI-wrapper shape). My Recommends for the next 2-3 questions are weaker than usual — push back hard if my read is off."*
-2. **Soften the Recommend on `north_star` and any derived investment area.** Phrase the Recommend description as *"My best read is X, but the artifact signal is thin"* rather than *"PRD §Vision says X"*.
-3. **Allow up to two follow-up exchanges** on top of the three anchor questions. Custom MVPs reward dialogue; the user's design intuition is doing more work than artifacts can. Follow-ups are free-form text, not new structured questions.
+1. **Rozpocznij wywiad od ujawnienia tego** w wiadomości poprzedzającej pierwsze pytanie kotwiczące: *„This PRD doesn't fit a familiar MVP pattern (no SaaS dashboard / CRUD / content / AI-wrapper shape). My Recommends for the next 2-3 questions are weaker than usual — push back hard if my read is off.”*
+2. **Złagodź Rekomendację dla `north_star` i każdego wyprowadzonego obszaru inwestycji.** Formułuj opis Rekomendacji jako *„My best read is X, but the artifact signal is thin”* zamiast *„PRD §Vision says X”*.
+3. **Zezwól na maksymalnie dwie wymiany follow-up** ponad trzy pytania kotwiczące. Niestandardowe MVP korzystają z dialogu; intuicja projektowa użytkownika wykonuje więcej pracy, niż artefakty są w stanie wykonać. Follow-upy są tekstem swobodnym, nie nowymi pytaniami strukturalnymi.
 
-This is the one path where the skill leans into dialogue rather than away from it — and the only path that allows follow-ups. Total ceiling under this exception: 3 anchors + 2 follow-ups = 5 exchanges; outside it, 3 anchor questions, no follow-ups, one synthesis recap.
+To jedyna ścieżka, w której umiejętność skłania się ku dialogowi zamiast od niego odchodzić — i jedyna ścieżka dopuszczająca follow-upy. Łączny limit w tym wyjątku: 3 kotwice + 2 follow-upy = 5 wymian; poza nim 3 pytania kotwiczące, brak follow-upów, jedno podsumowanie syntezy.
 
-**5g. Phrasing and language guardrails (apply to every anchor question and the recap).**
+**5g. Zasady sformułowań i języka (stosuj do każdego pytania kotwiczącego i podsumowania).**
 
-- **Mirror the user's language end-to-end.** Polish PRD → Polish questions, options, and recap. Translate section names (`Open Questions` → `Otwarte pytania`, `Functional Requirements` → `Wymagania funkcjonalne`, `Non-Goals` → `Poza zakresem`, `Success Criteria` → `Kryteria sukcesu`). No English fragments like "north star", "blocker", "must-have" inside a Polish question or option label — paraphrase ("gwiazda przewodnia", "główne ryzyko", "konieczne").
-- **Translate skill-internal jargon to plain product language.** *"Privacy posture"* → *"polityka prywatności dostawcy AI"*. *"North star"* → *"pierwsza historyjka, która udowadnia, że produkt działa"*. *"Blocking unknowns"* → *"pytania bez odpowiedzi, które blokują dalsze planowanie"*. A user should never need to open this skill's docs to parse a question.
-- **Quotes in option descriptions earn their place.** A citation like *"tech-stack wskazuje Astro + Supabase + OpenRouter"* is a name-dump unless the next clause says why it matters for *this* anchor. Either inline the implication or drop the quote.
-- **Recommend must be defensible, not aggressive.** A Recommend's one-liner is grounded in an artifact line, not in confident tone. If you can't point to the quote, downgrade — present the anchor with two alternatives of equal weight (and a free-form fallback), and let the user choose.
+- **Odzwierciedl język użytkownika od początku do końca.** Polski PRD → polskie pytania, opcje i podsumowanie. Tłumacz nazwy sekcji (`Open Questions` → `Otwarte pytania`, `Functional Requirements` → `Wymagania funkcjonalne`, `Non-Goals` → `Poza zakresem`, `Success Criteria` → `Kryteria sukcesu`). Bez angielskich fragmentów, takich jak „north star”, „blocker”, „must-have” wewnątrz polskiego pytania lub etykiety opcji — parafrazuj („gwiazda przewodnia”, „główne ryzyko”, „konieczne”).
+- **Tłumacz żargon wewnętrzny umiejętności na prosty język produktowy.** *„Privacy posture”* → *„polityka prywatności dostawcy AI”*. *„North star”* → *„pierwsza historyjka, która udowadnia, że produkt działa”*. *„Blocking unknowns”* → *„pytania bez odpowiedzi, które blokują dalsze planowanie”*. Użytkownik nigdy nie powinien potrzebować otwierać dokumentacji tej umiejętności, aby zrozumieć pytanie.
+- **Cytaty w opisach opcji muszą zasłużyć na swoje miejsce.** Cytowanie typu *„tech-stack wskazuje Astro + Supabase + OpenRouter”* jest zrzutem nazw, chyba że następna klauzula mówi, dlaczego ma to znaczenie dla *tej* kotwicy. Albo włącz implikację w linię, albo usuń cytat.
+- **Rekomendacja musi być możliwa do obrony, nie agresywna.** Jednowierszowa Rekomendacja opiera się na linii artefaktu, a nie na pewnym tonie. Jeśli nie potrafisz wskazać cytatu, obniż rangę — przedstaw kotwicę z dwiema alternatywami o równej wadze (i zapasową opcją swobodną), a użytkownikowi pozwól wybrać.
 
-### Step 6: Decompose and sequence
+### Krok 6: Dekomponuj i sekwencjonuj
 
-This step is where the skill earns its keep. Build the roadmap content **in memory** (not on disk yet).
+To krok, w którym umiejętność pokazuje swoją wartość. Zbuduj treść mapy drogowej **w pamięci** (jeszcze nie na dysku).
 
-**6a. Identify Foundations.** A foundation is a cross-cutting prerequisite that has no user-visible outcome on its own but unblocks named vertical slices, reduces a named blocking unknown, or creates verification infrastructure required by a named slice. It is an enabler contract, not permission to roadmap horizontally. Sources:
+**6a. Zidentyfikuj Foundations.** Foundation to przekrojowy warunek wstępny, który sam w sobie nie daje wyniku widocznego dla użytkownika, lecz odblokowuje nazwane pionowe wycinki, redukuje nazwaną blokującą niewiadomą lub tworzy infrastrukturę weryfikacyjną wymaganą przez nazwany wycinek. To kontrakt umożliwiający, nie pozwolenie na poziome planowanie. Źródła:
 
-- `tech-stack.md` decisions that imply scaffolding work (auth provider → auth scaffold; chosen deploy target → deploy skeleton; chosen monitoring → observability baseline).
-- PRD `## Non-Functional Requirements` that need infrastructure (e.g., NFR "p95 < 800ms" implies basic perf instrumentation).
-- PRD `## Access Control` if it's anything beyond "single user, no auth".
-- **Step 4 baseline** — anything reported as **absent** or **partial** is a Foundations candidate. Anything reported as **present** is skipped (and noted in `## Baseline`).
-- **Step 5 "Where to invest"** — "invest deeply" picks promote a foundation to its own explicit slice (e.g., "data layer — invest deeply" + absent baseline → F-NN explicit data-design foundation, not just an implicit migration step).
+- Decyzje `tech-stack.md`, które implikują pracę nad szkieletem (dostawca auth → szkielet auth; wybrany cel wdrożenia → szkielet wdrożenia; wybrany monitoring → stan bazowy obserwowalności).
+- `## Non-Functional Requirements` PRD wymagające infrastruktury (np. NFR „p95 < 800ms” implikuje podstawową instrumentację wydajności).
+- `## Access Control` PRD, jeśli jest czymś więcej niż „single user, no auth”.
+- **Stan bazowy z Kroku 4** — wszystko zgłoszone jako **absent** lub **partial** jest kandydatem Foundations. Wszystko zgłoszone jako **present** jest pomijane (i odnotowane w `## Baseline`).
+- **„Where to invest” z Kroku 5** — wybory „invest deeply” promują foundation do własnego jawnego wycinka (np. „data layer — invest deeply” + brak stanu bazowego → jawne foundation projektowania danych F-NN, nie tylko domyślny krok migracji).
 
-Don't invent foundations the PRD doesn't imply (no "set up Storybook" unless something forces it). Do not create a generic "data layer", "API layer", "UI layer", or "auth system" foundation unless you can name the downstream `S-NN` item it unlocks, the blocking unknown it reduces, or the verification path it enables.
+Nie wymyślaj foundations, których PRD nie implikuje (żadnego „set up Storybook”, jeśli nic tego nie wymusza). Nie twórz ogólnego foundation „data layer”, „API layer”, „UI layer” ani „auth system”, jeśli nie potrafisz nazwać downstream elementu `S-NN`, który odblokowuje, blokującej niewiadomej, którą redukuje, lub ścieżki weryfikacji, którą umożliwia.
 
-**Foundation scope cap.** A Foundation must be the smallest cross-cutting enabler that lets a named vertical slice proceed. It may establish a minimal contract, scaffold, policy, or verification path; it must NOT complete an entire architectural layer ahead of user-facing work. If a foundation's Outcome sounds like "the data layer/API/UI/auth is complete", split it or fold the minimum needed work into the first `S-NN` slice that consumes it. The test: after the Foundation lands, at least one downstream `S-NN` should still integrate and exercise that layer through a real user capability.
+**Limit zakresu Foundation.** Foundation musi być najmniejszym przekrojowym elementem umożliwiającym, który pozwala nazwanemu pionowemu wycinkowi kontynuować. Może ustanowić minimalny kontrakt, szkielet, politykę lub ścieżkę weryfikacji; NIE może ukończyć całej warstwy architektonicznej przed pracą widoczną dla użytkownika. Jeśli Outcome foundation brzmi jak „warstwa data/API/UI/auth jest ukończona”, podziel ją lub włącz minimum wymaganej pracy do pierwszego wycinka `S-NN`, który ją wykorzystuje. Test: po wdrożeniu Foundation co najmniej jeden downstream `S-NN` powinien nadal integrować i ćwiczyć tę warstwę przez rzeczywistą funkcję użytkownika.
 
-**Progressive disclosure rule.** Prefer introducing technical elements at the moment the first user-facing slice needs them. A foundation is justified only when postponing it would make the first vertical slice unplannable, unsafe, or unverifiable. "We'll need this layer eventually" is not enough.
+Identyfikatory Foundation to `F-NN` (dwucyfrowe z zerem wiodącym, od `F-01`).
 
-Foundation IDs are `F-NN` (zero-padded two-digit, starting at `F-01`).
+**6b. Zdekomponuj powierzchnię widoczną dla użytkownika na wycinki.** Przejdź przez `## User Stories` i `## Functional Requirements` PRD. Grupuj je w pionowe, kompleksowe wycinki, gdzie każdy wycinek:
 
-**6b. Decompose the user-facing surface into slices.** Walk the PRD's `## User Stories` and `## Functional Requirements`. Group them into vertical, end-to-end slices where each slice:
+- Dostarcza **pojedynczą funkcję widoczną dla użytkownika** sformułowaną jako „user can …”.
+- Dotyka każdej warstwy potrzebnej, aby uczynić tę funkcję rzeczywistą (dane + logika + interfejs), od góry do dołu.
+- Jest na tyle mały, że jedno wywołanie `/10x-plan` tworzy wykonalny plan, ale na tyle duży, że wycinek samodzielnie ma znaczenie (wycinek to zazwyczaj jedna US-NN, czasem dwie, gdy są ściśle powiązane — np. „create” i „list” tej samej encji).
 
-- Delivers a **single user-visible capability** stated as "user can …".
-- Touches every layer needed to make that capability real (data + logic + interface), top to bottom.
-- Is small enough that one `/10x-plan` invocation produces a tractable plan, but big enough that the slice is meaningful on its own (a slice is generally one US-NN, occasionally two when they're tightly coupled — e.g., "create" and "list" of the same entity).
+NIE dziel poziomo („the database slice”, „the API slice”, „the UI slice”). Poziome wycinki są antywzorcem, któremu ta umiejętność ma zapobiegać. Domyślna dekompozycja jest pionowa najpierw: każdy wycinek widoczny dla użytkownika powinien tworzyć użyteczną funkcję, którą agent może zaimplementować i zweryfikować kompleksowo. Praca pozioma jest dozwolona wyłącznie jako nazwane Foundation z jawnym downstream uzasadnieniem.
 
-Do NOT slice horizontally ("the database slice", "the API slice", "the UI slice"). Horizontal slices are the anti-pattern this skill exists to prevent. The default decomposition is vertical-first: each user-facing slice should produce a usable capability that an agent can implement and verify end-to-end. Horizontal work is allowed only as a named Foundation with an explicit downstream reason.
+Identyfikatory wycinków to `S-NN` (dwucyfrowe z zerem wiodącym, od `S-01`).
 
-Slice IDs are `S-NN` (zero-padded two-digit, starting at `S-01`).
+Każdy `F-NN` i `S-NN` otrzymuje też stabilne **Change ID** w kebab-case. Change ID jest pomostem do `/10x-plan` i później elementem backlogu w Jira/Linear. Preferuj zwięzłe nazwy zorientowane na wynik, takie jak `first-gated-generation`, `minimal-auth-for-generation` lub `srs-review-session`.
 
-Each `F-NN` and `S-NN` also gets a stable **Change ID** in kebab-case. The Change ID is the bridge into `/10x-plan` and, later, a backlog item in Jira/Linear. Prefer concise, outcome-oriented names such as `first-gated-generation`, `minimal-auth-for-generation`, or `srs-review-session`.
+**Granularność i równowaga wycinków.** Wycinki mapy drogowej powinny być mniej więcej porównywalne pod względem nakładu planowania i wagi koncepcyjnej, nawet jeśli nie mają estymacji. Unikaj jednego wycinka, który pochłania większość PRD, podczas gdy późniejsze wycinki są drobnymi elementami dopracowania. Jeśli jeden kandydacki wycinek odnosi się do wielu FR must-have lub wielu niepowiązanych historyjek użytkownika, podziel go według wyników widocznych dla użytkownika, faz przepływu pracy, person lub granic ryzyka, aż każdy `S-NN` będzie czymś, o czym jedno `/10x-plan <change-id>` może spójnie rozumować.
 
-**Slice granularity and balance.** Roadmap slices should be roughly comparable in planning effort and conceptual weight, even though they do not carry estimates. Avoid one slice that absorbs most of the PRD while later slices are tiny polish items. If one candidate slice references many must-have FRs or multiple unrelated user stories, split it along user-visible outcomes, workflow phases, personas, or risk boundaries until each `S-NN` is something one `/10x-plan <change-id>` can reason about coherently.
+Użyj tych wyzwalaczy podziału:
 
-Use these split triggers:
+- Wycinek obejmuje więcej niż jedno główne działanie użytkownika (np. „import, edit, share, and report”).
+- Wycinek łączy konfigurację, główny przepływ pracy i administrację w jednym elemencie.
+- Wycinek spełnia większość FR must-have, podczas gdy inne wycinki mają po jednym drobnym FR.
+- Linia Risk wycinka zawiera więcej niż jedno niezależne ryzyko.
+- Wycinek potrzebuje niepowiązanych niewiadomych należących do różnych osób lub warstw.
 
-- A slice covers more than one primary user action (e.g., "import, edit, share, and report").
-- A slice combines setup, core workflow, and administration in one item.
-- A slice satisfies most of the must-have FRs while other slices have only one minor FR each.
-- A slice's Risk line contains more than one independent risk.
-- A slice needs unrelated unknowns owned by different people or layers.
+NIE dziel według warstwy, aby naprawić rozmiar. Dziel według węższych pionowych wyników. Na przykład zastąp „complete recipe system” przez „user can save the first recipe”, „user can search saved recipes” i „user can share a recipe” — nie przez „recipe schema”, „recipe API” i „recipe UI”.
 
-Do NOT split by layer to fix size. Split by narrower vertical outcomes. For example, replace "complete recipe system" with "user can save the first recipe", "user can search saved recipes", and "user can share a recipe" — not "recipe schema", "recipe API", and "recipe UI".
+**6c. Zbuduj graf zależności.** Dla każdego wycinka i foundation zidentyfikuj Prerequisites:
 
-**6c. Build the dependency graph.** For each slice and foundation, identify Prerequisites:
+- **Inne identyfikatory foundation** potrzebne wycinkowi (np. S-03 potrzebuje F-01 auth).
+- **Inne identyfikatory wycinków**, których dane lub funkcje konsumuje ten wycinek (np. S-04 „rate a recipe” zależy od S-03 „see recipes”).
+- **Stan zewnętrzny** (np. „a seeded ingredient table”). Konkretny, nie ogólnikowy.
 
-- **Other foundation IDs** the slice needs in place (e.g., S-03 needs F-01 auth).
-- **Other slice IDs** whose data or capabilities this slice consumes (e.g., S-04 "rate a recipe" depends on S-03 "see recipes").
-- **External state** (e.g., "a seeded ingredient table"). Concrete, not vague.
+Dla każdego foundation zidentyfikuj też **Unlocks**:
 
-For every foundation, also identify **Unlocks**:
+- jeden lub więcej downstream pionowych wycinków `S-NN`, które foundation bezpośrednio umożliwia, LUB
+- jedną lub więcej blokujących Unknowns, które redukuje, LUB
+- jedną lub więcej nazwanych ścieżek weryfikacji wymaganych przez downstream wycinek.
 
-- one or more downstream `S-NN` vertical slices the foundation directly enables, OR
-- one or more blocking Unknowns it reduces, OR
-- one or more named verification paths required by a downstream slice.
+Jeśli foundation nie ma jasnych Unlocks, usuń je lub włącz pracę do pierwszego pionowego wycinka, który jej potrzebuje.
 
-If a foundation has no clear Unlocks, remove it or fold the work into the first vertical slice that needs it.
+Następnie dla każdego elementu wyprowadź **Parallel with** — wycinki, których Prerequisites są podzbiorem lub rodzeństwem Prerequisites tego wycinka i które od niego nie zależą. Agenci AI mogą rozdzielić się między nimi. Jeśli dwa wycinki nie współdzielą zależności i żaden nie blokuje drugiego, są równoległe. Gdy blokadą #1 (Krok 5) jest **capacity**, bądź szczególnie hojny przy obliczaniu parallel-with — to najbardziej praktyczna dźwignia użytkownika.
 
-Then for each item, derive **Parallel with** — the slices whose Prerequisites are a subset or sibling of this slice's Prerequisites and which don't depend on it. AI agents can fan out across these. If two slices share zero dependencies and neither blocks the other, they're parallel. When the #1 blocker (Step 5) is **capacity**, be especially generous in computing parallel-with — it's the user's most actionable lever.
+**6d. Sortowanie topologiczne, z uprzedzeniem według głównego celu.** Najpierw foundations (w kolejności zależności między nimi), potem wycinki w kolejności zależności. Umieść wycinek **gwiazdy przewodniej** tak wcześnie, jak pozwalają jego Prerequisites — nie odkładaj go dla symetrycznej kolejności. Następnie rozstrzygaj remisy według głównego celu (Krok 5):
 
-**6d. Topological sort, biased by main goal.** Foundations first (in dep order among themselves), then slices in dep order. Place the **north star** slice as early as its Prerequisites allow — don't defer it for symmetric ordering. Then bias ties by main goal (Step 5):
+- **Market feedback** → remisy rozstrzygaj na korzyść wycinka ujawniającego najbardziej ryzykowne założenie (często integracja lub logika domenowa). Wczesne ujawnienie ryzyka jest ważniejsze niż maksymalizacja wartości demo wycinka 1.
+- **Quality / craft** → Foundations sekwencjonuj chętniej; foundations obserwowalności i kontroli dostępu NIE są odkładane za wycinkami widocznymi dla użytkownika.
+- **Low complexity / quick win** → remisy rozstrzygaj na korzyść najmniejszego wykonalnego wycinka; agresywne Parked.
+- **Speed to launch** → najpierw ścisła ścieżka must-have; elementy nieistotne trafiają do Parked, nie są sekwencjonowane późno.
+- **Learn the tech / explore** → remisy rozstrzygaj na korzyść wycinków, które najwcześniej ćwiczą nieznaną technologię; wartość uczenia się liczy się tu jako wartość użytkownika.
 
-- **Market feedback** → ties broken in favor of the slice that surfaces the riskiest assumption (often integration or domain logic). Surfacing risk early matters more than maximizing demo value of slice 1.
-- **Quality / craft** → Foundations sequenced more eagerly; observability and access-control foundations are NOT deferred behind user-facing slices.
-- **Low complexity / quick win** → ties broken in favor of the smallest viable slice; aggressive Parking.
-- **Speed to launch** → strict must-have path first; non-essentials get Parked, not sequenced late.
-- **Learn the tech / explore** → ties broken in favor of slices that exercise unfamiliar tech earliest; learning value counts as user value here.
+Jeśli `## Open Roadmap Questions` zawiera decyzję istotną dla sekwencjonowania (np. „do we ship for mobile first?”), NIE wybieraj sekwencji, która przesądza odpowiedź — pozostaw objęte wycinki ze statusem `Status: blocked`, aż pytanie zostanie rozstrzygnięte.
 
-If `## Open Roadmap Questions` includes a sequencing-relevant decision (e.g., "do we ship for mobile first?"), do NOT pick a sequence that prejudges the answer — leave the affected slices as `Status: blocked` until the question resolves.
+**6e. Zidentyfikuj blokujące niewiadome.** Dla każdego wycinka wymień:
 
-**6e. Identify blocking unknowns.** For each slice, list:
+- **Blockers** (zewnętrzne, oczekujące) — zgoda dostawcy, zasób projektowy, decyzja interesariusza. Jeśli brak, wpisz `—`. Odpowiedź „External” jako blokada #1 z Kroku 5 zasila te pola.
+- **Unknowns** (pytania do zbadania) — rzeczy, na które mapa drogowa nie może odpowiedzieć i których `/10x-plan` również nie powinien próbować rozwiązywać. Każda niewiadoma zawiera: pytanie, właściciela, status blokowania (yes/no — czy planowanie jest zablokowane do czasu rozwiązania?). Odpowiedź „Decisions” jako blokada #1 z Kroku 5 zasila te pola.
 
-- **Blockers** (external, pending) — vendor approval, design asset, stakeholder decision. If none, write `—`. The Step 5 "External" #1-blocker answer feeds these.
-- **Unknowns** (questions to research) — things the roadmap can't answer that `/10x-plan` shouldn't try to either. Each unknown carries: question, owner, blocking-status (yes/no — is planning blocked until this resolves?). The Step 5 "Decisions" #1-blocker answer feeds these.
+Wycinek ze statusem `Status: blocked` istnieje, gdy co najmniej jedna Unknown ma `Block: yes`. Zadaniem mapy drogowej jest ujawnić je, aby użytkownik mógł je rozwiązać, zanim `/10x-plan` zostanie zmarnowany na wycinek, którego nie można zaplanować.
 
-A slice with `Status: blocked` exists when at least one Unknown has `Block: yes`. The roadmap's job is to surface these so the user can resolve them before `/10x-plan` is wasted on a slice that can't be planned.
+**6f. Wygeneruj `## Open Roadmap Questions`.** Dwa źródła:
 
-**6f. Generate `## Open Roadmap Questions`.** Two sources:
+- `## Open Questions` PRD — skopiuj dosłownie, ponumeruj ponownie, jeśli trzeba. Te pytania nadal są otwarte.
+- Nowe pytania ujawnione w Kroku 5, które obejmują wiele wycinków („should we actually ship for mobile?”).
 
-- PRD's `## Open Questions` — copy verbatim, renumber if needed. These are still open.
-- New questions surfaced during Step 5 that span multiple slices ("should we actually ship for mobile?").
+Niewiadome per-wycinek pozostają w wycinku; przekrojowe trafiają tutaj.
 
-Per-slice unknowns stay in the slice; cross-cutting ones live here.
+**6g. Wygeneruj `## Parked`.** Podnieś `## Non-Goals` PRD. Dodaj także wszystko, co Krok 5 ujawnił jako odroczone — szczególnie gdy głównym celem jest **speed to launch** lub blokadą #1 jest **time/capacity**, ta sekcja rośnie. Każdy wpis: jednolinijkowy element, jednolinijkowe uzasadnienie.
 
-**6g. Generate `## Parked`.** Lift PRD's `## Non-Goals`. Also append anything Step 5 surfaced as deferred — particularly when the main goal is **speed to launch** or the #1 blocker is **time/capacity**, this section grows. Each entry: one-line item, one-line rationale.
+**6h. Wyprowadź `## Streams` (pomoc nawigacyjna).** Strumienie są *wyprowadzonym widokiem* grafu zależności — NIE zastępują kolejności topologicznej w `## Foundations` + `## Slices` i nie wprowadzają nowych ID. Ich zadanie: dać czytelnikowi proponowaną kolejność czytania przez równoległe ścieżki na jednym ekranie. Wyprowadzenie: jeden strumień na foundation, które kotwiczy odrębny łańcuch Prerequisites (`F-NN` → wycinki wymieniające je w Prerequisites, w kolejności zależności); wycinek bez prerequisite foundation jest własnym jednoelementowym strumieniem (nigdy koszem „Misc”); wycinek zależny od głów wielu strumieni dołącza do najbardziej pochodnego, a połączenie jest nazwane w notatce tego strumienia („joins Stream A at S-01”) — nigdy nie jest duplikowany między strumieniami. Wygeneruj jeden wiersz tabeli markdown na strumień — `Stream | Theme | Chain | Note` — Chain łączy istniejące Roadmap IDs za pomocą `→`, Theme jest opisowy, nie promocyjny („Review loop”, nie „The killer feature”), Note to jedna klauzula wiążąca strumień z `main_goal` lub nazywająca połączenie. Limit: 2–5 strumieni — więcej oznacza, że graf jest nadmiernie podzielony (złóż jednoelementowe strumienie do strumienia sąsiedniego foundation); mniej niż 2 oznacza, że kolejność topologiczna już czyta się czysto, więc pomiń sekcję. Strumienie NIE są kanoniczne: przy każdym konflikcie wygrywa kolejność topologiczna, a definicja strumienia jest błędna.
 
-**6h. Derive `## Streams` (navigation aid).** Streams are a *derived view* over the dependency graph — they do NOT replace the topological order in `## Foundations` + `## Slices` and introduce no new IDs. Their job: give a reader the proposed reading order across parallel tracks in one screen. Derivation: one stream per foundation that anchors a distinct Prerequisites chain (`F-NN` → the slices listing it in Prerequisites, in dep order); a slice with no foundation prerequisite is its own one-item stream (never a "Misc" bucket); a slice depending on multiple streams' heads joins the most-derived one, with the join named in that stream's note ("joins Stream A at S-01") — never duplicated across streams. Emit one markdown-table row per stream — `Stream | Theme | Chain | Note` — Chain joining existing Roadmap IDs with `→`, Theme descriptive not promotional ("Review loop", not "The killer feature"), Note one clause tying the stream to `main_goal` or naming a join. Cap: 2-5 streams — more means the graph is over-segmented (fold single-slice streams into an adjacent foundation's stream); fewer than 2 means the topological order already reads cleanly, so omit the section. Streams are NOT canonical: on any conflict, the topological order wins and the stream definition is wrong.
+### Krok 7: Wygeneruj treść mapy drogowej
 
-### Step 7: Emit roadmap content
-
-Use this exact template (section names are the contract; downstream tooling and `/10x-plan` may grep for them):
+Użyj tego dokładnego szablonu (nazwy sekcji są kontraktem; narzędzia downstream i `/10x-plan` mogą ich szukać przez grep):
 
 ````markdown
 ---
@@ -581,47 +578,47 @@ This table is the clean handoff to Jira/Linear or any MCP-backed backlog. Includ
 - **<Slice ID>: <Outcome>** — Archived <YYYY-MM-DD> → `context/archive/<YYYY-MM-DD-change-id>/`. Lesson: <pointer to lessons.md if any, or `—`>.
 ````
 
-**Field semantics, in detail:**
+**Semantyka pól, szczegółowo:**
 
-- **Outcome** is verb-led. Slices: *"user can sign in and see an empty fridge"*. Foundations: *"(foundation) auth scaffold landed; tokens issued via configured provider"*. Never a noun phrase ("authentication system"); always a state-of-the-world declarative.
-- **Change ID** is kebab-case, stable, and suitable for `context/changes/<change-id>/`. Do not use `F-01` / `S-01` as the change id; those are roadmap-local order IDs.
-- **Unlocks** appears only on Foundations. It names the downstream reason this Foundation exists: specific `S-NN` slices, blocking unknowns, or verification paths. A Foundation without Unlocks is horizontal drift.
-- **PRD refs** uses the literal IDs from PRD (`FR-001`, `US-01`, `NFR-02`). Don't paraphrase. Every must-have FR in PRD must appear in at least one slice's PRD refs after Step 8 self-review.
-- **Prerequisites** mixes slice IDs (`S-01`, `F-02`) and external state, comma-separated. External state is plain English ("seeded ingredient table", "design tokens published"). One field, not split.
-- **Parallel with** is informational. Computed from the dep graph: any slice X where my Prerequisites and X's Prerequisites have no path between them. Empty = `—`.
-- **Blockers** is *external pending* only (vendor, design, stakeholder decision). Things the team can't unilaterally resolve. If the team CAN resolve it, it's an Unknown, not a Blocker.
-- **Unknowns** is questions to research. Each carries Owner and Block flag. Block=yes promotes the slice's Status to `blocked`.
-- **Risk** is one line: why sequenced here, what could go wrong, why this is the safer order than alternatives. Not a postmortem. Not catastrophizing. Just the load-bearing reason a future reader needs to understand the sequence.
-- **Status** lifecycle: `proposed` (default on first generation) | `ready` (Prerequisites all met, no blocking unknowns — `/10x-plan` can run) | `planning` | `in-progress` | `done` | `blocked` (one or more unknowns with `Block: yes`). This skill emits only `proposed`, `ready`, and `blocked` on generation; the rest are written downstream (see "Relationship to other skills"), best-effort and forward-only.
-- **Frontmatter `main_goal` / `top_blocker`** record Step 5 answers so a future re-read (or a reviewer) can see the sequencing bias at a glance without opening the conversation history.
+- **Outcome** jest sterowane czasownikiem. Wycinki: *„user can sign in and see an empty fridge”*. Foundations: *„(foundation) auth scaffold landed; tokens issued via configured provider”*. Nigdy fraza rzeczownikowa („authentication system”); zawsze deklaracja stanu świata.
+- **Change ID** jest w kebab-case, stabilne i odpowiednie dla `context/changes/<change-id>/`. Nie używaj `F-01` / `S-01` jako change id; są to lokalne identyfikatory kolejności mapy drogowej.
+- **Unlocks** występuje tylko w Foundations. Nazywa downstream powód istnienia tego Foundation: konkretne wycinki `S-NN`, blokujące niewiadome lub ścieżki weryfikacji. Foundation bez Unlocks to poziomy dryf.
+- **PRD refs** używa dosłownych ID z PRD (`FR-001`, `US-01`, `NFR-02`). Nie parafrazuj. Każdy FR must-have w PRD musi pojawić się w co najmniej jednym PRD refs wycinka po samoprzeglądzie Kroku 8.
+- **Prerequisites** łączy ID wycinków (`S-01`, `F-02`) i stan zewnętrzny, rozdzielone przecinkami. Stan zewnętrzny jest po angielsku prostym tekstem („seeded ingredient table”, „design tokens published”). Jedno pole, nie podzielone.
+- **Parallel with** ma charakter informacyjny. Jest obliczane z grafu zależności: dowolny wycinek X, gdzie moje Prerequisites i Prerequisites X nie mają ścieżki między sobą. Puste = `—`.
+- **Blockers** to wyłącznie *zewnętrzne oczekujące* elementy (dostawca, projekt, decyzja interesariusza). Rzeczy, których zespół nie może jednostronnie rozwiązać. Jeśli zespół MOŻE to rozwiązać, jest to Unknown, nie Blocker.
+- **Unknowns** to pytania do zbadania. Każde zawiera Owner i flagę Block. Block=yes podnosi Status wycinka do `blocked`.
+- **Risk** to jedna linia: dlaczego sekwencjonowane tutaj, co może pójść źle, dlaczego jest to bezpieczniejsza kolejność niż alternatywy. Nie retrospekcja. Nie katastrofizacja. Tylko nośny powód, którego przyszły czytelnik potrzebuje, aby zrozumieć sekwencję.
+- **Status** cykl życia: `proposed` (domyślnie przy pierwszym generowaniu) | `ready` (wszystkie Prerequisites spełnione, brak blokujących niewiadomych — można uruchomić `/10x-plan`) | `planning` | `in-progress` | `done` | `blocked` (jedna lub więcej niewiadomych z `Block: yes`). Ta umiejętność generuje tylko `proposed`, `ready` i `blocked`; reszta jest zapisywana downstream (zobacz „Relacja z innymi umiejętnościami”), best-effort i wyłącznie do przodu.
+- **Frontmatter `main_goal` / `top_blocker`** zapisują odpowiedzi z Kroku 5, aby przyszły odczyt (lub recenzent) mógł od razu zobaczyć uprzedzenie sekwencjonowania bez otwierania historii rozmowy.
 
-**Hard rule — never invent slices.** Every slice must trace to a source-anchor ID (guardrail 1). If the interview surfaced something the sources don't declare ("oh and we also need offline mode"), it does NOT become a slice — it becomes an Open Roadmap Question (real gap) or a Parked entry (explicitly deferred). The roadmap sequences what the sources declare; it does not grow them.
+**Twarda reguła — nigdy nie wymyślaj wycinków.** Każdy wycinek musi śledzić ID kotwicy źródłowej (zabezpieczenie 1). Jeśli wywiad ujawnił coś, czego źródła nie deklarują („oh and we also need offline mode”), NIE staje się to wycinkiem — staje się Open Roadmap Question (rzeczywista luka) lub wpisem Parked (jawnie odroczonym). Mapa drogowa sekwencjonuje to, co deklarują źródła; nie rozbudowuje ich.
 
-**No time units. No estimates. No complexity scores.** (Guardrail 5.) Order is encoded in Prerequisites; pacing in Blockers and Unknowns. Wanting to write "this should take a few hours" means you've drifted into `/10x-plan`'s territory — stop.
+**Bez jednostek czasu. Bez estymacji. Bez wyników złożoności.** (Zabezpieczenie 5.) Kolejność jest zakodowana w Prerequisites; tempo w Blockers i Unknowns. Chęć napisania „this should take a few hours” oznacza, że wszedłeś na terytorium `/10x-plan` — zatrzymaj się.
 
-### Step 8: Self-review
+### Krok 8: Samoprzegląd
 
-Before any disk write, verify the in-memory roadmap:
+Przed jakimkolwiek zapisem na dysk zweryfikuj mapę drogową w pamięci:
 
-1. **Frontmatter** — all 11 keys present (`project`, `version`, `status`, `created`, `updated`, `prd_version`, `main_goal`, `top_blocker`, `milestone_id`, `milestone_seq`, `milestone_status`).
-2. **Required sections** — these `##` headings exist, in this order: `Milestone`, `Vision recap`, `North star`, `At a glance`, `Streams` (optional — present iff Step 6h decided streams add value), `Baseline`, `Foundations`, `Slices`, `Backlog Handoff`, `Open Roadmap Questions`, `Parked`, `Milestone History`, `Done`. With `Streams` present the count is 13; without it, 12.
-3. **Per-entry schema** — every S-NN has the 9 mandatory fields (`Outcome`, `Change ID`, `PRD refs`, `Prerequisites`, `Parallel with`, `Blockers`, `Unknowns`, `Risk`, `Status`). Every F-NN has those fields plus `Unlocks`.
-4. **PRD coverage** — every PRD `must-have` FR (grep `^- FR-\d{3}: .* must-have$`) appears in at least one slice's `PRD refs`. Same for every `### US-NN:`. If a must-have isn't covered, the self-review FAILS.
-5. **Dependency graph integrity** — no cycles. Every ID listed in `Prerequisites` exists somewhere in the doc. The order in `## Foundations` and `## Slices` is a topological sort: no slice depends on something that comes after it.
-6. **At-a-glance table parity** — table rows match section bodies. Each row's `Change ID`, `Prerequisites`, `PRD refs`, `Status` match the body fields verbatim.
-7. **Status consistency** — every `blocked` slice has at least one Unknown with `Block: yes`. Every `ready` slice has all Prerequisites already in `done` state (today this means: no Prerequisites, OR Prerequisites are all foundations the baseline reports as `present`).
-8. **No invented slices** — every slice's `PRD refs` contains at least one real source-anchor ID: a PRD ID (`FR-\d{3}` or `US-\d{2}`) for PRD-sourced milestones, or an `MS-\d{2}` charter anchor for description-sourced ones. Mixed sources may mix ID kinds, but every anchor must exist in the source document or the `## Milestone` charter.
-9. **Baseline ↔ Foundations consistency** — no Foundation re-scaffolds a layer the `## Baseline` section reports as `present`. If the baseline says auth is present and there's still an `F-NN` for auth scaffold, that's a self-review failure (either the baseline is wrong or the foundation is redundant).
-10. **Foundation enabler contract** — every Foundation has `Unlocks` populated with at least one downstream `S-NN`, a named blocking unknown, or a named verification path. A generic foundation such as "database layer" without a downstream reason is a self-review failure.
-11. **Change ID integrity** — every F-NN and S-NN has a unique kebab-case `Change ID`; every F-NN and S-NN appears exactly once in `## Backlog Handoff`; every handoff row references an existing roadmap ID and repeats the same Change ID. No spaces, dates, status labels, or roadmap IDs as change IDs.
-12. **Slice granularity balance** — no `S-NN` may absorb the majority of a non-trivial PRD while sibling slices are narrow leftovers. If one slice references most must-have FRs, more than two unrelated US-NN entries, multiple primary user actions, or unrelated risks/unknowns, the self-review FAILS unless the PRD truly has only one user-visible workflow. Fix by splitting into narrower vertical outcomes, not by creating layer slices.
-13. **Foundation scope cap** — no Foundation may complete an entire layer in advance. The Outcome and Risk must show a minimal enabler contract, and `Unlocks` must name vertical slices that will still integrate that layer through user-facing behavior. If the Foundation reads like "build the data/API/UI/auth layer", the self-review FAILS. Split it, narrow it, or fold the minimum needed work into the first consuming `S-NN`.
-14. **Progressive disclosure of technical elements** — each cross-cutting technical element appears either in the first vertical slice that needs it or in a Foundation that is required before that slice can be planned, verified, or made safe. If a technical element is introduced only because it will be useful later, the self-review FAILS and that work moves into the first slice that actually uses it.
-15. **Streams coverage** (only if a `## Streams` section was emitted) — every `F-NN` and every `S-NN` listed in `## At a glance` appears in exactly one stream's `Chain` cell. Duplicates and omissions both fail. The Chain cells only reference existing Roadmap IDs (no invented IDs). Stream count is 2–5. If the doc has < 2 candidate streams, the section should have been omitted (Step 6h cap).
-16. **Milestone integrity** — `milestone_status` is `open` on generation; `milestone_seq` is 1 greater than the highest closed `M-<seq>` in `## Milestone History` (1 when history is empty); the `## Milestone` charter's `M-<seq>` matches `milestone_seq`; every `MS-NN` anchor referenced by any slice exists in the charter; `## Milestone History` was carried forward verbatim (never edited, never truncated) on regeneration and next-milestone opening.
-17. **Strategic terms are defined inline** — scan the emitted body for guardrail 13's jargon list; every listed term that appears must carry its one-sentence definition on **first** occurrence (identifier-style IDs like `FR-001`/`S-02` and proper names of tools/services are exempt). An undefined first use FAILS; a term that can't be defined in one sentence is replaced with plain language and re-emitted.
+1. **Frontmatter** — obecne wszystkie 11 kluczy (`project`, `version`, `status`, `created`, `updated`, `prd_version`, `main_goal`, `top_blocker`, `milestone_id`, `milestone_seq`, `milestone_status`).
+2. **Wymagane sekcje** — te nagłówki `##` istnieją, w tej kolejności: `Milestone`, `Vision recap`, `North star`, `At a glance`, `Streams` (opcjonalne — obecne wtedy i tylko wtedy, gdy Krok 6h zdecydował, że strumienie dodają wartość), `Baseline`, `Foundations`, `Slices`, `Backlog Handoff`, `Open Roadmap Questions`, `Parked`, `Milestone History`, `Done`. Z `Streams` liczba wynosi 13; bez niego 12.
+3. **Schemat per-wpis** — każdy S-NN ma 9 obowiązkowych pól (`Outcome`, `Change ID`, `PRD refs`, `Prerequisites`, `Parallel with`, `Blockers`, `Unknowns`, `Risk`, `Status`). Każdy F-NN ma te pola plus `Unlocks`.
+4. **Pokrycie PRD** — każdy FR `must-have` PRD (grep `^- FR-\d{3}: .* must-have$`) pojawia się w `PRD refs` co najmniej jednego wycinka. To samo dotyczy każdego `### US-NN:`. Jeśli must-have nie jest pokryty, samoprzegląd KOŃCZY SIĘ NIEPOWODZENIEM.
+5. **Integralność grafu zależności** — brak cykli. Każde ID wymienione w `Prerequisites` istnieje gdzieś w dokumencie. Kolejność w `## Foundations` i `## Slices` jest sortowaniem topologicznym: żaden wycinek nie zależy od czegoś, co występuje po nim.
+6. **Zgodność tabeli at-a-glance** — wiersze tabeli pasują do treści sekcji. `Change ID`, `Prerequisites`, `PRD refs`, `Status` każdego wiersza odpowiadają polom treści dosłownie.
+7. **Spójność statusów** — każdy wycinek `blocked` ma co najmniej jedną Unknown z `Block: yes`. Każdy wycinek `ready` ma wszystkie Prerequisites już w stanie `done` (obecnie oznacza to: brak Prerequisites LUB Prerequisites to wszystkie foundations, które stan bazowy zgłasza jako `present`).
+8. **Brak wymyślonych wycinków** — `PRD refs` każdego wycinka zawiera co najmniej jedno rzeczywiste ID kotwicy źródłowej: ID PRD (`FR-\d{3}` lub `US-\d{2}`) dla kamieni milowych pochodzących z PRD albo kotwicę karty `MS-\d{2}` dla pochodzących z opisu. Źródła mieszane mogą mieszać rodzaje ID, ale każda kotwica musi istnieć w dokumencie źródłowym lub karcie `## Milestone`.
+9. **Spójność Baseline ↔ Foundations** — żadne Foundation nie buduje ponownie szkieletu warstwy, którą sekcja `## Baseline` zgłasza jako `present`. Jeśli stan bazowy mówi, że auth jest obecne, a nadal istnieje `F-NN` dla szkieletu auth, jest to porażka samoprzeglądu (albo stan bazowy jest błędny, albo foundation jest nadmiarowe).
+10. **Kontrakt umożliwiający Foundation** — każde Foundation ma `Unlocks` wypełnione co najmniej jednym downstream `S-NN`, nazwaną blokującą niewiadomą lub nazwaną ścieżką weryfikacji. Ogólne foundation, takie jak „database layer”, bez powodu downstream jest porażką samoprzeglądu.
+11. **Integralność Change ID** — każdy F-NN i S-NN ma unikalne Change ID w kebab-case; każdy F-NN i S-NN pojawia się dokładnie raz w `## Backlog Handoff`; każdy wiersz przekazania odwołuje się do istniejącego roadmap ID i powtarza to samo Change ID. Brak spacji, dat, etykiet statusu ani roadmap IDs jako change IDs.
+12. **Równowaga granularności wycinków** — żaden `S-NN` nie może absorbować większości nietrywialnego PRD, podczas gdy rodzeństwo jest wąskim resztkowym elementem. Jeśli jeden wycinek odnosi się do większości FR must-have, więcej niż dwóch niepowiązanych wpisów US-NN, wielu głównych działań użytkownika lub niepowiązanych ryzyk/niewiadomych, samoprzegląd KOŃCZY SIĘ NIEPOWODZENIEM, chyba że PRD naprawdę ma tylko jeden przepływ pracy widoczny dla użytkownika. Napraw przez podział na węższe pionowe wyniki, nie przez tworzenie wycinków warstwowych.
+13. **Limit zakresu Foundation** — żadne Foundation nie może ukończyć całej warstwy z wyprzedzeniem. Outcome i Risk muszą pokazywać minimalny kontrakt umożliwiający, a `Unlocks` musi nazywać pionowe wycinki, które nadal zintegrują tę warstwę przez zachowanie widoczne dla użytkownika. Jeśli Foundation brzmi jak „build the data/API/UI/auth layer”, samoprzegląd KOŃCZY SIĘ NIEPOWODZENIEM. Podziel je, zawęź lub włącz minimum wymaganej pracy do pierwszego konsumującego `S-NN`.
+14. **Progresywne ujawnianie elementów technicznych** — każdy przekrojowy element techniczny pojawia się albo w pierwszym pionowym wycinku, który go potrzebuje, albo w Foundation wymaganym przed tym wycinkiem, aby można było go zaplanować, zweryfikować lub uczynić bezpiecznym. Jeśli element techniczny został wprowadzony tylko dlatego, że przyda się później, samoprzegląd KOŃCZY SIĘ NIEPOWODZENIEM, a praca przenosi się do pierwszego wycinka, który faktycznie go używa.
+15. **Pokrycie Streams** (tylko jeśli wygenerowano sekcję `## Streams`) — każdy `F-NN` i każdy `S-NN` wymieniony w `## At a glance` pojawia się dokładnie w jednej komórce `Chain` strumienia. Duplikaty i pominięcia powodują niepowodzenie. Komórki Chain odwołują się wyłącznie do istniejących Roadmap IDs (bez wymyślonych ID). Liczba strumieni wynosi 2–5. Jeśli dokument ma < 2 kandydackie strumienie, sekcja powinna zostać pominięta (limit Kroku 6h).
+16. **Integralność kamienia milowego** — `milestone_status` jest `open` przy generowaniu; `milestone_seq` jest o 1 większy niż najwyższe zamknięte `M-<seq>` w `## Milestone History` (1, gdy historia jest pusta); `M-<seq>` karty `## Milestone` pasuje do `milestone_seq`; każda kotwica `MS-NN`, do której odwołuje się dowolny wycinek, istnieje w karcie; `## Milestone History` zostało przeniesione dosłownie (nigdy nie edytowane, nigdy nie skrócone) przy regenerowaniu i otwieraniu kolejnego kamienia milowego.
+17. **Terminy strategiczne są zdefiniowane inline** — przeskanuj wygenerowaną treść pod kątem listy żargonu z zabezpieczenia 13; każdy wymieniony termin, który występuje, musi mieć swoją jednolinijkową definicję przy **pierwszym** wystąpieniu (identyfikatory w stylu `FR-001`/`S-02` oraz nazwy własne narzędzi/usług są zwolnione). Niezdefiniowane pierwsze użycie powoduje NIEPOWODZENIE; termin, którego nie można zdefiniować w jednym zdaniu, zostaje zastąpiony prostym językiem i wygenerowany ponownie.
 
-If any check fails, **abort the write** and report the specific failure:
+Jeśli którykolwiek test zawiedzie, **przerwij zapis** i zgłoś konkretną porażkę:
 
 ```
 Roadmap self-review FAILED:
@@ -636,39 +633,39 @@ wrong — file a skill bug. Self-review aborts protect downstream tooling from
 drift.
 ```
 
-Then STOP.
+Następnie ZATRZYMAJ.
 
-### Step 9: Collision check
+### Krok 9: Sprawdzenie kolizji
 
 ```bash
 test -f context/foundation/roadmap.md
 ```
 
-If the file does not exist, write to `context/foundation/roadmap.md` and proceed to Step 10.
+Jeśli plik nie istnieje, zapisz do `context/foundation/roadmap.md` i przejdź do Kroku 10.
 
-If the file exists, the foundation-doc convention is **edit-in-place** for incremental refinement, **archive-then-replace** for full regeneration. This skill produces a *full* roadmap from PRD; surgical refinement is out of scope. So default to archive-then-replace, but ask with the selected interactive-question tool:
+Jeśli plik istnieje, konwencja dokumentów foundation to **edycja w miejscu** dla przyrostowego dopracowania, **archiwizacja, a potem zastąpienie** dla pełnego regenerowania. Ta umiejętność tworzy *pełną* mapę drogową z PRD; chirurgiczne dopracowanie jest poza zakresem. Dlatego domyślnie archiwizuj, a potem zastępuj, lecz zapytaj za pomocą wybranego narzędzia interaktywnych pytań:
 
-Interactive question:
-- question: "context/foundation/roadmap.md already exists. How would you like to proceed?"
-  header: "Collision"
+Pytanie interaktywne:
+- question: "context/foundation/roadmap.md już istnieje. Jak chcesz kontynuować?"
+  header: "Kolizja"
   options:
-  - label: "Archive and replace (Recommended)"
-    description: "Move existing to context/foundation/archive/<today>-roadmap.md, then write the new roadmap. History preserved per foundation README convention."
-  - label: "Overwrite without archiving"
-    description: "Replace in place. Existing content is lost (unless you've committed it). Use only if the existing roadmap is empty or scratch."
+  - label: "Zarchiwizuj i zastąp (Recommended)"
+    description: "Przenieś istniejący plik do context/foundation/archive/<today>-roadmap.md, a następnie zapisz nową mapę drogową. Historia zachowana zgodnie z konwencją foundation README."
+  - label: "Nadpisz bez archiwizacji"
+    description: "Zastąp w miejscu. Istniejąca treść zostanie utracona (chyba że została zatwierdzona w repozytorium). Używaj tylko, gdy istniejąca mapa drogowa jest pusta lub robocza."
   - label: "Cancel"
-    description: "Exit without writes. No collision resolution."
+    description: "Zakończ bez zapisu. Bez rozstrzygania kolizji."
   multiSelect: false
 
-On "Archive and replace": create `context/foundation/archive/` if missing, move the existing file to `context/foundation/archive/<today>-roadmap-<milestone_id>.md` (today's date in `YYYY-MM-DD`; drop the `-<milestone_id>` suffix for legacy files without one), then write the new content. If a file already exists at that archive path (regenerated twice in one day), append `-2`, `-3`, etc.
+Po „Zarchiwizuj i zastąp”: utwórz `context/foundation/archive/`, jeśli nie istnieje, przenieś istniejący plik do `context/foundation/archive/<today>-roadmap-<milestone_id>.md` (dzisiejsza data w `YYYY-MM-DD`; pomiń sufiks `-<milestone_id>` dla starszych plików bez niego), a następnie zapisz nową treść. Jeśli plik już istnieje pod tą ścieżką archiwum (zregenerowano dwa razy jednego dnia), dodaj `-2`, `-3` itd.
 
-On "Overwrite without archiving": write the new content, overwriting in place.
+Po „Nadpisz bez archiwizacji”: zapisz nową treść, nadpisując w miejscu.
 
-On "Cancel": STOP.
+Po „Cancel”: ZATRZYMAJ.
 
-### Step 10: Hand off
+### Krok 10: Przekaż dalej
 
-After the write lands, summarize:
+Po zapisaniu podsumuj:
 
 ```
 ═══════════════════════════════════════════════════════════
@@ -693,14 +690,14 @@ After the write lands, summarize:
 ═══════════════════════════════════════════════════════════
 ```
 
-Then **recommend a single next move** — don't hand back a "ready" list and ask the user to choose. Pick the one roadmap item to plan first and justify it in one line. The user can override, but the default surface is a recommendation, not a menu.
+Następnie **zarekomenduj pojedynczy kolejny ruch** — nie oddawaj listy „ready” i nie proś użytkownika o wybór. Wybierz jeden element mapy drogowej do zaplanowania jako pierwszy i uzasadnij go w jednej linii. Użytkownik może nadpisać wybór, ale domyślną powierzchnią jest rekomendacja, nie menu.
 
-**Selection rule for the recommended next move** (apply in order, first match wins):
+**Reguła wyboru rekomendowanego kolejnego ruchu** (stosuj w kolejności, wygrywa pierwsze dopasowanie):
 
-1. If the north star is `ready`, recommend it. The north star is the validation milestone; deferring it loses signal.
-2. Else if a Foundation the north star directly depends on is `ready`, recommend that Foundation, and explicitly say "this unlocks the north star <S-NN>".
-3. Else if no slice is `ready`, recommend resolving the highest-leverage Open Question or Blocker (the one that unblocks the most downstream items). No planning move is available until then.
-4. Else recommend the `ready` slice that unblocks the most downstream items (highest fan-out in the dep graph). Tie-break by main goal (Step 6d).
+1. Jeśli gwiazda przewodnia jest `ready`, zarekomenduj ją. Gwiazda przewodnia jest kamieniem milowym walidacji; odłożenie jej traci sygnał.
+2. W przeciwnym razie, jeśli Foundation, od którego gwiazda przewodnia bezpośrednio zależy, jest `ready`, zarekomenduj to Foundation i wyraźnie powiedz „this unlocks the north star <S-NN>”.
+3. W przeciwnym razie, jeśli żaden wycinek nie jest `ready`, zarekomenduj rozwiązanie pytania Open Question lub Blocker o najwyższej dźwigni (tego, które odblokowuje najwięcej elementów downstream). Do tego czasu nie ma dostępnego ruchu planowania.
+4. W przeciwnym razie zarekomenduj wycinek `ready`, który odblokowuje najwięcej elementów downstream (najwyższy fan-out w grafie zależności). Rozstrzygaj remisy według głównego celu (Krok 6d).
 
 Format:
 
@@ -721,7 +718,7 @@ Format:
   recommendation; come back and I'll re-recommend.)
 ```
 
-If no slice is `ready` and no Foundation is `ready` either (case 3), replace the recommendation with:
+Jeśli żaden wycinek nie jest `ready` i żadne Foundation również nie jest `ready` (przypadek 3), zastąp rekomendację przez:
 
 ```
 ► **No planning move is available yet.** Every slice is blocked.
@@ -734,42 +731,42 @@ If no slice is `ready` and no Foundation is `ready` either (case 3), replace the
   re-recommend.
 ```
 
-STOP. Do not chain into another skill automatically — the user picks when to plan. But do NOT degrade the recommendation into a multiple-choice list; if the user wants a different slice, they say so.
+ZATRZYMAJ. Nie przechodź automatycznie do innej umiejętności — użytkownik wybiera, kiedy planować. Ale NIE degraduj rekomendacji do listy wielokrotnego wyboru; jeśli użytkownik chce inny wycinek, powie to.
 
-## Critical guardrails
+## Krytyczne zabezpieczenia
 
-1. **Source materials are the source.** Every slice traces to a source-anchor ID — PRD IDs (`FR-NNN`/`US-NN`) for PRD-sourced milestones, `MS-NN` charter anchors for description-sourced ones. Step 5's framing surfaces goal/north-star/investment/blocker context inferred from the sources; the baseline surfaces what already exists; neither grows the sources. Roadmap items without a source trace are a self-review failure.
+1. **Materiały źródłowe są źródłem.** Każdy wycinek śledzi ID kotwicy źródłowej — ID PRD (`FR-NNN`/`US-NN`) dla kamieni milowych pochodzących z PRD, kotwice karty `MS-NN` dla pochodzących z opisu użytkownika. Ramowanie z Kroku 5 ujawnia kontekst celu/gwiazdy przewodniej/inwestycji/blokady wywnioskowany ze źródeł; stan bazowy ujawnia to, co już istnieje; żadne z nich nie rozbudowuje źródeł. Elementy mapy drogowej bez śladu źródła są porażką samoprzeglądu.
 
-2. **Vertical slices first.** A slice delivers user-visible capability end-to-end. Horizontal slices ("the API layer", "the schema") are the anti-pattern this skill exists to prevent. Foundations are the *only* exception — they are explicitly cross-cutting enablers, live in their own section, carry `Unlocks`, and are marked `(foundation)` so no reader confuses them with user-facing work.
+2. **Najpierw pionowe wycinki.** Wycinek dostarcza kompleksowo funkcję widoczną dla użytkownika. Poziome wycinki („the API layer”, „the schema”) są antywzorcem, któremu ta umiejętność ma zapobiegać. Foundations są *jedynym* wyjątkiem — są jawnie przekrojowymi elementami umożliwiającymi, znajdują się we własnej sekcji, zawierają `Unlocks` i są oznaczone `(foundation)`, aby żaden czytelnik nie pomylił ich z pracą widoczną dla użytkownika.
 
-3. **Balanced granularity without estimates.** Slices do not get size labels, but their scope still has to be comparable. A roadmap where `S-01` contains nearly the whole PRD and `S-02`/`S-03` are minor leftovers is a bad roadmap. Split oversized items by narrower user-visible outcomes, workflow phases, personas, or risk boundaries — never by technical layer.
+3. **Zrównoważona granularność bez estymacji.** Wycinki nie otrzymują etykiet rozmiaru, ale ich zakres nadal musi być porównywalny. Mapa drogowa, w której `S-01` zawiera niemal całe PRD, a `S-02`/`S-03` są drobnymi resztkami, jest złą mapą drogową. Dziel zbyt duże elementy według węższych wyników widocznych dla użytkownika, faz przepływu pracy, person lub granic ryzyka — nigdy według warstwy technicznej.
 
-4. **Foundations are minimal unlocks, not layer-completion projects.** A foundation may create the smallest prerequisite needed before vertical work can proceed. It may not prebuild the whole database/API/UI/auth layer. If a technical element can be introduced inside the first user-facing slice that needs it, put it there; this keeps integration vertical and progressively reveals only the needed elements.
+4. **Foundations są minimalnymi odblokowaniami, nie projektami ukończenia warstw.** Foundation może stworzyć najmniejszy warunek wstępny potrzebny, zanim pionowa praca będzie mogła ruszyć. Nie może budować wcześniej całej warstwy database/API/UI/auth. Jeśli element techniczny może zostać wprowadzony wewnątrz pierwszego wycinka widocznego dla użytkownika, który go potrzebuje, umieść go tam; utrzymuje to integrację pionową i progresywnie ujawnia wyłącznie potrzebne elementy.
 
-5. **No estimates, no time units.** No "Day 1", no "2 weeks", no "small/medium/large", no points. AI-agent execution is non-linear and time-budgeted estimates lie. Order is encoded in Prerequisites; pacing surfaces via Blockers and Unknowns. The roadmap describes shape, not schedule.
+5. **Bez estymacji, bez jednostek czasu.** Żadnego „Day 1”, „2 weeks”, „small/medium/large”, punktów. Wykonanie przez agentów AI jest nieliniowe, a estymacje oparte na budżecie czasu kłamią. Kolejność jest zakodowana w Prerequisites; tempo ujawnia się przez Blockers i Unknowns. Mapa drogowa opisuje kształt, nie harmonogram.
 
-6. **No low-level technical details.** No frameworks named (those live in `tech-stack.md`), no file paths, no schema definitions, no code, no library choices. If you find yourself writing those, you've crossed into `/10x-plan`'s territory — stop and let `/10x-plan` do its job downstream.
+6. **Bez technicznych szczegółów niskiego poziomu.** Bez nazw frameworków (należą do `tech-stack.md`), bez ścieżek plików, definicji schematów, kodu ani wyborów bibliotek. Jeśli zauważysz, że je zapisujesz, wkroczyłeś na terytorium `/10x-plan` — zatrzymaj się i pozwól `/10x-plan` wykonać jego zadanie downstream.
 
-7. **Surface unknowns, don't paper over them.** Per-slice Unknowns with `Block: yes` promote `Status: blocked`. Cross-cutting unknowns land in `## Open Roadmap Questions`. If the PRD has TODOs, the roadmap inherits them as blocked-slice unknowns. The roadmap's value is partly in showing the user what's NOT yet plannable.
+7. **Ujawniaj niewiadome, nie zakrywaj ich.** Unknowns per-wycinek z `Block: yes` podnoszą `Status: blocked`. Przekrojowe niewiadome trafiają do `## Open Roadmap Questions`. Jeśli PRD ma TODOs, mapa drogowa dziedziczy je jako unknowns zablokowanych wycinków. Wartość mapy drogowej częściowo polega na pokazaniu użytkownikowi, czego NIE można jeszcze planować.
 
-8. **Baseline is auto-researched, not asked.** Don't ask the user "what's already in place?" — spawn parallel Explore subagents (Step 4) and let the codebase answer. Then ask the user only to confirm or correct. This is the contract that makes Foundations honest: a foundation only exists when the baseline says the layer is absent or partial.
+8. **Stan bazowy jest automatycznie badany, nie pytany.** Nie pytaj użytkownika „what's already in place?” — uruchom równoległe subagenty Explore (Krok 4) i pozwól kodowi odpowiedzieć. Następnie pytaj użytkownika wyłącznie o potwierdzenie lub poprawkę. To kontrakt, który czyni Foundations uczciwymi: foundation istnieje tylko wtedy, gdy stan bazowy mówi, że warstwa jest absent lub partial.
 
-9. **Self-review aborts on drift.** Missing required sections, broken dep graph, uncovered must-have FRs, invented slices, oversized slices, Foundation layer-completion, Baseline-vs-Foundations contradictions — all abort the write with a specific error. No silent patch-up.
+9. **Samoprzegląd przerywa przy dryfie.** Brak wymaganych sekcji, uszkodzony graf zależności, niepokryte FR must-have, wymyślone wycinki, zbyt duże wycinki, ukończenie warstwy przez Foundation, sprzeczności Baseline-vs-Foundations — wszystkie przerywają zapis z konkretnym błędem. Bez cichego łatania.
 
-10. **Foundation-doc convention.** `roadmap.md` is a foundation doc per `context/foundation/README.md`. Default collision handling is archive-then-replace (history goes to `foundation/archive/<today>-roadmap.md`); surgical refinement is out of scope for this skill (edit by hand if you need it).
+10. **Konwencja dokumentów foundation.** `roadmap.md` jest dokumentem foundation zgodnie z `context/foundation/README.md`. Domyślna obsługa kolizji to archiwizacja, a następnie zastąpienie (historia trafia do `foundation/archive/<today>-roadmap.md`); chirurgiczne dopracowanie jest poza zakresem tej umiejętności (edytuj ręcznie, jeśli tego potrzebujesz).
 
-11. **Universal language only.** No 10xDevs / cohort / certification references in any user-facing output or any artifact written to disk. The skill is a generic roadmap generator.
+11. **Wyłącznie uniwersalny język.** Bez odniesień do 10xDevs / cohort / certification w jakimkolwiek wyniku widocznym dla użytkownika ani artefakcie zapisanym na dysk. Umiejętność jest ogólnym generatorem map drogowych.
 
-12. **Never chain automatically.** Step 10 is an announcement, not an invocation. The user picks when (and which) slice to feed to `/10x-plan`. Auto-chaining would skip the human's review of the generated roadmap.
+12. **Nigdy nie przechodź automatycznie dalej.** Krok 10 jest ogłoszeniem, nie wywołaniem. Użytkownik wybiera, kiedy (i który) wycinek przekazać do `/10x-plan`. Automatyczne łańcuchowanie pominęłoby przegląd wygenerowanej mapy drogowej przez człowieka.
 
-13. **Define strategic terms inline on first use.** Product-strategy vocabulary — `wedge`, `beachhead`, `north star`, `validation milestone`, `primary metric`, `must-have path`, `product-market fit`, `thin end of the wedge`, `riskiest assumption`, `core hypothesis` — is skill- and PRD-internal shorthand, not common knowledge; the roadmap must read cold to a teammate (or future-you) who has not taken a product-strategy course. On the FIRST occurrence of any such term in the document body, attach a one-sentence definition inline (parenthetical, em-dash gloss, or short follow-on sentence); do not repeat it later. If a concept can't be defined in one sentence, replace it with plain language ("the smallest end-to-end flow that proves the product works" beats "the wedge" you can't compress into one clause). Applies to user-facing prose in the emitted document — not to interview questions (5g covers those) or this file's own field semantics. Self-review check #17 enforces it.
+13. **Definiuj terminy strategiczne inline przy pierwszym użyciu.** Słownictwo strategii produktu — `wedge`, `beachhead`, `north star`, `validation milestone`, `primary metric`, `must-have path`, `product-market fit`, `thin end of the wedge`, `riskiest assumption`, `core hypothesis` — jest skrótem wewnętrznym umiejętności i PRD, nie wiedzą powszechną; mapa drogowa musi być czytelna od zera dla współpracownika (lub przyszłego ciebie), który nie ukończył kursu strategii produktu. Przy PIERWSZYM wystąpieniu dowolnego takiego terminu w treści dokumentu dołącz jednolinijkową definicję inline (w nawiasie, jako objaśnienie po pauzie lub krótkie następujące zdanie); nie powtarzaj jej później. Jeśli pojęcia nie da się zdefiniować jednym zdaniem, zastąp je prostym językiem („the smallest end-to-end flow that proves the product works” jest lepsze niż „the wedge”, którego nie potrafisz skompresować do jednej klauzuli). Dotyczy prozy widocznej dla użytkownika w wygenerowanym dokumencie — nie pytań wywiadu (5g je obejmuje) ani semantyki pól tego pliku. Kontrola samoprzeglądu #17 to wymusza.
 
-14. **Lean interview with strong Recommends — not silent auto-framing, not unbounded discovery.** Step 5's rules are normative: at most 3 anchor questions (`main_goal`, `north_star`, `top_blocker`), investment areas derived not asked, every question one Recommend grounded in a quoted artifact line plus 1-2 real alternatives (strawmen forbidden), skips only when the artifacts literally state the value, follow-ups only under the custom-MVP exception (5f). Step 10's recommended-next-move is the same principle applied to the hand-off: one recommendation with a one-line reason, not a "ready to plan" list the user has to triage.
+14. **Zwięzły wywiad z mocnymi Rekomendacjami — nie ciche automatyczne ramowanie, nie nieograniczone odkrywanie.** Reguły Kroku 5 są normatywne: maksymalnie 3 pytania kotwiczące (`main_goal`, `north_star`, `top_blocker`), obszary inwestycji wyprowadzane, nie pytane, każde pytanie z jedną Rekomendacją opartą na cytowanej linii artefaktu oraz 1–2 rzeczywistymi alternatywami (chochoły zakazane), pominięcia wyłącznie wtedy, gdy artefakty dosłownie podają wartość, follow-upy tylko w ramach wyjątku niestandardowego MVP (5f). Rekomendowany kolejny ruch z Kroku 10 to ta sama zasada zastosowana do przekazania dalej: jedna rekomendacja z jednolinijkowym powodem, nie lista „ready to plan”, którą użytkownik musi triage’ować.
 
-15. **Milestones loop, but never time-box.** Exactly one milestone open at a time; it closes only when every F-NN/S-NN is `done` (or the user explicitly abandons it), then the loop reopens with fresh source materials or a user description. Milestone state is derived from `roadmap.md` alone — no sidecar files. The lifecycle spec lives in `references/milestone-state.md`, loaded ONLY for milestone-level operations (Step 0 dispatch). Downstream skills stay milestone-blind; this skill detects milestone completion on its next invocation.
+15. **Kamienie milowe zapętlają się, ale nigdy nie są ograniczane czasowo.** Dokładnie jeden kamień milowy jest otwarty naraz; zamyka się wyłącznie wtedy, gdy każde F-NN/S-NN jest `done` (lub użytkownik jawnie go porzuca), po czym pętla otwiera się ponownie ze świeżymi materiałami źródłowymi lub opisem użytkownika. Stan kamienia milowego jest wyprowadzany wyłącznie z `roadmap.md` — bez plików pomocniczych. Specyfikacja cyklu życia znajduje się w `references/milestone-state.md`, ładowanym WYŁĄCZNIE dla operacji na poziomie kamienia milowego (rozdzielenie Kroku 0). Umiejętności downstream pozostają ślepe na kamienie milowe; ta umiejętność wykrywa ukończenie kamienia milowego przy kolejnym wywołaniu.
 
-## Notes
+## Uwagi
 
-- This skill is a **document generator plus milestone tracker**. Output is `context/foundation/roadmap.md`, period. Per-change planning lives downstream in `/10x-plan`.
-- The baseline probe (Step 4) replaces what used to be a "what's already in place?" question. Subagents are cheaper than the user's attention, and the codebase is more reliable than memory.
-- When the skill regenerates an existing roadmap, the archived previous version is the cleanest diff target for seeing how the project's understanding changed — that's the affordance the foundation-doc convention is designed for.
+- Ta umiejętność to **generator dokumentu plus tracker kamieni milowych**. Wynikiem jest `context/foundation/roadmap.md`, kropka. Planowanie pojedynczych zmian znajduje się downstream w `/10x-plan`.
+- Sonda stanu bazowego (Krok 4) zastępuje dawne pytanie „what's already in place?”. Subagenci są tańsi niż uwaga użytkownika, a kod jest bardziej niezawodny niż pamięć.
+- Gdy umiejętność regeneruje istniejącą mapę drogową, zarchiwizowana poprzednia wersja jest najczystszym celem diff do zobaczenia, jak zmieniło się rozumienie projektu — to udogodnienie, do którego zaprojektowano konwencję dokumentów foundation.
