@@ -270,23 +270,23 @@ One new migration, additive (a function and a constraint comment). It never runs
 
 #### Automated
 
-- [x] 3.1 Syntax and format pass: `node --check scripts/smoke.mjs` and `npx prettier --check scripts/smoke.mjs`
-- [x] 3.2 Full lint and type check pass: `npm run lint` and `npx astro check`
-- [x] 3.3 Whole unit suite passes: `npx vitest run`
-- [x] 3.4 Smoke passes locally, one lane at a time: `ASTRO_DEV_BACKGROUND=1 npm run smoke:local -- --yes`
+- [x] 3.1 Syntax and format pass: `node --check scripts/smoke.mjs` and `npx prettier --check scripts/smoke.mjs` — 25e0d44
+- [x] 3.2 Full lint and type check pass: `npm run lint` and `npx astro check` — 25e0d44
+- [x] 3.3 Whole unit suite passes: `npx vitest run` — 25e0d44
+- [x] 3.4 Smoke passes locally, one lane at a time: `ASTRO_DEV_BACKGROUND=1 npm run smoke:local -- --yes` — 25e0d44
 
 #### Manual
 
-- [x] 3.5 In a real browser, the delete button stays disabled until `DELETE` is typed, submitting lands on the home page with the "permanently deleted" banner, and no link is remembered
-- [x] 3.6 In a real browser, a wrong phrase shows the "Type DELETE exactly" error and deletes nothing
+- [x] 3.5 In a real browser, the delete button stays disabled until `DELETE` is typed, submitting lands on the home page with the "permanently deleted" banner, and no link is remembered — 25e0d44
+- [x] 3.6 In a real browser, a wrong phrase shows the "Type DELETE exactly" error and deletes nothing — 25e0d44
 - [ ] 3.7 CI `smoke` job is green after the push
 
 ### Phase 4: Roadmap and test-plan sync
 
 #### Automated
 
-- [ ] 4.1 Whole unit suite still passes: `npx vitest run`
+- [x] 4.1 Whole unit suite still passes: `npx vitest run`
 
 #### Manual
 
-- [ ] 4.2 The roadmap S-10 block records both decisions and the test-plan row is accurate
+- [x] 4.2 The roadmap S-10 block records both decisions and the test-plan row is accurate

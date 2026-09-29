@@ -203,9 +203,9 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Prerequisites:** S-02
 - **Parallel with:** S-03, S-04, S-05, S-06, S-07, S-08, S-09
 - **Blockers:** —
-- **Unknowns:**
-  - Exact confirmation UX (typed phrase vs. two-step confirm) — Owner: user. Block: no.
-  - Whether this needs its own audit-log entry (mirroring `access_log`) given it's irreversible and self-service — Owner: user. Block: no.
+- **Unknowns:** none open. Decided in the `delete-account` plan (2026-09-29):
+  - Confirmation UX: a typed phrase, `DELETE`, checked on the server as well as in the page.
+  - Audit entry: none. The deletion leaves no record, and the person's `access_log` rows (IP and user agent) are deleted with everything else.
 - **Risk:** Fully irreversible, no-admin, no-recovery action — the highest-consequence single click in the app. Confirmation UX needs real scrutiny at plan time; a careless implementation here is the one mistake in this codebase with no undo path at all.
 - **Status:** planning
 
