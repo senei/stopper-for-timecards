@@ -35,7 +35,13 @@ function storeCookies(response) {
   for (const raw of response.headers.getSetCookie()) {
     const [pair, ...attrs] = raw.split(";");
     const [name, ...rest] = pair.split("=");
-    const expired = attrs.some((a) => /max-age=0/i.test(a.trim()));
+    // A cookie is expired by Max-Age=0 or by an Expires date in the past (Astro's cookies.delete sends the latter).
+    const expired = attrs.some((a) => {
+      const attr = a.trim();
+      if (/^max-age=0$/i.test(attr)) return true;
+      const expires = /^expires=(.*)$/i.exec(attr)?.[1];
+      return expires !== undefined && Date.parse(expires) < Date.now();
+    });
     if (expired) jar.delete(name.trim());
     else jar.set(name.trim(), rest.join("="));
   }
@@ -150,6 +156,9 @@ checkLeakHeaders("the workspace", r);
 
 r = await request(`/w/${token}/regenerate`);
 checkLeakHeaders("the regenerate page", r);
+
+r = await request(`/w/${token}/delete-account`);
+checkLeakHeaders("the delete-account page", r);
 
 r = await request(`/w/${token}/grid`);
 checkLeakHeaders("the grid page", r);
@@ -537,6 +546,106 @@ if (!hasServiceAccess) {
 
   r = await request(`/api/w/${token}/regenerate`, { method: "POST" });
   check("the old (already-regenerated) token can no longer regenerate either", r.status === 404, describeResponse(r));
+
+  // S-10: a person can delete all their data. Placed after the regenerate checks and last in the file, since it
+  // removes the link the earlier checks used. Only `regeneratedToken`'s person has projects and entries, so the
+  // global counts are an exact proxy for that person's rows.
+  r = await request(`/w/${regeneratedToken}/delete-account`);
+  check("the delete-account confirmation page opens", r.status === 200, describeResponse(r));
+
+  const { json: linksBeforeDelete } = await rest("links?select=id");
+  const { json: projectsBeforeDelete } = await rest("projects?select=id");
+  const { json: entriesBeforeDelete } = await rest("time_entries?select=id");
+  const CONFIRM_ERROR_LOCATION = `/w/${regeneratedToken}/delete-account?error=confirm-phrase`;
+
+  r = await request(`/api/w/${regeneratedToken}/delete-account`, { method: "POST" });
+  check(
+    "deleting without the confirmation phrase redirects back to the confirmation page",
+    r.status === 303 && r.location === CONFIRM_ERROR_LOCATION,
+    describeResponse(r),
+  );
+
+  r = await request(`/api/w/${regeneratedToken}/delete-account`, { method: "POST", form: { confirm: "delete" } });
+  check(
+    "deleting with the phrase in lowercase redirects back to the confirmation page",
+    r.status === 303 && r.location === CONFIRM_ERROR_LOCATION,
+    describeResponse(r),
+  );
+
+  const { json: linksAfterRefused } = await rest("links?select=id");
+  const { json: projectsAfterRefused } = await rest("projects?select=id");
+  const { json: entriesAfterRefused } = await rest("time_entries?select=id");
+  check(
+    "the refused deletes leave every count unchanged",
+    linksAfterRefused.length === linksBeforeDelete.length &&
+      projectsAfterRefused.length === projectsBeforeDelete.length &&
+      entriesAfterRefused.length === entriesBeforeDelete.length,
+    `${linksAfterRefused.length} link(s), ${projectsAfterRefused.length} project(s), ${entriesAfterRefused.length} entr(y/ies)`,
+  );
+
+  r = await request(`/w/${regeneratedToken}/delete-account?error=confirm-phrase`);
+  check(
+    "the confirmation page shows the wrong-phrase error",
+    r.status === 200 && r.text.includes("Type DELETE exactly to confirm."),
+    describeResponse(r),
+  );
+
+  // Only this person owns projects, so their link id is the one on those rows. Their workspace views wrote access-log
+  // rows, which the delete must remove too.
+  const { json: ownedProjects } = await rest("projects?select=link_id&limit=1");
+  const deletedLinkId = ownedProjects[0]?.link_id;
+  const { json: accessBeforeDelete } = await rest(`access_log?select=id&link_id=eq.${deletedLinkId}`);
+  check("the access log holds rows for the person's link before the delete", accessBeforeDelete.length > 0);
+
+  r = await request(`/api/w/${regeneratedToken}/delete-account`, { method: "POST", form: { confirm: "DELETE" } });
+  check(
+    "deleting with the phrase redirects to the home page with the deleted status",
+    r.status === 303 && r.location === "/?status=account-deleted",
+    describeResponse(r),
+  );
+  check(
+    "deleting the remembered link clears the browser's link cookie",
+    !jar.has("stopper_link"),
+    jar.get("stopper_link") ?? "(no cookie)",
+  );
+
+  r = await request(`/w/${token}`, { withCookies: false });
+  check("the old token still 404s after the delete", r.status === 404, describeResponse(r));
+
+  r = await request(`/w/${regeneratedToken}`, { withCookies: false });
+  check("the deleted link's token 404s", r.status === 404, describeResponse(r));
+
+  const { json: linksAfterDelete } = await rest("links?select=id");
+  const { json: projectsAfterDelete } = await rest("projects?select=id");
+  const { json: entriesAfterDelete } = await rest("time_entries?select=id");
+  check(
+    "the delete removes exactly that person's rows: one link, all their projects and all their time entries",
+    linksAfterDelete.length === linksBeforeDelete.length - 1 &&
+      linksAfterDelete.length === 9 &&
+      projectsBeforeDelete.length > 0 &&
+      entriesBeforeDelete.length > 0 &&
+      projectsAfterDelete.length === 0 &&
+      entriesAfterDelete.length === 0,
+    `${linksAfterDelete.length} link(s), ${projectsAfterDelete.length} project(s), ${entriesAfterDelete.length} entr(y/ies)`,
+  );
+
+  const { json: accessForDeleted } = await rest(`access_log?select=id&link_id=eq.${deletedLinkId}`);
+  check(
+    "the access log has no row for the deleted link",
+    Boolean(deletedLinkId) && accessForDeleted.length === 0,
+    `${accessForDeleted.length} row(s)`,
+  );
+
+  r = await request(`/w/${otherToken}`, { withCookies: false });
+  check("another person's link still works after someone else deleted theirs", r.status === 200, describeResponse(r));
+
+  // The freed slot: with nine links left, one more person can create theirs (no cookie, a fresh visitor).
+  r = await createLinkRequest(false);
+  check(
+    "a new link can be created after the delete freed a slot",
+    r.status === 303 && WORKSPACE_LOCATION.test(r.location),
+    describeResponse(r),
+  );
 }
 
 console.log(failed ? `\n${failed} step(s) failed` : "\nAll smoke steps passed");

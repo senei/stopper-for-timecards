@@ -258,27 +258,27 @@ One new migration, additive (a function and a constraint comment). It never runs
 
 #### Automated
 
-- [x] 2.1 Type check passes: `npx astro check`
-- [x] 2.2 Existing unit suite passes: `npx vitest run`
-- [x] 2.3 Lint on the touched files passes: `npx eslint src/lib/links.ts src/lib/status-messages.ts "src/pages/api/w/[token]/delete-account.ts" src/pages/index.astro`
+- [x] 2.1 Type check passes: `npx astro check` — bf3a1a5
+- [x] 2.2 Existing unit suite passes: `npx vitest run` — bf3a1a5
+- [x] 2.3 Lint on the touched files passes: `npx eslint src/lib/links.ts src/lib/status-messages.ts "src/pages/api/w/[token]/delete-account.ts" src/pages/index.astro` — bf3a1a5
 
 #### Manual
 
-- [x] 2.4 A POST with a wrong phrase changes nothing
+- [x] 2.4 A POST with a wrong phrase changes nothing — bf3a1a5
 
 ### Phase 3: Confirm page, workspace link and smoke step
 
 #### Automated
 
-- [ ] 3.1 Syntax and format pass: `node --check scripts/smoke.mjs` and `npx prettier --check scripts/smoke.mjs`
-- [ ] 3.2 Full lint and type check pass: `npm run lint` and `npx astro check`
-- [ ] 3.3 Whole unit suite passes: `npx vitest run`
-- [ ] 3.4 Smoke passes locally, one lane at a time: `ASTRO_DEV_BACKGROUND=1 npm run smoke:local -- --yes`
+- [x] 3.1 Syntax and format pass: `node --check scripts/smoke.mjs` and `npx prettier --check scripts/smoke.mjs`
+- [x] 3.2 Full lint and type check pass: `npm run lint` and `npx astro check`
+- [x] 3.3 Whole unit suite passes: `npx vitest run`
+- [x] 3.4 Smoke passes locally, one lane at a time: `ASTRO_DEV_BACKGROUND=1 npm run smoke:local -- --yes`
 
 #### Manual
 
-- [ ] 3.5 In a real browser, the delete button stays disabled until `DELETE` is typed, submitting lands on the home page with the "permanently deleted" banner, and no link is remembered
-- [ ] 3.6 In a real browser, a wrong phrase shows the "Type DELETE exactly" error and deletes nothing
+- [x] 3.5 In a real browser, the delete button stays disabled until `DELETE` is typed, submitting lands on the home page with the "permanently deleted" banner, and no link is remembered
+- [x] 3.6 In a real browser, a wrong phrase shows the "Type DELETE exactly" error and deletes nothing
 - [ ] 3.7 CI `smoke` job is green after the push
 
 ### Phase 4: Roadmap and test-plan sync

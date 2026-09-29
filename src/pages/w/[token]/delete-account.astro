@@ -1,0 +1,126 @@
+---
+import PageCard from "@/components/PageCard.astro";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Layout from "@/layouts/Layout.astro";
+import { isWellFormedToken } from "@/lib/link-token";
+import { findLinkByToken } from "@/lib/links";
+import { errorMessage } from "@/lib/status-messages";
+
+// Keep the token out of caches, referrers and search indexes. `strict-origin` sends only the site origin, never the
+// path; `no-referrer` would make browsers send `Origin: null` on this page's form, which Astro's origin check rejects.
+Astro.response.headers.set("Referrer-Policy", "strict-origin");
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("X-Robots-Tag", "noindex");
+
+const { token } = Astro.params;
+
+// Malformed tokens never reach the database.
+if (!isWellFormedToken(token)) {
+  return Astro.rewrite("/404");
+}
+
+let unavailable = false;
+try {
+  if (!(await findLinkByToken(token))) {
+    return Astro.rewrite("/404");
+  }
+} catch {
+  unavailable = true;
+  Astro.response.status = 503;
+}
+
+const cancelUrl = `/w/${token}`;
+const deleteAction = `/api/w/${token}/delete-account`;
+const bannerError = errorMessage(Astro.url.searchParams.get("error"));
+---
+
+<Layout title="Delete all my data">
+  <PageCard>
+    {unavailable ? (
+      <>
+        <h1 class="mb-4 text-2xl font-bold text-heading">Temporarily unavailable</h1>
+        <p class="text-muted-foreground">We could not load your workspace right now. Please try again in a moment.</p>
+      </>
+    ) : (
+      <>
+        <h1 class="mb-4 text-3xl font-bold text-heading">Delete all my data</h1>
+        {bannerError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{bannerError}</AlertDescription>
+          </Alert>
+        )}
+        <p class="text-muted-foreground">
+          This <span class="font-semibold text-card-foreground">permanently deletes</span> all your projects, all your
+          logged time and your private link. It cannot be undone and nothing can be recovered. Your spot is freed for
+          someone else.
+        </p>
+        <form method="post" action={deleteAction} class="mt-6" data-delete-form>
+          <label for="confirm" class="mb-2 block text-sm font-semibold text-card-foreground">
+            Type <span class="font-mono">DELETE</span> to confirm
+          </label>
+          <Input
+            type="text"
+            id="confirm"
+            name="confirm"
+            autoComplete="off"
+            autoCapitalize="off"
+            spellCheck={false}
+            required
+            data-confirm-input
+          />
+          <div class="mt-4 flex gap-2">
+            <Button type="submit" variant="destructive" disabled data-confirm-submit>
+              Delete everything
+            </Button>
+            <a href={cancelUrl} class:list={buttonVariants({ variant: "secondary" })}>
+              Cancel
+            </a>
+          </div>
+        </form>
+      </>
+    )}
+  </PageCard>
+</Layout>
+
+<script>
+  // The button stays disabled until the field reads DELETE. This is only a guard against slips: the server checks the
+  // phrase again and deletes nothing without it.
+  const PHRASE = "DELETE";
+
+  for (const form of document.querySelectorAll<HTMLFormElement>("[data-delete-form]")) {
+    const input = form.querySelector<HTMLInputElement>("[data-confirm-input]");
+    const submit = form.querySelector<HTMLButtonElement>("[data-confirm-submit]");
+    if (!input || !submit) {
+      continue;
+    }
+    const sync = () => {
+      submit.disabled = input.value.trim() !== PHRASE;
+    };
+    input.addEventListener("input", sync);
+    sync();
+
+    // Disable the button while the form posts, so a second click cannot send it twice.
+    form.addEventListener("submit", () => {
+      submit.disabled = true;
+      submit.setAttribute("aria-busy", "true");
+    });
+  }
+
+  // Coming back with the Back button can restore the page from the back/forward cache with the button stuck disabled;
+  // work it out from the field again then.
+  window.addEventListener("pageshow", (event) => {
+    if (!event.persisted) {
+      return;
+    }
+    for (const form of document.querySelectorAll<HTMLFormElement>("[data-delete-form]")) {
+      const input = form.querySelector<HTMLInputElement>("[data-confirm-input]");
+      const submit = form.querySelector<HTMLButtonElement>("[data-confirm-submit]");
+      if (input && submit) {
+        submit.removeAttribute("aria-busy");
+        submit.disabled = input.value.trim() !== PHRASE;
+      }
+    }
+  });
+</script>
