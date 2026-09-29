@@ -209,15 +209,15 @@ None: no schema or data changes.
 
 #### Automated
 
-- [ ] 1.1 Default suite passes with no database and no env vars: `npx vitest run`
-- [ ] 1.2 Integration suite passes against the local stack: `npm run test:integration`
-- [ ] 1.3 Integration suite skips with a clear message when the env vars are unset or the URL is not local
-- [ ] 1.4 Lint on the touched files passes: `npx eslint src/__tests__/delete-account.integration.test.ts`
+- [x] 1.1 Default suite passes with no database and no env vars: `npx vitest run`
+- [x] 1.2 Integration suite passes against the local stack: `npm run test:integration`
+- [x] 1.3 Integration suite skips with a clear message when the env vars are unset or the URL is not local
+- [x] 1.4 Lint on the touched files passes: `npx eslint src/__tests__/delete-account.integration.test.ts`
 
 #### Manual
 
-- [ ] 1.5 Each deliberate break turned its case red, and every file was restored
-- [ ] 1.6 No seeded rows remain afterward, including the null-link `access_log` row
+- [x] 1.5 Each deliberate break turned its case red, and every file was restored
+- [x] 1.6 No seeded rows remain afterward, including the null-link `access_log` row
 
 ### Phase 2: Hermetic additions (G1 mock, G2, G3, G5)
 
