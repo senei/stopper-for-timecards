@@ -1,10 +1,10 @@
 ---
 change_id: testing-link-abuse-guardrails
 title: Testing link leak and regeneration guardrails
-status: impl_reviewed
+status: archived
 created: 2026-09-29
 updated: 2026-09-29
-archived_at: null
+archived_at: 2026-09-29T12:02:16Z
 ---
 
 ## Notes
