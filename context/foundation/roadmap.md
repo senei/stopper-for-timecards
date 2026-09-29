@@ -47,7 +47,7 @@ People who work across several projects a day don't capture time as it happens, 
 | S-04 | timer-stop-and-flags     | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                       | done |
 | S-05 | time-corrections         | correct logged time at end of day or start of next day                   | S-03, S-04    | FR-005                       | proposed |
 | S-06 | weekly-grid-summary      | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001               | done |
-| S-07 | link-regeneration        | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02                | proposed |
+| S-07 | link-regeneration        | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02                | in-progress |
 | S-08 | time-entry-purge-verified| have entries older than 3 months purged automatically                    | S-02          | FR-008                       | done |
 | S-09 | delete-project            | delete a project from their list, blocked if it has any logged time      | S-02          | FR-009                       | done |
 | S-10 | delete-account            | permanently delete all their own data and their link, freeing their slot | S-02          | FR-010, FR-007               | proposed |
@@ -168,7 +168,7 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Only mitigation for a leaked link in a no-account model; has no dependency on timer slices so it can run in parallel whenever capacity allows.
-- **Status:** proposed
+- **Status:** in-progress
 
 ### S-08: Automatic purge of old time entries
 

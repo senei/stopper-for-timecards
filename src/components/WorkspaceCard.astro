@@ -241,6 +241,12 @@ function formatUtcTime(iso: string): string {
           <p class="mt-3 text-sm text-muted-foreground">
             Save this link now. It cannot be recovered, and anyone who has it can see and log your time.
           </p>
+          <a
+            href={`/w/${token}/regenerate`}
+            class:list={cn(buttonVariants({ variant: "secondary" }), actionWidth, "mt-3 hover:text-destructive-text")}
+          >
+            Regenerate
+          </a>
         </div>
       </>
     )}

@@ -21,6 +21,8 @@ const hasServiceAccess = Boolean(SMOKE_SUPABASE_URL && SMOKE_SERVICE_ROLE_KEY);
 // Cloudflare's documented dummy token; only the dummy secret key accepts it.
 const DUMMY_TURNSTILE_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
 const WORKSPACE_LOCATION = /^\/w\/([A-Za-z0-9_-]{43})$/;
+// The regenerate route redirects with the status query that shows the save-the-new-link banner.
+const REGENERATED_LOCATION = /^\/w\/([A-Za-z0-9_-]{43})\?status=link-regenerated$/;
 
 const jar = new Map();
 let failed = 0;
@@ -458,6 +460,57 @@ if (!hasServiceAccess) {
   } else {
     console.log("SKIP  anon RLS check (set SMOKE_ANON_KEY)");
   }
+
+  // S-07: a user can regenerate their own link. The old token 404s immediately, the new one lands
+  // in the same workspace (same projects/entries — only this link ever has any, so a global count
+  // is an exact proxy for "this link's rows"), and no other person's link is touched. Placed last:
+  // regenerating changes the `stopper_link` cookie and invalidates `token`, which earlier checks
+  // in this file still depend on.
+  r = await request(`/w/${token}/regenerate`);
+  check("the regenerate confirmation page opens", r.status === 200, describeResponse(r));
+
+  const { json: linksBeforeRegen } = await rest("links?select=id");
+  const { json: projectsBeforeRegen } = await rest("projects?select=id");
+  const { json: entriesBeforeRegen } = await rest("time_entries?select=id");
+
+  r = await request(`/api/w/${token}/regenerate`, { method: "POST" });
+  const regeneratedToken = REGENERATED_LOCATION.exec(r.location)?.[1];
+  check(
+    "regenerating redirects to a new workspace URL with a fresh token",
+    r.status === 303 && Boolean(regeneratedToken) && regeneratedToken !== token,
+    describeResponse(r),
+  );
+
+  r = await request(`/w/${token}`, { withCookies: false });
+  check("the old token 404s immediately after regenerating", r.status === 404, describeResponse(r));
+
+  r = await request(`/w/${regeneratedToken}`, { withCookies: false });
+  check("the new token opens the same workspace", r.status === 200, describeResponse(r));
+
+  const { json: linksAfterRegen } = await rest("links?select=id");
+  check(
+    "regenerating swaps the token in place rather than creating a new links row",
+    linksAfterRegen.length === linksBeforeRegen.length,
+    `${linksAfterRegen.length} link(s)`,
+  );
+
+  const { json: projectsAfterRegen } = await rest("projects?select=id");
+  const { json: entriesAfterRegen } = await rest("time_entries?select=id");
+  check(
+    "all of that person's projects and time entries survive the swap, unchanged in count",
+    projectsAfterRegen.length === projectsBeforeRegen.length && entriesAfterRegen.length === entriesBeforeRegen.length,
+    `${projectsAfterRegen.length} project(s), ${entriesAfterRegen.length} entr(y/ies)`,
+  );
+
+  r = await request(`/w/${otherToken}`, { withCookies: false });
+  check(
+    "another person's link still works after someone else regenerated theirs",
+    r.status === 200,
+    describeResponse(r),
+  );
+
+  r = await request(`/api/w/${token}/regenerate`, { method: "POST" });
+  check("the old (already-regenerated) token can no longer regenerate either", r.status === 404, describeResponse(r));
 }
 
 console.log(failed ? `\n${failed} step(s) failed` : "\nAll smoke steps passed");
