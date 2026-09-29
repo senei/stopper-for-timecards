@@ -1,10 +1,14 @@
 ---
+import PageCard from "@/components/PageCard.astro";
+import WeeklyGridView from "@/components/WeeklyGridView.astro";
 import WorkspaceCard from "@/components/WorkspaceCard.astro";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Layout from "@/layouts/Layout.astro";
 import type { Project } from "@/lib/projects";
 import type { CurrentTimer } from "@/lib/timer";
+import type { RawWeekEntry } from "@/lib/weekly-grid";
+import { buildWeeklyGrid } from "@/lib/weekly-grid";
 
 // Dev-only: this route ships in the Workers bundle, so outside development it answers 404 like any unknown path.
 if (!import.meta.env.DEV) {
@@ -47,6 +51,85 @@ const cardStates = [
   { name: "copy: copied", props: { currentTimer: null, projects, copyState: "copied" as const } },
   { name: "copy: failed", props: { currentTimer: null, projects, copyState: "failed" as const } },
 ];
+
+// Weekly grid states. Reuses `shared.now` (2026-09-24T12:00:00.000Z, a Thursday noon) as the pinned clock so
+// screenshots stay stable, the same convention the workspace-card states above rely on. The week containing
+// that Thursday is the UTC Monday-Sunday span Sep 21 - Sep 27, 2026.
+const gridWeekStartUtc = new Date("2026-09-21T00:00:00.000Z");
+const gridNowUtc = shared.now;
+const gridWeekLabel = "Sep 21 – Sep 27, 2026";
+
+// A multi-row (different Task/Type/Work Type) week, including one still-running entry credited up to `gridNowUtc`.
+const populatedGridEntries: RawWeekEntry[] = [
+  {
+    projectName: "Acme Widgets",
+    task: "Design",
+    type: "Client work",
+    workType: "Billable",
+    startedAt: "2026-09-21T09:00:00.000Z", // Monday
+    endedAt: "2026-09-21T11:15:00.000Z",
+  },
+  {
+    projectName: "Acme Widgets",
+    task: "Standup",
+    type: "Internal",
+    workType: "Non-billable",
+    startedAt: "2026-09-22T09:00:00.000Z", // Tuesday
+    endedAt: "2026-09-22T09:20:00.000Z",
+  },
+  {
+    projectName: "Beta Corp",
+    task: "Support",
+    type: "Client work",
+    workType: "Billable",
+    startedAt: "2026-09-23T13:00:00.000Z", // Wednesday
+    endedAt: "2026-09-23T15:00:00.000Z",
+  },
+  {
+    projectName: "Beta Corp",
+    task: "Support",
+    type: "Client work",
+    workType: "Billable",
+    startedAt: "2026-09-24T10:00:00.000Z", // Thursday, still running — credited up to gridNowUtc.
+    endedAt: null,
+  },
+];
+const populatedGridRows = buildWeeklyGrid(populatedGridEntries, gridWeekStartUtc, gridNowUtc);
+
+const gridStates = [
+  {
+    name: "empty week",
+    props: {
+      weekLabel: gridWeekLabel,
+      showPrevious: true,
+      showNext: true,
+      previousHref: "#",
+      nextHref: "#",
+      rows: [],
+    },
+  },
+  {
+    name: "populated week (multi-row + live entry)",
+    props: {
+      weekLabel: gridWeekLabel,
+      showPrevious: true,
+      showNext: true,
+      previousHref: "#",
+      nextHref: "#",
+      rows: populatedGridRows,
+    },
+  },
+  {
+    name: "earliest navigable week (no Previous link)",
+    props: {
+      weekLabel: "Jun 29 – Jul 5, 2026",
+      showPrevious: false,
+      showNext: true,
+      nextHref: "#",
+      rows: populatedGridRows,
+    },
+  },
+];
 ---
 
 <Layout title="Kitchen sink">
@@ -59,6 +142,20 @@ const cardStates = [
         <section>
           <h2 class="mb-2 text-sm font-semibold">{state.name}</h2>
           <WorkspaceCard {...shared} {...state.props} />
+        </section>
+      ))}
+    </div>
+
+    <h1 class="mt-10 mb-1 text-xl font-bold">Kitchen sink: weekly grid states</h1>
+    <p class="mb-6 text-sm">Development only. Every distinct state of the weekly grid page.</p>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      {gridStates.map((state) => (
+        <section>
+          <h2 class="mb-2 text-sm font-semibold">{state.name}</h2>
+          <PageCard embedded>
+            <WeeklyGridView {...state.props} />
+          </PageCard>
         </section>
       ))}
     </div>

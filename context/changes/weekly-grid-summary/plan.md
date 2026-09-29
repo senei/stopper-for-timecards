@@ -471,9 +471,9 @@ Not applicable — no schema changes; this plan reads existing
 
 #### Automated
 
-- [ ] 4.1 `npm run build` and `npm run lint` pass with the new link and kitchen-sink states
+- [x] 4.1 `npm run build` and `npm run lint` pass with the new link and kitchen-sink states — f1ebc14
 
 #### Manual
 
-- [ ] 4.2 Screenshot each new kitchen-sink state in both light and dark theme
-- [ ] 4.3 Confirm the new workspace-page link correctly navigates to /w/[token]/grid
+- [ ] 4.2 Screenshot each new kitchen-sink state in both light and dark theme — blocked: no browser/screenshot tool available in this session. Verified structurally instead (dev server + curl): all three new states (`empty week`, `populated week (multi-row + live entry)`, `earliest navigable week (no Previous link)`) render with correct rows/labels/nav in `/dev/kitchen-sink`'s HTML, and every token the new markup uses (`--card`, `--card-foreground`, `--muted-foreground`, `--border`, `--heading`) is already defined in both the `:root` and `.dark` layers of `src/styles/global.css` (no new token introduced). Note: this app's `.dark` layer is itself documented as inactive and never visually verified project-wide (`context/archive/2026-09-24-workspace-ui-tokens/tokens.md`: "the `.dark` layer ... is applied nowhere"), so an actual dark-theme screenshot isn't obtainable by toggling anything in the running app today. Needs the user's own visual confirmation (light theme at minimum) to close this row.
+- [x] 4.3 Confirm the new workspace-page link correctly navigates to /w/[token]/grid — f1ebc14. Verified end-to-end against the running dev server and local Supabase: created a real link via POST /api/links, loaded /w/<token>, confirmed the rendered "View weekly grid" link's href is exactly /w/<token>/grid (matching the current link's own token), then fetched that exact URL and got a 200 with the grid page's expected content.
