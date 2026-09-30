@@ -42,4 +42,13 @@ describe("deleteAccount", () => {
       await expect(deleteAccount("link-1")).rejects.toThrow("unexpected value");
     },
   );
+
+  it("throws, and does not report a result, when Supabase is not configured", async () => {
+    vi.mocked(adminOrThrow).mockImplementation(() => {
+      throw new Error("Supabase is not configured");
+    });
+
+    await expect(deleteAccount("link-1")).rejects.toThrow();
+    expect(rpc).not.toHaveBeenCalled();
+  });
 });

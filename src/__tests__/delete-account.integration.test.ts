@@ -47,7 +47,8 @@ async function count(table: "links" | "projects" | "time_entries" | "access_log"
     .select("id", { count: "exact", head: true })
     .eq(column, linkId);
   if (error) throw new Error(`count ${table} failed: ${error.message}`);
-  return rows ?? 0;
+  if (rows === null) throw new Error(`count ${table} returned no count`);
+  return rows;
 }
 
 async function snapshot(person: Person) {
@@ -96,8 +97,13 @@ describe.skipIf(!hasEnv)(integrationTitle("POST /api/w/[token]/delete-account (r
     const leaver = await seedOwner();
     const stayer = await seedOwner();
 
-    await post({ token: leaver.token, phrase }).response;
+    const { response, rewrite } = post({ token: leaver.token, phrase });
+    const result = await response;
 
+    // The route must have reached the phrase check (not failed earlier), and then refused.
+    expect(result.status).toBe(303);
+    expect(result.headers.get("Location")).toBe(`/w/${leaver.token}/delete-account?error=confirm-phrase`);
+    expect(rewrite).not.toHaveBeenCalled();
     expect(await snapshot(leaver)).toEqual(FULL);
     expect(await snapshot(stayer)).toEqual(FULL);
   });
@@ -144,6 +150,7 @@ describe.skipIf(!hasEnv)(integrationTitle("POST /api/w/[token]/delete-account (r
       await response;
 
       expect(rewrite).toHaveBeenCalledWith("/404");
+      expect(await snapshot(leaver)).toEqual(EMPTY);
       expect(await snapshot(stayer)).toEqual(FULL);
     });
 
