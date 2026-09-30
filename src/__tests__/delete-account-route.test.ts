@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { APIContext, AstroCookies } from "astro";
 import { generateToken } from "@/lib/link-token";
 import { deleteAccount, findLinkByToken } from "@/lib/links";
-import { POST } from "@/pages/api/w/[token]/delete-account";
+import { ALL, POST } from "@/pages/api/w/[token]/delete-account";
 
 vi.mock("@/lib/links", () => ({ findLinkByToken: vi.fn(), deleteAccount: vi.fn() }));
 
@@ -125,5 +125,47 @@ describe("POST /api/w/[token]/delete-account", () => {
 
     expect(result.status).toBe(503);
     expect(removeAccount).not.toHaveBeenCalled();
+  });
+
+  it("looks up and deletes the person whose token is in the URL, not the one whose link the cookie holds", async () => {
+    const urlToken = generateToken();
+    const cookieToken = generateToken();
+    findLink.mockImplementation((token) =>
+      Promise.resolve({ id: token === urlToken ? "url-person" : "cookie-person" }),
+    );
+    removeAccount.mockResolvedValue(true);
+
+    await call({ token: urlToken, phrase: "DELETE", cookie: cookieToken }).response;
+
+    expect(findLink).toHaveBeenCalledExactlyOnceWith(urlToken);
+    expect(removeAccount).toHaveBeenCalledExactlyOnceWith("url-person");
+  });
+
+  it("is a 404 for a malformed token without touching the database", async () => {
+    const { response, rewrite } = call({ token: "not-a-token", phrase: "DELETE" });
+    await response;
+
+    expect(rewrite).toHaveBeenCalledWith("/404");
+    expect(findLink).not.toHaveBeenCalled();
+    expect(removeAccount).not.toHaveBeenCalled();
+  });
+
+  it("refuses every method other than POST with a 405", () => {
+    const result = ALL({} as APIContext) as Response;
+
+    expect(result.status).toBe(405);
+    expect(result.headers.get("Allow")).toBe("POST");
+  });
+
+  describe("documents the current plan decision (the phrase is DELETE, trimmed of outer whitespace and case-sensitive)", () => {
+    it("accepts the phrase with surrounding whitespace", async () => {
+      findLink.mockResolvedValue({ id: "link-1" });
+      removeAccount.mockResolvedValue(true);
+
+      const result = await call({ token: generateToken(), phrase: "  DELETE  " }).response;
+
+      expect(removeAccount).toHaveBeenCalledExactlyOnceWith("link-1");
+      expect(result.headers.get("Location")).toBe("/?status=account-deleted");
+    });
   });
 });

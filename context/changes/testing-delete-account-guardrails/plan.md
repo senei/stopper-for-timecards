@@ -209,29 +209,29 @@ None: no schema or data changes.
 
 #### Automated
 
-- [x] 1.1 Default suite passes with no database and no env vars: `npx vitest run`
-- [x] 1.2 Integration suite passes against the local stack: `npm run test:integration`
-- [x] 1.3 Integration suite skips with a clear message when the env vars are unset or the URL is not local
-- [x] 1.4 Lint on the touched files passes: `npx eslint src/__tests__/delete-account.integration.test.ts`
+- [x] 1.1 Default suite passes with no database and no env vars: `npx vitest run` — 859bfc6
+- [x] 1.2 Integration suite passes against the local stack: `npm run test:integration` — 859bfc6
+- [x] 1.3 Integration suite skips with a clear message when the env vars are unset or the URL is not local — 859bfc6
+- [x] 1.4 Lint on the touched files passes: `npx eslint src/__tests__/delete-account.integration.test.ts` — 859bfc6
 
 #### Manual
 
-- [x] 1.5 Each deliberate break turned its case red, and every file was restored
-- [x] 1.6 No seeded rows remain afterward, including the null-link `access_log` row
+- [x] 1.5 Each deliberate break turned its case red, and every file was restored — 859bfc6
+- [x] 1.6 No seeded rows remain afterward, including the null-link `access_log` row — 859bfc6
 
 ### Phase 2: Hermetic additions (G1 mock, G2, G3, G5)
 
 #### Automated
 
-- [ ] 2.1 New and changed files pass: `npx vitest run src/__tests__/delete-account-route.test.ts src/lib/links.test.ts`
-- [ ] 2.2 Whole default suite passes: `npx vitest run`
-- [ ] 2.3 Lint passes: `npm run lint`
-- [ ] 2.4 Type check passes: `npx astro check`
+- [x] 2.1 New and changed files pass: `npx vitest run src/__tests__/delete-account-route.test.ts src/lib/links.test.ts`
+- [x] 2.2 Whole default suite passes: `npx vitest run`
+- [x] 2.3 Lint passes: `npm run lint`
+- [x] 2.4 Type check passes: `npx astro check`
 
 #### Manual
 
-- [ ] 2.5 Each deliberate break turned the matching case red and was restored
-- [ ] 2.6 Titles for non-PRD decisions read "documents the current plan decision", not "is required"
+- [x] 2.5 Each deliberate break turned the matching case red and was restored
+- [x] 2.6 Titles for non-PRD decisions read "documents the current plan decision", not "is required"
 
 ### Phase 3: Cookbook and rollout-status sync
 
