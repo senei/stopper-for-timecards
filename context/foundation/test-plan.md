@@ -93,7 +93,7 @@ orchestrator updates Status as artifacts appear on disk.
 |---|---|---|---|---|---|---|
 | 1 | Timer precision & attribution regression guard | Harden the two guardrail risks the team trusts least, extending existing db coverage with deliberate-break checks | #1, #2 | integration | complete | `context/changes/testing-timer-guardrails/` |
 | 2 | Weekly grid rounding & aggregation | Pin the rounding rule and Mon–Sun boundary of the weekly grid (S-06, already built) with oracle-derived tests, and cover its overlap query | #5 | unit + integration | complete | `context/archive/2026-09-29-testing-weekly-grid-rounding-aggregation/` |
-| 3 | Irreversible-action & link-abuse guardrails | Cover irreversible full-account delete (S-10) and link leak/regeneration (S-07) before/alongside those slices | #6, #4 | integration + e2e | both halves complete — `testing-link-abuse-guardrails` (#4) and `testing-delete-account-guardrails` (#6); their real-browser paths are deferred to Phase 4 | `context/archive/2026-09-29-testing-link-abuse-guardrails/` (#4), `context/changes/testing-delete-account-guardrails/` (#6) |
+| 3 | Irreversible-action & link-abuse guardrails | Cover irreversible full-account delete (S-10) and link leak/regeneration (S-07) before/alongside those slices | #6, #4 | integration + e2e | both halves complete — `testing-link-abuse-guardrails` (#4) and `testing-delete-account-guardrails` (#6); their real-browser paths are deferred to Phase 4 | `context/archive/2026-09-29-testing-link-abuse-guardrails/` (#4), `context/archive/2026-09-29-testing-delete-account-guardrails/` (#6) |
 | 4 | Real-browser flow coverage | Bootstrap a real-browser (e2e) layer to close the proven blind spot that HTTP-only smoke checks can't see | #3 | e2e | not started | — |
 
 Order rationale: Phase 1 protects the highest-ranked risks first at the
@@ -210,8 +210,8 @@ Established by `testing-link-abuse-guardrails` (risk #4); `testing-delete-accoun
 sub-phase.)
 
 - **§3 Phase 2 — weekly grid rounding & aggregation** (`context/archive/2026-09-29-testing-weekly-grid-rounding-aggregation/`, complete 2026-09-29): 1 test-first bug fix (integer-ms accumulation), 15 unit boundary/edge tests, 3 opt-in integration tests for `fetchWeekEntries`; see §6.4 for patterns and known gaps.
-- **§3 Phase 3 (link half) — link leak & regeneration** (`context/changes/testing-link-abuse-guardrails/`, implemented 2026-09-29): opt-in integration tests for the link lookup, regeneration and `link_id` scoping, hermetic cookie tests, leak-surface header checks in smoke, and a pgTAP anon-exposure test; see §6.5.
-- **§3 Phase 3 (delete-account half) — irreversible account delete** (`context/changes/testing-delete-account-guardrails/`, implemented 2026-09-30): an opt-in real-route test with two people who both own children (the cookie-holds-another-person fixture closes the wrong-scope gap the mocked route test could not see), hermetic route cases and wrapper tests, and nine deliberate-break checks (three for the real-route test, six for the hermetic cases); see §6.5.
+- **§3 Phase 3 (link half) — link leak & regeneration** (`context/archive/2026-09-29-testing-link-abuse-guardrails/`, implemented 2026-09-29): opt-in integration tests for the link lookup, regeneration and `link_id` scoping, hermetic cookie tests, leak-surface header checks in smoke, and a pgTAP anon-exposure test; see §6.5.
+- **§3 Phase 3 (delete-account half) — irreversible account delete** (`context/archive/2026-09-29-testing-delete-account-guardrails/`, implemented 2026-09-30): an opt-in real-route test with two people who both own children (the cookie-holds-another-person fixture closes the wrong-scope gap the mocked route test could not see), hermetic route cases and wrapper tests, and nine deliberate-break checks (three for the real-route test, six for the hermetic cases); see §6.5.
 
 ## 7. What We Deliberately Don't Test
 
