@@ -237,9 +237,9 @@ None: no schema or data changes.
 
 #### Automated
 
-- [x] 3.1 Whole unit suite still passes: `npx vitest run`
+- [x] 3.1 Whole unit suite still passes: `npx vitest run` — 8e71396
 
 #### Manual
 
-- [x] 3.2 `test-plan.md` §6.5 has the new entries and §3 row 3 shows both halves complete
-- [x] 3.3 The plan decisions appear in the cookbook with the "current plan decision" wording, and `change.md` no longer contradicts `main`
+- [x] 3.2 `test-plan.md` §6.5 has the new entries and §3 row 3 shows both halves complete — 8e71396
+- [x] 3.3 The plan decisions appear in the cookbook with the "current plan decision" wording, and `change.md` no longer contradicts `main` — 8e71396
