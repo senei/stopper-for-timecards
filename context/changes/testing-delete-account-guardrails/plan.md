@@ -223,23 +223,23 @@ None: no schema or data changes.
 
 #### Automated
 
-- [x] 2.1 New and changed files pass: `npx vitest run src/__tests__/delete-account-route.test.ts src/lib/links.test.ts`
-- [x] 2.2 Whole default suite passes: `npx vitest run`
-- [x] 2.3 Lint passes: `npm run lint`
-- [x] 2.4 Type check passes: `npx astro check`
+- [x] 2.1 New and changed files pass: `npx vitest run src/__tests__/delete-account-route.test.ts src/lib/links.test.ts` — 0c0c1c0
+- [x] 2.2 Whole default suite passes: `npx vitest run` — 0c0c1c0
+- [x] 2.3 Lint passes: `npm run lint` — 0c0c1c0
+- [x] 2.4 Type check passes: `npx astro check` — 0c0c1c0
 
 #### Manual
 
-- [x] 2.5 Each deliberate break turned the matching case red and was restored
-- [x] 2.6 Titles for non-PRD decisions read "documents the current plan decision", not "is required"
+- [x] 2.5 Each deliberate break turned the matching case red and was restored — 0c0c1c0
+- [x] 2.6 Titles for non-PRD decisions read "documents the current plan decision", not "is required" — 0c0c1c0
 
 ### Phase 3: Cookbook and rollout-status sync
 
 #### Automated
 
-- [ ] 3.1 Whole unit suite still passes: `npx vitest run`
+- [x] 3.1 Whole unit suite still passes: `npx vitest run`
 
 #### Manual
 
-- [ ] 3.2 `test-plan.md` §6.5 has the new entries and §3 row 3 shows both halves complete
-- [ ] 3.3 The plan decisions appear in the cookbook with the "current plan decision" wording, and `change.md` no longer contradicts `main`
+- [x] 3.2 `test-plan.md` §6.5 has the new entries and §3 row 3 shows both halves complete
+- [x] 3.3 The plan decisions appear in the cookbook with the "current plan decision" wording, and `change.md` no longer contradicts `main`
