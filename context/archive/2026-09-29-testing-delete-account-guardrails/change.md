@@ -1,10 +1,10 @@
 ---
 change_id: testing-delete-account-guardrails
 title: Testing delete-account scope and confirmation guardrails
-status: impl_reviewed
+status: archived
 created: 2026-09-29
 updated: 2026-09-30
-archived_at: null
+archived_at: 2026-09-30T09:33:30Z
 ---
 
 ## Notes
