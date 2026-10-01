@@ -1,10 +1,10 @@
 ---
 change_id: link-regeneration
 title: Regenerate own private link (S-07)
-status: impl_reviewed
+status: archived
 created: 2026-09-28
-updated: 2026-09-29
-archived_at: null
+updated: 2026-10-01
+archived_at: 2026-10-01T11:28:03Z
 ---
 
 ## Notes

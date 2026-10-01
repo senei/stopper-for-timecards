@@ -3,7 +3,7 @@ project: "Stopper for Timecards"
 version: 1
 status: draft
 created: 2026-09-21
-updated: 2026-09-29
+updated: 2026-10-01
 prd_version: 4
 main_goal: speed
 top_blocker: capacity
@@ -39,30 +39,30 @@ People who work across several projects a day don't capture time as it happens, 
 
 ## At a glance
 
-| ID   | Change ID                | Outcome (user can …)                                                     | Prerequisites | PRD refs                     | Status   |
-| ---- | ------------------------ | ------------------------------------------------------------------------ | ------------- | ---------------------------- | -------- |
-| S-01 | private-link-access      | create their own private link and open it to land in their own workspace | —             | FR-007, US-02                | done        |
-| S-02 | first-timer-start        | add a project and pick it to start the timer instantly                   | S-01          | FR-001, FR-002, US-01, NFR   | done |
-| S-03 | timer-switch-rounding    | switch the running timer to another project with 15-min-rounded splits   | S-02          | FR-003                       | done |
-| S-04 | timer-stop-and-flags     | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                       | done |
-| S-05 | time-corrections         | correct logged time at end of day or start of next day                   | S-03, S-04    | FR-005                       | proposed |
-| S-06 | weekly-grid-summary      | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001               | done |
-| S-07 | link-regeneration        | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02                | in-progress |
-| S-08 | time-entry-purge-verified| have entries older than 3 months purged automatically                    | S-02          | FR-008                       | done |
-| S-09 | delete-project            | delete a project from their list, blocked if it has any logged time      | S-02          | FR-009                       | done |
-| S-10 | delete-account            | permanently delete all their own data and their link, freeing their slot | S-02          | FR-010, FR-007               | done |
+| ID   | Change ID                 | Outcome (user can …)                                                     | Prerequisites | PRD refs                   | Status   |
+| ---- | ------------------------- | ------------------------------------------------------------------------ | ------------- | -------------------------- | -------- |
+| S-01 | private-link-access       | create their own private link and open it to land in their own workspace | —             | FR-007, US-02              | done     |
+| S-02 | first-timer-start         | add a project and pick it to start the timer instantly                   | S-01          | FR-001, FR-002, US-01, NFR | done     |
+| S-03 | timer-switch-rounding     | switch the running timer to another project with 15-min-rounded splits   | S-02          | FR-003                     | done     |
+| S-04 | timer-stop-and-flags      | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                     | done     |
+| S-05 | time-corrections          | correct logged time at end of day or start of next day                   | S-03, S-04    | FR-005                     | proposed |
+| S-06 | weekly-grid-summary       | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001             | done     |
+| S-07 | link-regeneration         | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02              | done     |
+| S-08 | time-entry-purge-verified | have entries older than 3 months purged automatically                    | S-02          | FR-008                     | done     |
+| S-09 | delete-project            | delete a project from their list, blocked if it has any logged time      | S-02          | FR-009                     | done     |
+| S-10 | delete-account            | permanently delete all their own data and their link, freeing their slot | S-02          | FR-010, FR-007             | done     |
 
 ## Streams
 
 Navigation aid — groups items that share a Prerequisites chain. Canonical ordering still lives in the dependency graph below.
 
-| Stream | Theme               | Chain                                | Note                                                                      |
-| ------ | ------------------- | ------------------------------------ | ------------------------------------------------------------------------- |
-| A      | Core tracking flow  | `S-01` → `S-02` → `S-03` → `S-06`    | The must-have path to the weekly grid; carries the north star.            |
-| B      | Day-end handling    | `S-04` → `S-05`                      | Branches from Stream A at `S-02`; `S-05` also needs `S-03` from Stream A. |
-| C      | Link security       | `S-07`                               | Only needs `S-01`; parallel with everything after it.                     |
-| D      | Retention           | `S-08`                               | Only needs the real time-entry data from `S-02`; parallel with the rest.  |
-| E      | Data ownership       | `S-09`, `S-10`                       | CRUD-completeness (delete); both only need `S-02`, parallel with the rest. |
+| Stream | Theme              | Chain                             | Note                                                                       |
+| ------ | ------------------ | --------------------------------- | -------------------------------------------------------------------------- |
+| A      | Core tracking flow | `S-01` → `S-02` → `S-03` → `S-06` | The must-have path to the weekly grid; carries the north star.             |
+| B      | Day-end handling   | `S-04` → `S-05`                   | Branches from Stream A at `S-02`; `S-05` also needs `S-03` from Stream A.  |
+| C      | Link security      | `S-07`                            | Only needs `S-01`; parallel with everything after it.                      |
+| D      | Retention          | `S-08`                            | Only needs the real time-entry data from `S-02`; parallel with the rest.   |
+| E      | Data ownership     | `S-09`, `S-10`                    | CRUD-completeness (delete); both only need `S-02`, parallel with the rest. |
 
 ## Baseline
 
@@ -116,7 +116,7 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Parallel with:** S-04, S-07, S-08
 - **Blockers:** —
 - **Unknowns:** —
-- **Rounding rule (resolved 2026-09-23):** round each project's tracked time *per day* — not per individual segment — always rounding up to the next 15-minute increment. Implementation is deferred to S-06: the "day" boundary this rule depends on isn't defined yet, since S-06's Mon–Sun timezone question (see its Unknowns) is still open. This slice only records the rule and stores exact raw timestamps.
+- **Rounding rule (resolved 2026-09-23):** round each project's tracked time _per day_ — not per individual segment — always rounding up to the next 15-minute increment. Implementation is deferred to S-06: the "day" boundary this rule depends on isn't defined yet, since S-06's Mon–Sun timezone question (see its Unknowns) is still open. This slice only records the rule and stores exact raw timestamps.
 - **Risk:** Correctness guardrail (15-minute precision, right project) lives here, so it is sequenced right after the first timer.
 - **Status:** done
 
@@ -168,7 +168,7 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Only mitigation for a leaked link in a no-account model; has no dependency on timer slices so it can run in parallel whenever capacity allows.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-08: Automatic purge of old time entries
 
@@ -213,18 +213,18 @@ None. Deploy/infra is already present, and every other technical element (link i
 
 GitHub issues created 2026-09-21 in `senei/stopper-for-timecards`.
 
-| Roadmap ID | Change ID | Suggested issue title | Ready for `/10x-plan` | GitHub issue | Notes |
-| --- | --- | --- | --- | --- | --- |
-| S-01 | private-link-access | Private link creation and access (10-user cap) | yes | [#1](https://github.com/senei/stopper-for-timecards/issues/1) | Run `/10x-plan private-link-access` |
-| S-02 | first-timer-start | Add project and start timer on pick | no | [#2](https://github.com/senei/stopper-for-timecards/issues/2) | Needs S-01 |
-| S-03 | timer-switch-rounding | Switch timer between projects with 15-min rounding | no | [#3](https://github.com/senei/stopper-for-timecards/issues/3) | Needs S-02 |
-| S-04 | timer-stop-and-flags | Stop timer and flag long-running timers | no | [#4](https://github.com/senei/stopper-for-timecards/issues/4) | Needs S-02 |
-| S-05 | time-corrections | Correct logged time | no | [#5](https://github.com/senei/stopper-for-timecards/issues/5) | Needs S-03, S-04 |
-| S-06 | weekly-grid-summary | Weekly Project/Task/Type/Work Type × Mon–Sun table | no | [#6](https://github.com/senei/stopper-for-timecards/issues/6) | Needs S-03, S-04 |
-| S-07 | link-regeneration | Regenerate own private link | no | [#7](https://github.com/senei/stopper-for-timecards/issues/7) | Needs S-01 |
-| S-08 | time-entry-purge-verified | Verify automatic purge of entries older than 3 months | no | [#8](https://github.com/senei/stopper-for-timecards/issues/8) | Needs S-02 |
-| S-09 | delete-project | Delete a project (blocked if it has logged time) | no | not filed | Needs S-02; added 2026-09-22 for CRUD-completeness |
-| S-10 | delete-account | Delete all own data and the link itself | no | not filed | Needs S-02; added 2026-09-22 for CRUD-completeness |
+| Roadmap ID | Change ID                 | Suggested issue title                                 | Ready for `/10x-plan` | GitHub issue                                                  | Notes                                              |
+| ---------- | ------------------------- | ----------------------------------------------------- | --------------------- | ------------------------------------------------------------- | -------------------------------------------------- |
+| S-01       | private-link-access       | Private link creation and access (10-user cap)        | yes                   | [#1](https://github.com/senei/stopper-for-timecards/issues/1) | Run `/10x-plan private-link-access`                |
+| S-02       | first-timer-start         | Add project and start timer on pick                   | no                    | [#2](https://github.com/senei/stopper-for-timecards/issues/2) | Needs S-01                                         |
+| S-03       | timer-switch-rounding     | Switch timer between projects with 15-min rounding    | no                    | [#3](https://github.com/senei/stopper-for-timecards/issues/3) | Needs S-02                                         |
+| S-04       | timer-stop-and-flags      | Stop timer and flag long-running timers               | no                    | [#4](https://github.com/senei/stopper-for-timecards/issues/4) | Needs S-02                                         |
+| S-05       | time-corrections          | Correct logged time                                   | no                    | [#5](https://github.com/senei/stopper-for-timecards/issues/5) | Needs S-03, S-04                                   |
+| S-06       | weekly-grid-summary       | Weekly Project/Task/Type/Work Type × Mon–Sun table    | no                    | [#6](https://github.com/senei/stopper-for-timecards/issues/6) | Needs S-03, S-04                                   |
+| S-07       | link-regeneration         | Regenerate own private link                           | no                    | [#7](https://github.com/senei/stopper-for-timecards/issues/7) | Needs S-01                                         |
+| S-08       | time-entry-purge-verified | Verify automatic purge of entries older than 3 months | no                    | [#8](https://github.com/senei/stopper-for-timecards/issues/8) | Needs S-02                                         |
+| S-09       | delete-project            | Delete a project (blocked if it has logged time)      | no                    | not filed                                                     | Needs S-02; added 2026-09-22 for CRUD-completeness |
+| S-10       | delete-account            | Delete all own data and the link itself               | no                    | not filed                                                     | Needs S-02; added 2026-09-22 for CRUD-completeness |
 
 ## Open Roadmap Questions
 
@@ -249,3 +249,4 @@ GitHub issues created 2026-09-21 in `senei/stopper-for-timecards`.
 - **S-04: user can stop the timer for the day and is prompted to correct a timer that has been running suspiciously long** — Archived 2026-09-25 → `context/archive/2026-09-25-timer-stop-and-flags/`. Lesson: —.
 - **S-06: user can view a weekly table laid out exactly as Project/Task/Type/Work Type × Mon–Sun, ready to copy into the company timesheet** — Archived 2026-09-29 → `context/archive/2026-09-28-weekly-grid-summary/`. Lesson: —.
 - **S-10: permanently delete all their own data and their link, freeing their slot** — Archived 2026-09-29 → `context/archive/2026-09-29-delete-account/`. Lesson: —.
+- **S-07: user can regenerate their own link from within the app; the old link stops working immediately and no one else's link is affected** — Archived 2026-10-01 → `context/archive/2026-09-28-link-regeneration/`. Lesson: —.
