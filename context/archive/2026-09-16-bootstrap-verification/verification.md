@@ -27,30 +27,33 @@ A small, 5-week after-hours build of a hosted multi-user web app needs a battle-
 
 **GitHub repo check:** Unable to reach GitHub API (gh CLI not available). Recency check skipped, proceeding with full confidence in starter (first-class bootstrapper rating).
 
-| Aspect | Status |
-|--------|--------|
+| Aspect        | Status              |
+| ------------- | ------------------- |
 | Network check | Skipped (no gh CLI) |
-| Severity | WARN-AND-CONTINUE |
+| Severity      | WARN-AND-CONTINUE   |
 
 ## Scaffold log
 
 **Strategy:** git-clone (clone → delete .git → move files up with conflict matrix)
 
-**Resolved CLI:** 
+**Resolved CLI:**
+
 ```
 git clone https://github.com/przeprogramowani/10x-astro-starter .bootstrap-scaffold && cd .bootstrap-scaffold && npm install
 ```
 
 **Execution:**
+
 - Git clone: ✓ Success
 - npm install: ✓ Success (648 packages, 0 vulnerabilities, 44s)
 - .git deletion: ✓ Success
 - Conflict matrix merge: ✓ Success
-- Scaffold cleanup: ✓ Success *(correction 2026-09-21: the `.bootstrap-scaffold/` temp folder was still present; see Follow-up below)*
+- Scaffold cleanup: ✓ Success _(correction 2026-09-21: the `.bootstrap-scaffold/` temp folder was still present; see Follow-up below)_
 
 **Conflict resolution:**
+
 - `.gitignore`: Append-merged (existing lines preserved, scaffold lines added with separator)
-- **Special-case files created as .scaffold siblings** (conflict): 
+- **Special-case files created as .scaffold siblings** (conflict):
   - `.github.scaffold`, `.husky.scaffold`, `.vscode.scaffold`, `public.scaffold`, `scripts.scaffold`, `src.scaffold`, `supabase.scaffold`, `.env.example.scaffold`, `.nvmrc.scaffold`, `.prettierrc.json.scaffold`, `AGENTS.md.scaffold`, `astro.config.mjs.scaffold`, `CLAUDE.md.scaffold`, `components.json.scaffold`, `eslint.config.js.scaffold`, `package-lock.json.scaffold`, `package.json.scaffold`, `README.md.scaffold`, `tsconfig.json.scaffold`, `wrangler.jsonc.scaffold`
 - `node_modules`: Skipped (no duplication)
 - `context/`: Preserved from cwd (not overwritten)
@@ -63,13 +66,13 @@ git clone https://github.com/przeprogramowani/10x-astro-starter .bootstrap-scaff
 
 **Audit result:** ✓ **0 vulnerabilities**
 
-| Severity | Count | Direct | Transitive |
-|----------|-------|--------|-----------|
-| Critical | 0 | 0 | 0 |
-| High | 0 | 0 | 0 |
-| Moderate | 0 | 0 | 0 |
-| Low | 0 | 0 | 0 |
-| **Total** | **0** | **0** | **0** |
+| Severity  | Count | Direct | Transitive |
+| --------- | ----- | ------ | ---------- |
+| Critical  | 0     | 0      | 0          |
+| High      | 0     | 0      | 0          |
+| Moderate  | 0     | 0      | 0          |
+| Low       | 0     | 0      | 0          |
+| **Total** | **0** | **0**  | **0**      |
 
 **Dependencies:** 377 production, 300 dev, 167 optional (835 total).
 
@@ -111,7 +114,6 @@ The scaffold leftovers this log describes were cleaned up afterwards, in commit 
 - **README:** the starter's `README.md.scaffold` described email/password auth and starter setup, so it was not promoted. A new project `README.md` was written instead.
 - **Effect:** `tsconfig.json` includes `**/*`, so `astro check` had been scanning the scaffold copies too (59 files); it now checks 33 files with 0 errors.
 - **Next steps 1 above** (review the `.scaffold` siblings) is therefore done.
-
 
 ---
 

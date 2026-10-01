@@ -1,10 +1,10 @@
 ---
 change_id: bootstrap-verification
 title: Bootstrap verification log for the starter scaffold
-status: new
+status: archived
 created: 2026-09-16
-updated: 2026-09-25
-archived_at: null
+updated: 2026-10-01
+archived_at: 2026-10-01T11:31:24Z
 ---
 
 ## Notes
