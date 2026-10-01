@@ -23,13 +23,13 @@ is touched. The swap is atomic, implemented as a security-definer SQL function t
   `hashToken()` (SHA-256 hex) — reused as-is for the new token.
 - `src/pages/w/[token].astro` (the hot file) re-derives the link from the URL token, logs every
   access via `logAccess(linkId, request, outcome)` (`AccessOutcome` = `"success" | "not_found" |
-  "error"`, matching the `access_log.outcome` check constraint), and renders `WorkspaceCard` with a
+"error"`, matching the `access_log.outcome` check constraint), and renders `WorkspaceCard` with a
   `workspaceUrl` prop that is already shown, always visible, with a Copy button in a "Your private
   link" section.
 - `src/pages/w/[token]/projects/[projectId]/delete.astro` +
   `src/pages/api/w/[token]/projects/[projectId]/delete.ts` is the precedent for a destructive,
   confirmed action: a GET confirmation page (re-derives the link, shows a "Confirm" / "Cancel"
-  choice) posting to a sibling `/api/w/...` route that re-derives the link *again* from the URL
+  choice) posting to a sibling `/api/w/...` route that re-derives the link _again_ from the URL
   token (never trusts a cookie) and performs the real mutation.
 - `src/lib/link-cookie.ts`'s `stopper_link` cookie is a convenience only — `/w/[token].astro` sets
   it "only for a browser that has none," and every mutating route re-derives authorization from the
@@ -130,7 +130,7 @@ coverage.
 assigned prefix per `context/foundation/parallel-goals.md`)
 
 **Intent**: Atomically swap a link's `token_hash` from an old value to a new one, keyed by looking
-the row up by its *old* hash first. Returns the link's stable `id` on success so the caller can log
+the row up by its _old_ hash first. Returns the link's stable `id` on success so the caller can log
 against it; returns `null` when the old hash doesn't resolve to any row (already regenerated,
 mistyped, or never existed) — same "null means the caller's precondition failed" convention as
 `create_link`'s cap-reached `null`.
@@ -140,7 +140,7 @@ mistyped, or never existed) — same "null means the caller's precondition faile
 authenticated; grant execute ... to service_role;` — identical shape to `create_link` /
 `start_timer`.
 
-Concurrency: the advisory lock must be scoped by the *link id*, not the old hash, so it serializes
+Concurrency: the advisory lock must be scoped by the _link id_, not the old hash, so it serializes
 with the same key space `start_timer` already uses for that link
 (`hashtext('public.regenerate_link:' || v_id::text)`) — not strictly required for correctness here
 (a second concurrent regenerate naturally loses because its `where token_hash = p_old_token_hash`
@@ -191,6 +191,7 @@ function retries, by design (see the same reasoning in `create_link`'s existing 
 (plan count, direct `select`s against the function, `has_function_privilege` grant checks).
 
 **Contract**: One `plan(N)` pgTAP file, transactional (`begin` / `rollback`), asserting:
+
 - regenerating a valid token returns the link's `id` and updates `token_hash` to the new value;
 - the **old** `token_hash` no longer matches any row after regeneration (the precondition
   `findLinkByToken` relies on for its 404);
@@ -230,11 +231,13 @@ mirroring `createLink()`'s shape (generate token client-side, hash it, call the 
 `null` as a named failure state rather than throwing).
 
 **Contract**:
+
 ```ts
 export type RegenerateLinkResult = { status: "regenerated"; id: string; token: string } | { status: "not_found" };
 
-export async function regenerateLink(oldToken: string): Promise<RegenerateLinkResult>
+export async function regenerateLink(oldToken: string): Promise<RegenerateLinkResult>;
 ```
+
 Calls `admin.rpc("regenerate_link", { p_old_token_hash: await hashToken(oldToken), p_new_token_hash: await hashToken(newToken) })` where `newToken = generateToken()`; `data === null` →
 `{ status: "not_found" }`; otherwise `{ status: "regenerated", id: data, token: newToken }`. Same
 error-shape handling as `createLink()` (throw on `response.error` or an unexpected `data` type).
@@ -273,6 +276,7 @@ exactly as `timer/start.ts` / `projects/[projectId]/delete.ts` do — the `stopp
 never trusted for authorization, only updated as a side effect of success.
 
 **Contract**: `POST` only (`ALL` → 405, `Allow: POST`, same as the other API routes).
+
 1. Malformed token → `rewrite("/404")`.
 2. `findLinkByToken` lookup failure → `503`.
 3. No link → `rewrite("/404")`.
@@ -410,12 +414,12 @@ shapes.
 
 #### Manual
 
-- [ ] 2.4 Regenerate from the UI lands on a new URL with a banner and the same projects/timer state
-- [ ] 2.5 The old URL 404s on the next request
-- [ ] 2.6 A second, unrelated workspace's link is unaffected throughout
+- [x] 2.4 Regenerate from the UI lands on a new URL with a banner and the same projects/timer state — f402976
+- [x] 2.5 The old URL 404s on the next request — f402976
+- [x] 2.6 A second, unrelated workspace's link is unaffected throughout — f402976
 
 ### Phase 3: Coverage — smoke check
 
 #### Automated
 
-- [ ] 3.1 `npm run smoke:local` passes (includes the new regenerate steps)
+- [x] 3.1 `npm run smoke:local` passes (includes the new regenerate steps) — 19cfd5f
