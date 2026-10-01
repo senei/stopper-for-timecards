@@ -1,9 +1,9 @@
 ---
 change_id: smoke-local-port
 title: Smoke local port
-status: implemented
+status: impl_reviewed
 created: 2026-09-25
-updated: 2026-09-25
+updated: 2026-10-01
 archived_at: null
 ---
 
