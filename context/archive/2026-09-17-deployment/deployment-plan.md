@@ -49,6 +49,7 @@ This is the audit trail for the first deployment of `stopper-for-timecards` to C
 Confirmed or required before any gate below can be attempted.
 
 **Already satisfied (verified 2026-09-17):**
+
 - GitHub access is fully working. `gh` CLI was not installed on this machine (winget MSI install failed with a permissions error, exit 1603); installed portably instead at `C:\Users\MAKGRU\tools\bin\gh.exe` (no admin rights needed). Logged in as **`senei`** (matches the repo owner and `senei.web@gmail.com`), token scopes `repo` + `workflow`. A second cached account (`Maks-G`) exists but is inactive — the git remote and this login now correctly match.
 - Git can fetch/push. The global `~/.gitconfig` (resolves to `P:\.gitconfig` in this environment) is not writable, so the `gh`-issued credential helper was configured **locally** for this repo instead (`git config --local credential.https://github.com.helper`). Local git identity is also set locally: `senei web <senei.web@gmail.com>`.
 - **Local and remote history were reconciled.** They had unrelated histories — the GitHub-created repo had its own auto-generated `LICENSE`-only initial commit, while local development had proceeded independently without ever fetching first. Resolved via `git pull origin main --allow-unrelated-histories` (clean merge, only added `LICENSE`, no conflicts) then `git push origin main` — both sides are now in sync (`de56f3e..f261a06`). Local `main` tracks `origin/main`.
@@ -60,11 +61,13 @@ Confirmed or required before any gate below can be attempted.
 **Note on token scope**: the active OAuth session carries very broad account-level permissions (workers, workers_kv, d1, pages, queues, containers, email, browser, ai, etc.) — normal for an interactive `wrangler login` session, but not the narrow, project-scoped token gate 2 asks for. Gate 2's scoped API token (Workers-edit-only, this project) is for **Cloudflare Builds CI specifically** and must still be created separately — do not reuse this broad OAuth session for that purpose.
 
 **Not yet satisfied (verified 2026-09-17):**
+
 - Supabase CLI (`npx supabase`, resolved 2.117.0, within the `^2.23.4` range) is installed but **not authenticated** — `npx supabase projects list` returns `LegacyPlatformAuthRequiredError`: "Access token not provided. Supply an access token by running `supabase login`...". No Supabase account session exists yet.
 - No project is linked — `npx supabase status` returns `linked_project: null`. Gate 3 (create/link a real Supabase project) is fully outstanding; `supabase login` is an interactive browser OAuth flow, same category as `wrangler login` was, and cannot be completed by the agent.
-- No Worker exists yet on the Cloudflare account — `npx wrangler deployments list` returns `[code: 10007] This Worker does not exist on your account`. Gate 4 (connect the GitHub repo to Cloudflare Builds) has nothing to attach to yet — the git side is now fully ready (see above), but there's no Cloudflare-side project to point it at. In practice this means the first `wrangler deploy` (Phase A) needs to happen *before* the dashboard git-connection step in gate 4, not after — revisit gate 4's ordering once Phase A's first deploy lands.
+- No Worker exists yet on the Cloudflare account — `npx wrangler deployments list` returns `[code: 10007] This Worker does not exist on your account`. Gate 4 (connect the GitHub repo to Cloudflare Builds) has nothing to attach to yet — the git side is now fully ready (see above), but there's no Cloudflare-side project to point it at. In practice this means the first `wrangler deploy` (Phase A) needs to happen _before_ the dashboard git-connection step in gate 4, not after — revisit gate 4's ordering once Phase A's first deploy lands.
 
 **Must be true before Phase A starts:**
+
 - You (not the agent) have — or can create — a Cloudflare account with permission to create API tokens and connect Git repositories.
 - You have — or can create — a Supabase account with permission to create a new project (or an existing project this app can be pointed at).
 - ~~Push/admin access to `github.com/senei/stopper-for-timecards`~~ — **confirmed**: authenticated as `senei` (repo owner) with `repo` + `workflow` scopes, push verified working.
@@ -75,6 +78,7 @@ Confirmed or required before any gate below can be attempted.
 How to configure each CLI this plan depends on, from a clean machine or to redo/extend what's already set up here. All three follow the same shape: install → interactive login (browser-based, human-only) → verify → (optionally) link a specific project/resource.
 
 **`wrangler` (Cloudflare)** — status: ✅ configured
+
 - Already a pinned devDependency (`^4.131.1`); always invoke via `npx wrangler <command>`, never a separate global install, so everyone/every environment uses the same version.
 - Login: `npx wrangler login` — opens a browser OAuth flow. Credentials land at `C:\Users\MAKGRU\AppData\Roaming\xdg.config\.wrangler\config\default.toml` in this environment.
 - Switch/reset identity: `npx wrangler logout` then `npx wrangler login` again.
@@ -82,6 +86,7 @@ How to configure each CLI this plan depends on, from a clean machine or to redo/
 - **Non-interactive alternative** (useful for scripts or CI outside Cloudflare Builds, though Cloudflare Builds manages its own auth internally and doesn't need this): set the `CLOUDFLARE_API_TOKEN` environment variable — wrangler picks it up automatically instead of requiring `wrangler login`. This is the mechanism gate 2's scoped token would use if ever invoked from a script rather than pasted into the Cloudflare Builds dashboard.
 
 **`gh` (GitHub CLI)** — status: ✅ configured
+
 - Not installed system-wide on this machine (winget MSI install failed, exit 1603 — likely needs admin rights this environment doesn't have). Installed portably instead: downloaded `gh_2.101.0_windows_amd64.zip` from the [official releases page](https://github.com/cli/cli/releases) and extracted to `C:\Users\MAKGRU\tools\bin\gh.exe`. To make this permanent (not just full-path invocation), add `C:\Users\MAKGRU\tools\bin` to the user `PATH` environment variable (Windows Settings → Environment Variables, or `setx PATH "%PATH%;C:\Users\MAKGRU\tools\bin"` in a fresh shell).
 - Login: `gh auth login` — interactive device-code flow (prints a one-time code + a URL to open in a browser). Supports multiple cached accounts simultaneously.
 - Switch between cached accounts: `gh auth switch --hostname github.com --user <username>`.
@@ -90,6 +95,7 @@ How to configure each CLI this plan depends on, from a clean machine or to redo/
 - Verify: `gh auth status`.
 
 **`supabase` (Supabase CLI)** — status: ❌ not yet configured (blocks gate 3)
+
 - Already a devDependency (`^2.23.4`, resolves to `2.117.0` via `npx`); invoke via `npx supabase <command>`.
 - Login: `npx supabase login` — interactive browser flow, stores an access token locally. For non-interactive/CI use, the `SUPABASE_ACCESS_TOKEN` environment variable is the equivalent of `wrangler`'s `CLOUDFLARE_API_TOKEN` — set it instead of running `login` interactively.
 - **After** a project exists (gate 3, via the Supabase dashboard or `npx supabase projects create`): link this repo to it with `npx supabase link --project-ref <project-ref>` — this is what makes `npx supabase db push` and migration commands target the correct remote database instead of only the local dev stack in `supabase/config.toml`.
@@ -104,8 +110,8 @@ These require an interactive login, dashboard click-through, or entering real cr
   - **Edge case**: if the token is later deleted or rolled from the dashboard, Cloudflare Builds fails with "the build token selected for this build may have been deleted or rolled and cannot be used" — the fix is updating the token in Worker Builds settings, not regenerating the whole git connection.
 - [ ] **Create or link a real Supabase project** — via the Supabase dashboard (or `supabase link` if a project already exists). This produces the real `SUPABASE_URL` and keys that `.env.example` currently only placeholders.
 - [ ] **Connect the GitHub repo to Cloudflare Builds** — in the Cloudflare dashboard, link this repository so pushes to `main` trigger `auto-deploy-on-merge` per `tech-stack.md`'s CI hint. This is a one-time dashboard click-through, not scriptable. Point it at `main` specifically — see the `ci.yml` branch-mismatch bug noted above; don't repeat that mistake here.
-  - **Ordering note (verified 2026-09-17)**: no Worker exists on the Cloudflare account yet (`npx wrangler deployments list` → `[code: 10007]`), so there's nothing to attach git integration to. Do this step *after* Phase A's first `wrangler deploy` creates the Worker, not before.
-  - **Edge case — name mismatch**: Cloudflare requires the dashboard Worker's name to exactly match `wrangler.jsonc`'s `name` field, or the git-connected build fails outright. Phase A step 1 renames it to `stopper-for-timecards` before this gate — do the rename *before* connecting git, not after.
+  - **Ordering note (verified 2026-09-17)**: no Worker exists on the Cloudflare account yet (`npx wrangler deployments list` → `[code: 10007]`), so there's nothing to attach git integration to. Do this step _after_ Phase A's first `wrangler deploy` creates the Worker, not before.
+  - **Edge case — name mismatch**: Cloudflare requires the dashboard Worker's name to exactly match `wrangler.jsonc`'s `name` field, or the git-connected build fails outright. Phase A step 1 renames it to `stopper-for-timecards` before this gate — do the rename _before_ connecting git, not after.
   - **Edge case — one Cloudflare account per repo**: the same GitHub repo cannot be connected to Workers/Pages projects in two different Cloudflare accounts simultaneously. If this repo was ever test-connected under a different account (e.g. while `wrangler` was authenticated as the wrong identity earlier in this session), disconnect it there first.
   - **Edge case — fork PRs**: Cloudflare Builds does not generate preview deployments for PRs from forked repositories (platform limitation, not a misconfiguration) — irrelevant for this solo project today, but worth knowing if external contributors ever open PRs.
   - **Edge case — build duration**: builds are killed at a hard 20-minute ceiling. This app's build is small (static Astro + a few dependencies) and should be well under that, but worth knowing if a dependency bump ever bloats build time.
@@ -113,14 +119,14 @@ These require an interactive login, dashboard click-through, or entering real cr
 
 ## 2. Secrets to configure
 
-| Name | Type | Where it lives | Used by |
-|---|---|---|---|
-| `SUPABASE_URL` | Config value | `wrangler.jsonc` `vars` (build-time, plain) + local `.env` | All Supabase client calls |
-| `SUPABASE_KEY` (anon key) | Config value | Same as above | Client-facing Supabase calls |
-| `SUPABASE_SERVICE_ROLE_KEY` | **Secret** | `wrangler secret put` (Workers Secrets store, encrypted) + gitignored `.dev.vars` for local dev | Phase B purge job, Phase C access log — elevated-privilege server-side writes |
-| Cloudflare API token (scoped: Workers edit, this project only) | **Secret** | Entered inside Cloudflare Builds' own dashboard when connecting the repo (manual gate 4) — never stored in this repo | Cloudflare Builds CI, for `auto-deploy-on-merge` |
-| `SUPABASE_URL` (GitHub Actions copy) | Config value | **GitHub repo secrets** (Settings → Secrets and variables → Actions) — a separate store from the two above, consumed by `.github/workflows/ci.yml`'s `ci` and `smoke` jobs | Lint/build/smoke-test only — this copy never deploys anything (see CI/CD ownership constraint above) |
-| `SUPABASE_KEY` (GitHub Actions copy) | Config value | Same GitHub repo secrets store | Same as above |
+| Name                                                           | Type         | Where it lives                                                                                                                                                             | Used by                                                                                              |
+| -------------------------------------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `SUPABASE_URL`                                                 | Config value | `wrangler.jsonc` `vars` (build-time, plain) + local `.env`                                                                                                                 | All Supabase client calls                                                                            |
+| `SUPABASE_KEY` (anon key)                                      | Config value | Same as above                                                                                                                                                              | Client-facing Supabase calls                                                                         |
+| `SUPABASE_SERVICE_ROLE_KEY`                                    | **Secret**   | `wrangler secret put` (Workers Secrets store, encrypted) + gitignored `.dev.vars` for local dev                                                                            | Phase B purge job, Phase C access log — elevated-privilege server-side writes                        |
+| Cloudflare API token (scoped: Workers edit, this project only) | **Secret**   | Entered inside Cloudflare Builds' own dashboard when connecting the repo (manual gate 4) — never stored in this repo                                                       | Cloudflare Builds CI, for `auto-deploy-on-merge`                                                     |
+| `SUPABASE_URL` (GitHub Actions copy)                           | Config value | **GitHub repo secrets** (Settings → Secrets and variables → Actions) — a separate store from the two above, consumed by `.github/workflows/ci.yml`'s `ci` and `smoke` jobs | Lint/build/smoke-test only — this copy never deploys anything (see CI/CD ownership constraint above) |
+| `SUPABASE_KEY` (GitHub Actions copy)                           | Config value | Same GitHub repo secrets store                                                                                                                                             | Same as above                                                                                        |
 
 **Three separate secret stores exist for this project — do not conflate them**: (1) Cloudflare Workers Secrets (`wrangler secret put`, runtime), (2) `wrangler.jsonc` `vars` (build-time, plain), (3) GitHub Actions repo secrets (CI-only, per the constraint above never used to deploy). A value changed in one does not propagate to the others.
 
@@ -186,7 +192,7 @@ Place the Cloudflare handler's `fetch` call first so bindings/locals stay availa
 - [ ] Create the custom worker entry (`src/worker.ts` or similar) combining `fetch` (via `@astrojs/cloudflare/handler`'s `handle`) and `scheduled`.
 - [ ] Implement the scheduled handler body: query and delete `time_entries` rows older than 3 months, write one row to `job_runs` per invocation (success or failure), using the Supabase service-role key (server-only secret from Phase A).
 - [ ] Point `wrangler.jsonc`'s `main` field at the new custom entry file.
-- [ ] Add the Cron Trigger to `wrangler.jsonc` (confirmed syntax, Cloudflare docs 2026-09-17): `{ "triggers": { "crons": ["0 3 * * *"] } }` for a daily 3am UTC run. Note: deploying replaces *all* previously-configured Cron Triggers with whatever is in this array — if a second scheduled job is ever added later, both must be listed together, not deployed as two separate single-cron updates.
+- [ ] Add the Cron Trigger to `wrangler.jsonc` (confirmed syntax, Cloudflare docs 2026-09-17): `{ "triggers": { "crons": ["0 3 * * *"] } }` for a daily 3am UTC run. Note: deploying replaces _all_ previously-configured Cron Triggers with whatever is in this array — if a second scheduled job is ever added later, both must be listed together, not deployed as two separate single-cron updates.
 - [ ] Deploy (`npx wrangler deploy`).
 - [ ] Test locally before relying on production timing: `wrangler dev` exposes a `/cdn-cgi/local/scheduled` route for manually firing the handler — confirmed via Cloudflare's own docs. Example: `curl "http://localhost:8787/cdn-cgi/local/scheduled"` (add `?format=json` for structured output, or `?time=` to simulate a specific `scheduledTime`).
 - [ ] Verify against the live deployment: a row appears in `job_runs` with `status: success` and a plausible `rows_affected` count after the cron fires (or after the local-testing route is hit against the deployed Worker).

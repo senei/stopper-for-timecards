@@ -1,10 +1,10 @@
 ---
 change_id: deployment
 title: First production deployment to Cloudflare Workers
-status: new
+status: archived
 created: 2026-09-17
-updated: 2026-09-25
-archived_at: null
+updated: 2026-10-01
+archived_at: 2026-10-01T11:31:54Z
 ---
 
 ## Notes
