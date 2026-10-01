@@ -67,6 +67,9 @@
     ],
     "*.{json,css,md}": [
       "prettier --write"
+    ],
+    "src/**/*.{tsx,astro}": [
+      "node scripts/check-hardcoded-values.mjs"
     ]
   },
   "overrides": {
