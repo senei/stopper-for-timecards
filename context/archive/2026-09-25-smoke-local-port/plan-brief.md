@@ -16,14 +16,14 @@ With `SMOKE_LOCAL_PORT` set, a lane runs `smoke:local` on its own port. Cleanup 
 
 ## Key Decisions Made
 
-| Decision | Choice | Why (1 sentence) | Source |
-| --- | --- | --- | --- |
-| Port setting | Environment variable `SMOKE_LOCAL_PORT`, default 4321, validated 1 to 65535 | Matches the `SMOKE_*` names `smoke.mjs` reads and cannot be set by an unrelated tool. | Plan |
-| Cleanup scope | `--restore` runs `astro dev stop` only when the lock file's port equals the configured port; a run's own cleanup stops the live lock's server; a live lock refuses a real run | Astro's lock file needs no memory after an interrupt, and the start refusal makes any live lock during a run the script's own even if Astro fell back to another port. | Plan (refined by plan review) |
-| Refusal checks | One shared check used by both the real refusal and `--dry-run` notes | The refusals can be verified without any database reset. | Plan review |
-| The "kills other lanes" claim | False across worktrees; correct it in the script, README and `parallel-goals.md` | Each worktree has its own `.astro/dev.json`, so the stop command cannot reach another lane. | Plan (from discovery) |
-| Lesson | Not edited here; the two inaccurate clauses (`lessons.md:28-29`) are quoted for you to fix by hand | The lessons file is append-only by convention. | Plan |
-| Verification | Manual scenarios with no `db reset`, plus two automated bad-port checks; no unit tests | The behaviour depends on the real Astro daemon and lock file, and the script stays a single zero-dependency file. | Plan |
+| Decision                      | Choice                                                                                                                                                                        | Why (1 sentence)                                                                                                                                                       | Source                        |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| Port setting                  | Environment variable `SMOKE_LOCAL_PORT`, default 4321, validated 1 to 65535                                                                                                   | Matches the `SMOKE_*` names `smoke.mjs` reads and cannot be set by an unrelated tool.                                                                                  | Plan                          |
+| Cleanup scope                 | `--restore` runs `astro dev stop` only when the lock file's port equals the configured port; a run's own cleanup stops the live lock's server; a live lock refuses a real run | Astro's lock file needs no memory after an interrupt, and the start refusal makes any live lock during a run the script's own even if Astro fell back to another port. | Plan (refined by plan review) |
+| Refusal checks                | One shared check used by both the real refusal and `--dry-run` notes                                                                                                          | The refusals can be verified without any database reset.                                                                                                               | Plan review                   |
+| The "kills other lanes" claim | False across worktrees; correct it in the script, README and `parallel-goals.md`                                                                                              | Each worktree has its own `.astro/dev.json`, so the stop command cannot reach another lane.                                                                            | Plan (from discovery)         |
+| Lesson                        | Not edited here; the two inaccurate clauses (`lessons.md:28-29`) are quoted for you to fix by hand                                                                            | The lessons file is append-only by convention.                                                                                                                         | Plan                          |
+| Verification                  | Manual scenarios with no `db reset`, plus two automated bad-port checks; no unit tests                                                                                        | The behaviour depends on the real Astro daemon and lock file, and the script stays a single zero-dependency file.                                                      | Plan                          |
 
 ## Scope
 
@@ -37,10 +37,10 @@ The port becomes a validated constant at the top of the script, checked before t
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-| --- | --- | --- |
+| Phase     | What it delivers                                                                                     | Key risk                                                                  |
+| --------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | 1. Script | Port variable, validation, lock-file-scoped cleanup, early refusal, corrected header; lint once here | Astro's background daemon under agents and the Astro-internal lock format |
-| 2. Docs | README and `parallel-goals.md` updated; false claim removed; follow-up note deleted | Docs describing behaviour that was not actually observed |
+| 2. Docs   | README and `parallel-goals.md` updated; false claim removed; follow-up note deleted                  | Docs describing behaviour that was not actually observed                  |
 
 **Prerequisites:** in the worktree run `npm ci` and `npx astro sync` before lint; local Supabase running for `--dry-run` (read-only); ports 4399 and 4400 free. No check may run `db reset` on a stack this lane does not own.
 **Estimated effort:** about 1 to 2 sessions for 2 phases, mostly manual scenario checks.
