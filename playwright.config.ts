@@ -30,7 +30,7 @@ export default defineConfig({
     command: `npm run build && npm run preview -- --port ${PORT}`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
+    timeout: 300_000,
     // Astro 7 moves `astro preview` into a background daemon when it detects an agent.
     env: { ASTRO_PREVIEW_BACKGROUND: "1" },
   },

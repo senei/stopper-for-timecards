@@ -4,14 +4,18 @@
       {
         "matcher": "Write|Edit",
         "hooks": [
-          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint-edited-file.mjs\"", "timeout": 45 }
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint-edited-file.mjs\"",
+            "timeout": 110
+          }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/end-of-turn.mjs\"", "timeout": 120 }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/end-of-turn.mjs\"", "timeout": 360 }
         ]
       }
     ]
@@ -58,14 +62,7 @@
       "Bash(echo \"---push retry---\")",
       "Bash(netstat -ano)"
     ],
-    "deny": [
-      "Bash(rm -rf *)"
-    ],
-    "ask": [
-      "Bash(curl *)",
-      "Bash(wget *)",
-      "Bash(git push *)",
-      "Bash(git push)"
-    ]
+    "deny": ["Bash(rm -rf *)"],
+    "ask": ["Bash(curl *)", "Bash(wget *)", "Bash(git push *)", "Bash(git push)"]
   }
 }

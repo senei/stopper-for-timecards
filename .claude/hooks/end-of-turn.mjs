@@ -27,8 +27,8 @@ if (!touchesCode) process.exit(0);
 const sections = [];
 
 if (lintFiles.length > 0) {
-  const r = run(BIN.eslint, ["--quiet", ...lintFiles], 80_000);
-  if (!r.ok) sections.push(`ESLint errors in changed files:\n${clip(r.out)}`);
+  const r = run(BIN.eslint, ["--quiet", ...lintFiles], 120_000);
+  if (!r.ok) sections.push(`ESLint failed in changed files:\n${clip(r.out)}`);
 }
 
 // Whole unit suite runs in seconds (112 tests, ~5 s), so run it all: it also catches
