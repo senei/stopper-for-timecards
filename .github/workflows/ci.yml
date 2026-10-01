@@ -59,3 +59,44 @@ jobs:
           BASE_URL=http://localhost:4321 SMOKE_SUPABASE_URL="$API_URL" SMOKE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" SMOKE_ANON_KEY="$ANON_KEY" npm run smoke
       - if: always()
         run: supabase stop --no-backup
+
+  e2e:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: supabase/setup-cli@v3
+        with:
+          version: latest
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Start local Supabase
+        run: |
+          supabase start -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,realtime,storage-api,postgres-meta,supavisor
+          supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=' > supabase.env
+      - name: Configure secrets for build and preview
+        run: |
+          source supabase.env
+          # Cloudflare's documented dummy Turnstile keys: they always pass and accept the dummy token.
+          printf 'SUPABASE_URL=%s\nSUPABASE_KEY=%s\nSUPABASE_SERVICE_ROLE_KEY=%s\nTURNSTILE_SITE_KEY=%s\nTURNSTILE_SECRET_KEY=%s\n' \
+            "$API_URL" "$ANON_KEY" "$SERVICE_ROLE_KEY" "1x00000000000000000000AA" "1x0000000000000000000000000000000AA" > .env
+          cp .env .dev.vars
+      # playwright.config.ts builds and previews the app itself (webServer), reads .env, and runs one worker with retries on CI.
+      - name: Run e2e specs
+        run: |
+          npx playwright test 2>&1 | tee e2e.log
+          # The specs skip themselves when the local Supabase env is missing; a skipped spec proves nothing, so fail.
+          if grep -E '^\s+[0-9]+ skipped' e2e.log; then echo "::error::e2e specs were skipped"; exit 1; fi
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+      - if: always()
+        run: supabase stop --no-backup
