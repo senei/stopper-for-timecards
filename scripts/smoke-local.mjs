@@ -157,11 +157,19 @@ function killProcessTree(pid) {
  * configured port is stopped.
  */
 function stopDevServer(child) {
-  const lock = readDevLock();
   if (child?.pid) killProcessTree(child.pid);
+  // Read after the kill: an interrupt can land before Astro writes the lock, and a lock read earlier would miss a
+  // daemon that registers while the child tree goes down.
+  const lock = readDevLock();
   if (child) {
-    if (lock) npx(["astro", "dev", "stop"], { stdio: "ignore" });
-    console.log(`smoke-local: stopped the dev server this run started${lock ? ` (port ${lock.port})` : ""}.`);
+    // Unconditional on purpose: the refusal above means any server in this worktree is ours, and `astro dev stop` is a
+    // no-op when there is none.
+    npx(["astro", "dev", "stop"], { stdio: "ignore" });
+    console.log(
+      lock
+        ? `smoke-local: stopped the dev server this run started (port ${lock.port}).`
+        : "smoke-local: asked Astro to stop the dev server this run started (no live lock was found).",
+    );
   } else if (!lock) {
     console.log("smoke-local: no dev server to stop.");
   } else if (lock.port === PORT) {
