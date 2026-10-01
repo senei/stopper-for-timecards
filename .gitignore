@@ -60,3 +60,11 @@ pnpm-debug.log*
 
 # Backups made by scripts/smoke-local.mjs
 *.smoke-bak
+
+# Playwright
+playwright/.auth/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.playwright-cli/
