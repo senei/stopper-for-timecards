@@ -42,7 +42,7 @@ export function serializeError(err: unknown, depth = 0): SerializedError {
     const serialized: SerializedError = { name: err.name, message: truncate(err.message) };
     const stack = err.stack;
     if (stack !== undefined) {
-      serialized.stack = stack;
+      serialized.stack = stack.replace(err.message, serialized.message);
     }
     for (const key of ["code", "details", "hint"] as const) {
       const value = stringField(err, key);

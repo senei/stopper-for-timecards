@@ -88,6 +88,13 @@ describe("logError", () => {
     expect(message.endsWith("[truncated]")).toBe(true);
   });
 
+  it("keeps the whole line small for a huge message, because a V8 stack repeats the message on its first line", () => {
+    logError("x", context, new Error(`<html>${"a".repeat(5000)}</html>`));
+
+    const line = errorSpy.mock.calls[0][0] as string;
+    expect(line.length).toBeLessThan(4000);
+  });
+
   it("never throws, even for an error that cannot be serialised", () => {
     const circular: Record<string, unknown> = { message: "loop" };
     circular.self = circular;
