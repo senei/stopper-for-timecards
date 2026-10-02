@@ -84,11 +84,23 @@ describe("link cookie — documents current behavior (oracle is the code comment
     });
 
     it("returns null and leaves the cookie alone when the lookup throws", async () => {
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
       findLink.mockRejectedValue(new Error("db down"));
-      const { jar, del } = fakeCookies(generateToken());
+      const token = generateToken();
+      const { jar, del } = fakeCookies(token);
 
       expect(await resolveCookieLink(jar)).toBeNull();
       expect(del).not.toHaveBeenCalled();
+
+      // The failure is logged, with the route and the error, and never with the cookie's token.
+      expect(errorSpy).toHaveBeenCalledOnce();
+      const line = errorSpy.mock.calls[0]?.[0] as string;
+      expect(JSON.parse(line)).toMatchObject({
+        event: "cookie_link_lookup_failed",
+        route: "lib/link-cookie",
+        error: { message: "db down" },
+      });
+      expect(line).not.toContain(token);
     });
   });
 });

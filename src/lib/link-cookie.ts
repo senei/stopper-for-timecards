@@ -1,6 +1,7 @@
 import type { AstroCookies } from "astro";
 import { isWellFormedToken } from "./link-token";
 import { findLinkByToken } from "./links";
+import { logError } from "./log";
 
 /** Convenience cookie that remembers a browser's link. The path token stays authoritative. */
 export const LINK_COOKIE = "stopper_link";
@@ -37,7 +38,8 @@ export async function resolveCookieLink(cookies: AstroCookies): Promise<string |
       if (await findLinkByToken(token)) {
         return token;
       }
-    } catch {
+    } catch (err) {
+      logError("cookie_link_lookup_failed", { route: "lib/link-cookie" }, err);
       return null;
     }
   }

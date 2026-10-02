@@ -1,4 +1,5 @@
 import { generateToken, hashToken } from "./link-token";
+import { dbError } from "./db-error";
 import { adminOrThrow } from "./supabase-admin";
 
 export type CreateLinkResult = { status: "created"; id: string; token: string } | { status: "full" };
@@ -11,7 +12,7 @@ export async function createLink(): Promise<CreateLinkResult> {
 
   const response = await admin.rpc("create_link", { p_token_hash: await hashToken(token) });
   if (response.error) {
-    throw new Error(`create_link failed: ${response.error.message}`);
+    throw dbError("create_link", response.error);
   }
 
   const id: unknown = response.data;
@@ -38,7 +39,7 @@ export async function regenerateLink(oldToken: string): Promise<RegenerateLinkRe
     p_new_token_hash: await hashToken(newToken),
   });
   if (response.error) {
-    throw new Error(`regenerate_link failed: ${response.error.message}`);
+    throw dbError("regenerate_link", response.error);
   }
 
   const id: unknown = response.data;
@@ -60,7 +61,7 @@ export async function deleteAccount(linkId: string): Promise<boolean> {
 
   const response = await admin.rpc("delete_account", { p_link_id: linkId });
   if (response.error) {
-    throw new Error(`delete_account failed: ${response.error.message}`);
+    throw dbError("delete_account", response.error);
   }
 
   const deleted: unknown = response.data;
@@ -80,7 +81,7 @@ export async function findLinkByToken(token: string): Promise<{ id: string } | n
     .eq("token_hash", await hashToken(token))
     .maybeSingle();
   if (response.error) {
-    throw new Error(`link lookup failed: ${response.error.message}`);
+    throw dbError("link lookup", response.error);
   }
 
   const row: unknown = response.data;
@@ -103,7 +104,7 @@ export async function countRecentLinks(windowMinutes: number): Promise<number> {
     .select("id", { count: "exact", head: true })
     .gte("created_at", since);
   if (error) {
-    throw new Error(`recent link count failed: ${error.message}`);
+    throw dbError("recent link count", error);
   }
 
   return count ?? 0;

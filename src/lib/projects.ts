@@ -1,3 +1,4 @@
+import { dbError } from "./db-error";
 import { adminOrThrow } from "./supabase-admin";
 
 export interface Project {
@@ -23,7 +24,7 @@ export async function listProjects(linkId: string): Promise<Project[]> {
     .eq("link_id", linkId)
     .order("name", { ascending: true });
   if (response.error) {
-    throw new Error(`project list failed: ${response.error.message}`);
+    throw dbError("project list", response.error);
   }
 
   const rows: unknown = response.data;
@@ -57,7 +58,7 @@ export async function getProject(linkId: string, projectId: string): Promise<Pro
     .eq("link_id", linkId)
     .maybeSingle();
   if (response.error) {
-    throw new Error(`project lookup failed: ${response.error.message}`);
+    throw dbError("project lookup", response.error);
   }
 
   const row: unknown = response.data;
@@ -89,7 +90,7 @@ export async function deleteProject(linkId: string, projectId: string): Promise<
     if (response.error.code === "23503") {
       throw new ProjectInUseError();
     }
-    throw new Error(`project delete failed: ${response.error.message}`);
+    throw dbError("project delete", response.error);
   }
 
   return response.data.length > 0;

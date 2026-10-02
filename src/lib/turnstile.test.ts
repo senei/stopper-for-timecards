@@ -53,11 +53,21 @@ describe("verifyTurnstile", () => {
     expect(await verifyTurnstile("token", null, "secret")).toBe(false);
   });
 
-  it("returns false on a network error", async () => {
+  it("returns false on a network error, and logs it", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
     stubFetch();
     fetchMock.mockRejectedValueOnce(new Error("network down"));
 
     expect(await verifyTurnstile("token", null, "secret")).toBe(false);
+
+    expect(errorSpy).toHaveBeenCalledOnce();
+    const line = errorSpy.mock.calls[0]?.[0] as string;
+    expect(JSON.parse(line)).toMatchObject({
+      event: "turnstile_verify_failed",
+      route: "lib/turnstile",
+      error: { message: "network down" },
+    });
+    errorSpy.mockRestore();
   });
 
   it("returns false without calling fetch when the token is empty or the secret is missing", async () => {

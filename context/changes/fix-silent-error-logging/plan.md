@@ -295,9 +295,9 @@ None. No schema, env or deploy changes; log shape changes only, so any saved Wor
 
 #### Automated
 
-- [x] 1.1 New unit tests pass: `npx vitest run src/lib/log.test.ts src/lib/db-error.test.ts`
-- [x] 1.2 Whole suite stays green: `npx vitest run`
-- [x] 1.3 Type checking passes: `npx tsc --noEmit`
+- [x] 1.1 New unit tests pass: `npx vitest run src/lib/log.test.ts src/lib/db-error.test.ts` — e57f4e9
+- [x] 1.2 Whole suite stays green: `npx vitest run` — e57f4e9
+- [x] 1.3 Type checking passes: `npx tsc --noEmit` — e57f4e9
 
 #### Manual
 
@@ -307,9 +307,9 @@ None. No schema, env or deploy changes; log shape changes only, so any saved Wor
 
 #### Automated
 
-- [ ] 2.1 Suite passes with the extended lib tests: `npx vitest run`
-- [ ] 2.2 Type checking passes: `npx tsc --noEmit`
-- [ ] 2.3 No message-only rethrow remains in the data layer: `grep -rnE "new Error\(\`._(error|Error)\.message" src/lib --include=_.ts --exclude=*.test.ts` prints nothing
+- [x] 2.1 Suite passes with the extended lib tests: `npx vitest run`
+- [x] 2.2 Type checking passes: `npx tsc --noEmit`
+- [x] 2.3 No message-only rethrow remains in the data layer: `grep -rnE "new Error\(\`._(error|Error)\.message" src/lib --include=_.ts --exclude=*.test.ts` prints nothing
 
 ### Phase 3: API routes log with context
 

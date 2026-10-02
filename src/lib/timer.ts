@@ -1,3 +1,4 @@
+import { dbError } from "./db-error";
 import { adminOrThrow } from "./supabase-admin";
 
 export interface TimerEntryResult {
@@ -67,7 +68,7 @@ export async function startTimer(linkId: string, projectName: string): Promise<T
     if (response.error.code === "23505") {
       throw new TimerAlreadyRunningError();
     }
-    throw new Error(`start_timer failed: ${response.error.message}`);
+    throw dbError("start_timer", response.error);
   }
 
   return parseTimerRow("start_timer", response.data);
@@ -88,7 +89,7 @@ export async function switchTimer(linkId: string, projectName: string): Promise<
     if (response.error.code === "P0001") {
       throw new NoActiveTimerError();
     }
-    throw new Error(`switch_timer failed: ${response.error.message}`);
+    throw dbError("switch_timer", response.error);
   }
 
   return parseTimerRow("switch_timer", response.data);
@@ -107,7 +108,7 @@ export async function stopTimer(linkId: string): Promise<TimerEntryResult> {
     if (response.error.code === "P0001") {
       throw new NoActiveTimerError();
     }
-    throw new Error(`stop_timer failed: ${response.error.message}`);
+    throw dbError("stop_timer", response.error);
   }
 
   return parseTimerRow("stop_timer", response.data);
@@ -124,7 +125,7 @@ export async function getCurrentTimer(linkId: string): Promise<CurrentTimer> {
     .is("ended_at", null)
     .maybeSingle();
   if (response.error) {
-    throw new Error(`current timer lookup failed: ${response.error.message}`);
+    throw dbError("current timer lookup", response.error);
   }
 
   const row: unknown = response.data;

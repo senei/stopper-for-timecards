@@ -1,3 +1,4 @@
+import { dbError } from "./db-error";
 import { adminOrThrow } from "./supabase-admin";
 import type { RawWeekEntry } from "./weekly-grid";
 
@@ -23,7 +24,7 @@ export async function fetchWeekEntries(linkId: string, weekStartUtc: Date): Prom
     .or(`ended_at.is.null,ended_at.gt.${weekStartIso}`)
     .order("started_at", { ascending: true });
   if (response.error) {
-    throw new Error(`week entries lookup failed: ${response.error.message}`);
+    throw dbError("week entries lookup", response.error);
   }
 
   const rows: unknown = response.data;

@@ -1,3 +1,5 @@
+import { logError } from "./log";
+
 const VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const VERIFY_TIMEOUT_MS = 5000;
 
@@ -34,7 +36,8 @@ export async function verifyTurnstile(
 
     const result: unknown = await response.json();
     return typeof result === "object" && result !== null && "success" in result && result.success === true;
-  } catch {
+  } catch (err) {
+    logError("turnstile_verify_failed", { route: "lib/turnstile" }, err);
     return false;
   }
 }

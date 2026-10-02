@@ -1,3 +1,4 @@
+import { logError } from "./log";
 import { createAdminClient } from "./supabase-admin";
 
 export type AccessOutcome = "success" | "not_found" | "error";
@@ -13,6 +14,8 @@ export type AccessOutcome = "success" | "not_found" | "error";
  * Never throws: a logging failure must not break the request being logged.
  */
 export async function logAccess(linkId: string | null, request: Request, outcome: AccessOutcome): Promise<void> {
+  const context = { route: "lib/access-log", linkId: linkId ?? undefined, op: outcome };
+
   try {
     const supabase = createAdminClient();
     if (!supabase) {
@@ -27,11 +30,9 @@ export async function logAccess(linkId: string | null, request: Request, outcome
     });
 
     if (error) {
-      // eslint-disable-next-line no-console
-      console.error("logAccess failed:", error.message);
+      logError("access_log_failed", context, error);
     }
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("logAccess failed:", err);
+    logError("access_log_failed", context, err);
   }
 }
