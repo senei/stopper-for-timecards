@@ -226,25 +226,25 @@ None for data or deploy. Pages that failed with a blank 500 now answer 503, so a
 
 #### Automated
 
-- [x] 1.1 Changed pages lint clean: `npx eslint "src/pages/w/[token].astro" "src/pages/w/[token]/projects/[projectId]/delete.astro"`
-- [x] 1.2 Astro check passes: `npx astro check`
-- [x] 1.3 Whole suite stays green: `npx vitest run`
-- [x] 1.4 Type checking passes: `npx tsc --noEmit`
+- [x] 1.1 Changed pages lint clean: `npx eslint "src/pages/w/[token].astro" "src/pages/w/[token]/projects/[projectId]/delete.astro"` — 7b3d15a
+- [x] 1.2 Astro check passes: `npx astro check` — 7b3d15a
+- [x] 1.3 Whole suite stays green: `npx vitest run` — 7b3d15a
+- [x] 1.4 Type checking passes: `npx tsc --noEmit` — 7b3d15a
 
 ### Phase 2: The boundary and the 500 page
 
 #### Automated
 
-- [ ] 2.1 Boundary tests pass: `npx vitest run src/lib/error-boundary.test.ts`
-- [ ] 2.2 Whole suite stays green: `npx vitest run`
-- [ ] 2.3 Type checking passes: `npx tsc --noEmit`
-- [ ] 2.4 Lint is clean: `npm run lint`
-- [ ] 2.5 Astro check passes: `npx astro check`
-- [ ] 2.6 Deliberate break: a boundary that returns a `Response` instead of rethrowing turns the rethrow case red and one that labels the event with the URL path turns the token case red; both edits are reverted
+- [x] 2.1 Boundary tests pass: `npx vitest run src/lib/error-boundary.test.ts`
+- [x] 2.2 Whole suite stays green: `npx vitest run`
+- [x] 2.3 Type checking passes: `npx tsc --noEmit`
+- [x] 2.4 Lint is clean: `npm run lint`
+- [x] 2.5 Astro check passes: `npx astro check`
+- [x] 2.6 Deliberate break: a boundary that returns a `Response` instead of rethrowing turns the rethrow case red and one that labels the event with the URL path turns the token case red; both edits are reverted
 
 #### Manual
 
-- [ ] 2.7 The text on the 500 page was read and approved
+- [x] 2.7 The text on the 500 page was read and approved
 
 ### Phase 3: Runtime proof through the probe harness
 

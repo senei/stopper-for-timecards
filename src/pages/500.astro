@@ -1,0 +1,21 @@
+---
+import PageCard from "@/components/PageCard.astro";
+import Layout from "@/layouts/Layout.astro";
+
+// Rendered by Astro after an uncaught error, so the URL may be /w/<token> or /api/w/<token>/...: keep the token out of
+// caches, referrers and search indexes. A response built for an error does not carry the headers the failed page set, so
+// this page sets them itself. `strict-origin`, never `no-referrer` (see context/foundation/lessons.md).
+Astro.response.headers.set("Referrer-Policy", "strict-origin");
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("X-Robots-Tag", "noindex");
+
+// Deliberately does not use `Astro.props.error`: its message and stack can carry data that must not reach a visitor, and
+// it may be null.
+---
+
+<Layout title="Something went wrong">
+  <PageCard width="md" class="text-center">
+    <h1 class="mb-4 text-3xl font-bold text-heading">Something went wrong</h1>
+    <p class="text-muted-foreground">We could not complete your request. Please try again in a moment.</p>
+  </PageCard>
+</Layout>
