@@ -250,14 +250,14 @@ None for data or deploy. Pages that failed with a blank 500 now answer 503, so a
 
 #### Automated
 
-- [x] 3.1 The harness runs on both commits and writes `results.json` for each: `node probe/boundary.mjs before` and `node probe/boundary.mjs after`
-- [x] 3.2 After the change R9, R10 and D1 answer `503` with a non-empty HTML body and all three privacy headers, and the console shows a `page_workspace_read_failed` or `page_project_read_failed` line with a link id
-- [x] 3.3 After the change P10a and P1 answer `500`, `text/html`, a non-empty body and all three privacy headers, and the console shows an `unhandled_request_error` line whose route is a template
-- [x] 3.4 After the change P10b, A503, N404, ASSET and HEALTHY match the baseline in status, body length and the three headers
-- [x] 3.5 No `unhandled_request_error` or `page_*_read_failed` line contains the seeded token or the link id inside a URL
-- [x] 3.6 No process is left listening on the probe ports
+- [x] 3.1 The harness runs on both commits and writes `results.json` for each: `node probe/boundary.mjs before` and `node probe/boundary.mjs after` — cbcc75f
+- [x] 3.2 After the change R9, R10 and D1 answer `503` with a non-empty HTML body and all three privacy headers, and the console shows a `page_workspace_read_failed` or `page_project_read_failed` line with a link id — cbcc75f
+- [x] 3.3 After the change P10a and P1 answer `500`, `text/html`, a non-empty body and all three privacy headers, and the console shows an `unhandled_request_error` line whose route is a template — cbcc75f
+- [x] 3.4 After the change P10b, A503, N404, ASSET and HEALTHY match the baseline in status, body length and the three headers — cbcc75f
+- [x] 3.5 No `unhandled_request_error` or `page_*_read_failed` line contains the seeded token or the link id inside a URL — cbcc75f
+- [x] 3.6 No process is left listening on the probe ports — cbcc75f
 
 #### Manual
 
-- [x] 3.7 The before/after table was read and the failing requests are visibly diagnosable, with unchanged requests unchanged
-- [x] 3.8 A `mode: verify` report with the table is written under `context/audits/observability/` and earlier reports are untouched
+- [x] 3.7 The before/after table was read and the failing requests are visibly diagnosable, with unchanged requests unchanged — cbcc75f
+- [x] 3.8 A `mode: verify` report with the table is written under `context/audits/observability/` and earlier reports are untouched — cbcc75f
