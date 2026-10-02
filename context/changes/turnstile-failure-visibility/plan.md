@@ -199,7 +199,17 @@ No work on the success path beyond reading `error-codes` on a rejection. A refus
 
 ## Migration Notes
 
-None for data or deploy. A saved Workers Logs query on the old `turnstile_verify_failed` event must move to `turnstile_unavailable`. The codes actually returned by Cloudflare's dummy secrets are recorded here after phase 2.
+None for data or deploy. A saved Workers Logs query on the old `turnstile_verify_failed` event must move to `turnstile_unavailable`. What the real `siteverify` returned for Cloudflare's dummy secrets and the dummy token `XXXX.DUMMY.TOKEN.XXXX` (observed 2026-10-02, phase 2):
+
+| Secret                                | HTTP    | `success` | `error-codes`                         | Verdict and log level |
+| ------------------------------------- | ------- | --------- | ------------------------------------- | --------------------- |
+| `1x…AA` (always passes)               | 200     | `true`    | `[]` (plus `hostname: "example.com"`) | `ok`, no log          |
+| `2x…AA` (always fails)                | 200     | `false`   | `["invalid-input-response"]`          | `rejected`, warn      |
+| `3x…AA` (token already spent)         | 200     | `false`   | `["timeout-or-duplicate"]`            | `rejected`, warn      |
+| a secret Cloudflare does not know     | **400** | `false`   | `["invalid-input-secret"]`            | `rejected`, error     |
+| no or empty secret (never sent by us) | **400** | `false`   | `["missing-input-secret"]`            | `rejected`, error     |
+
+The two HTTP 400 rows corrected the phase 1 design: a wrong or missing secret arrives as a non-2xx answer with the verdict in the body, so the verifier reads the body before the status decides (commit `8a4d351`). Only a non-2xx answer without a spelled-out refusal is `unavailable`.
 
 ## References
 
@@ -218,25 +228,25 @@ None for data or deploy. A saved Workers Logs query on the old `turnstile_verify
 
 #### Automated
 
-- [x] 1.1 Verifier and route tests pass: `npx vitest run src/lib/turnstile.test.ts src/__tests__/links-route.test.ts`
-- [x] 1.2 Whole suite stays green: `npx vitest run`
-- [x] 1.3 Type checking passes: `npx tsc --noEmit`
-- [x] 1.4 Changed files lint clean: `npx eslint src/lib/turnstile.ts src/lib/turnstile.test.ts src/pages/api/links.ts src/__tests__/links-route.test.ts`
-- [x] 1.5 Deliberate break: a missing secret returning `{ ok: true }` turns a `turnstile.test.ts` case red and a route that ignores the verdict turns the `links-route.test.ts` refusal case red; both edits are reverted
+- [x] 1.1 Verifier and route tests pass: `npx vitest run src/lib/turnstile.test.ts src/__tests__/links-route.test.ts` — b0c38d5
+- [x] 1.2 Whole suite stays green: `npx vitest run` — b0c38d5
+- [x] 1.3 Type checking passes: `npx tsc --noEmit` — b0c38d5
+- [x] 1.4 Changed files lint clean: `npx eslint src/lib/turnstile.ts src/lib/turnstile.test.ts src/pages/api/links.ts src/__tests__/links-route.test.ts` — b0c38d5
+- [x] 1.5 Deliberate break: a missing secret returning `{ ok: true }` turns a `turnstile.test.ts` case red and a route that ignores the verdict turns the `links-route.test.ts` refusal case red; both edits are reverted — b0c38d5
 
 ### Phase 2: Opt-in test against the real Cloudflare siteverify
 
 #### Automated
 
-- [ ] 2.1 Live test passes against Cloudflare: `TURNSTILE_LIVE=1 npx vitest run --config vitest.integration.config.ts src/lib/turnstile.integration.test.ts`
-- [ ] 2.2 Without the variable the suite is skipped, with the reason in its title, and does not fail
-- [ ] 2.3 Lint is clean: `npm run lint`
-- [ ] 2.4 Astro check passes: `npx astro check`
-- [ ] 2.5 Whole suite and types stay green: `npx vitest run` and `npx tsc --noEmit`
+- [x] 2.1 Live test passes against Cloudflare: `TURNSTILE_LIVE=1 npx vitest run --config vitest.integration.config.ts src/lib/turnstile.integration.test.ts`
+- [x] 2.2 Without the variable the suite is skipped, with the reason in its title, and does not fail
+- [x] 2.3 Lint is clean: `npm run lint`
+- [x] 2.4 Astro check passes: `npx astro check`
+- [x] 2.5 Whole suite and types stay green: `npx vitest run` and `npx tsc --noEmit`
 
 #### Manual
 
-- [ ] 2.6 The actual `error-codes` returned for the `2x…AA`, `3x…AA` and made-up secrets were read and are recorded in Migration Notes
+- [x] 2.6 The actual `error-codes` returned for the `2x…AA`, `3x…AA` and made-up secrets were read and are recorded in Migration Notes
 
 ### Phase 3: Runtime proof through the real route
 
