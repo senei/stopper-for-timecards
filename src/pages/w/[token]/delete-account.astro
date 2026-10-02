@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import Layout from "@/layouts/Layout.astro";
 import { isWellFormedToken } from "@/lib/link-token";
 import { findLinkByToken } from "@/lib/links";
+import { logError } from "@/lib/log";
 import { errorMessage } from "@/lib/status-messages";
 
 // Keep the token out of caches, referrers and search indexes. `strict-origin` sends only the site origin, never the
@@ -26,7 +27,8 @@ try {
   if (!(await findLinkByToken(token))) {
     return Astro.rewrite("/404");
   }
-} catch {
+} catch (err) {
+  logError("page_link_lookup_failed", { route: "GET /w/[token]/delete-account" }, err);
   unavailable = true;
   Astro.response.status = 503;
 }

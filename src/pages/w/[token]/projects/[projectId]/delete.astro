@@ -4,6 +4,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import Layout from "@/layouts/Layout.astro";
 import { isWellFormedToken } from "@/lib/link-token";
 import { findLinkByToken } from "@/lib/links";
+import { logError } from "@/lib/log";
 import { isWellFormedId } from "@/lib/project-id";
 import type { Project } from "@/lib/projects";
 import { getProject } from "@/lib/projects";
@@ -25,7 +26,8 @@ let link: { id: string } | null = null;
 let unavailable = false;
 try {
   link = await findLinkByToken(token);
-} catch {
+} catch (err) {
+  logError("page_link_lookup_failed", { route: "GET /w/[token]/projects/[projectId]/delete" }, err);
   unavailable = true;
 }
 

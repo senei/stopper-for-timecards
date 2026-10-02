@@ -22,7 +22,7 @@ const baseConfig = defineConfig({
     },
   },
   rules: {
-    "no-console": "warn",
+    "no-console": "error",
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": [
       "error",
@@ -72,6 +72,27 @@ const astroConfig = defineConfig({
   },
 });
 
+// An empty `catch` turns a failure into silence. Bind the error and report it with `logError` (src/lib/log.ts), which is
+// also the only place allowed to write to the console.
+const noSilentCatchConfig = defineConfig({
+  files: ["src/**/*.{ts,tsx,astro}"],
+  rules: {
+    "no-restricted-syntax": [
+      "error",
+      {
+        selector: "CatchClause[param=null]",
+        message:
+          "Bind the error and report it with logError from src/lib/log.ts; a catch without a binding hides the failure.",
+      },
+    ],
+  },
+});
+
+const loggerConfig = defineConfig({
+  files: ["src/lib/log.ts"],
+  rules: { "no-console": "off", "no-restricted-syntax": "off" },
+});
+
 const scriptsConfig = defineConfig({
   files: ["scripts/**/*.mjs"],
   extends: [tseslint.configs.disableTypeChecked],
@@ -88,6 +109,8 @@ export default defineConfig(
   eslintPluginAstro.configs["flat/recommended"],
   eslintPluginAstro.configs["flat/jsx-a11y-recommended"],
   astroConfig,
+  noSilentCatchConfig,
+  loggerConfig,
   scriptsConfig,
   eslintPluginPrettier,
 );

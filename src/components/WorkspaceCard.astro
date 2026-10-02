@@ -270,6 +270,7 @@ function formatUtcTime(iso: string): string {
     try {
       await navigator.clipboard.writeText(value);
       return true;
+      // eslint-disable-next-line no-restricted-syntax -- client-side clipboard fallback: there is nowhere to report to
     } catch {
       // No clipboard access (blocked, or an insecure context): the caller shows the manual fallback.
       return false;

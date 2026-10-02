@@ -85,12 +85,10 @@ function toLine(level: "error" | "warn", event: string, context: LogContext, ...
 
 /** Writes one JSON line for a failure. Never throws. */
 export function logError(event: string, context: LogContext, err: unknown): void {
-  // eslint-disable-next-line no-console
   console.error(toLine("error", event, context, err));
 }
 
 /** Writes one JSON line for something odd that did not fail the request. Never throws. Pass `err` when there is one. */
 export function logWarn(event: string, context: LogContext, ...err: [] | [unknown]): void {
-  // eslint-disable-next-line no-console
   console.warn(toLine("warn", event, context, ...err));
 }

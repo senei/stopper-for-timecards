@@ -315,20 +315,20 @@ None. No schema, env or deploy changes; log shape changes only, so any saved Wor
 
 #### Automated
 
-- [x] 3.1 Route tests pass: `npx vitest run src/__tests__`
-- [x] 3.2 Whole suite stays green: `npx vitest run`
-- [x] 3.3 Type checking passes: `npx tsc --noEmit`
-- [x] 3.4 No inline console call or disable comment remains in the routes: `grep -rnE "console\.|eslint-disable-next-line no-console" src/pages/api` prints nothing
+- [x] 3.1 Route tests pass: `npx vitest run src/__tests__` — dca3941
+- [x] 3.2 Whole suite stays green: `npx vitest run` — dca3941
+- [x] 3.3 Type checking passes: `npx tsc --noEmit` — dca3941
+- [x] 3.4 No inline console call or disable comment remains in the routes: `grep -rnE "console\.|eslint-disable-next-line no-console" src/pages/api` prints nothing — dca3941
 
 ### Phase 4: Pages and the lint guard
 
 #### Automated
 
-- [ ] 4.1 Lint is clean: `npm run lint`
-- [ ] 4.2 Astro check passes: `npx astro check`
-- [ ] 4.3 Whole suite stays green: `npx vitest run`
-- [ ] 4.4 Type checking passes: `npx tsc --noEmit`
-- [ ] 4.5 Deliberate break: a bare `catch {` added in `src/lib` makes `npx eslint <that file>` report `no-restricted-syntax`, and the temporary edit is removed afterwards
+- [x] 4.1 Lint is clean: `npm run lint`
+- [x] 4.2 Astro check passes: `npx astro check`
+- [x] 4.3 Whole suite stays green: `npx vitest run`
+- [x] 4.4 Type checking passes: `npx tsc --noEmit`
+- [x] 4.5 Deliberate break: a bare `catch {` added in `src/lib` makes `npx eslint <that file>` report `no-restricted-syntax`, and the temporary edit is removed afterwards
 
 ### Phase 5: Runtime proof (before/after)
 

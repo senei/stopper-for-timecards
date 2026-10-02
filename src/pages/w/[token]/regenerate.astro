@@ -4,6 +4,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import Layout from "@/layouts/Layout.astro";
 import { isWellFormedToken } from "@/lib/link-token";
 import { findLinkByToken } from "@/lib/links";
+import { logError } from "@/lib/log";
 
 // Keep the token out of caches, referrers and search indexes. `strict-origin` sends only the site origin, never the
 // path; `no-referrer` would make browsers send `Origin: null` on this page's form, which Astro's origin check rejects.
@@ -23,7 +24,8 @@ try {
   if (!(await findLinkByToken(token))) {
     return Astro.rewrite("/404");
   }
-} catch {
+} catch (err) {
+  logError("page_link_lookup_failed", { route: "GET /w/[token]/regenerate" }, err);
   unavailable = true;
   Astro.response.status = 503;
 }

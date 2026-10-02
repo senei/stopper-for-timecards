@@ -4,6 +4,7 @@ import WeeklyGridView from "@/components/WeeklyGridView.astro";
 import Layout from "@/layouts/Layout.astro";
 import { isWellFormedToken } from "@/lib/link-token";
 import { findLinkByToken } from "@/lib/links";
+import { logError } from "@/lib/log";
 import type { GridRow } from "@/lib/weekly-grid";
 import { buildWeeklyGrid } from "@/lib/weekly-grid";
 import { fetchWeekEntries } from "@/lib/weekly-grid-query";
@@ -30,7 +31,8 @@ let link: { id: string } | null = null;
 let unavailable = false;
 try {
   link = await findLinkByToken(token);
-} catch {
+} catch (err) {
+  logError("page_link_lookup_failed", { route: "GET /w/[token]/grid" }, err);
   unavailable = true;
 }
 
@@ -72,8 +74,13 @@ if (unavailable) {
   try {
     const entries = await fetchWeekEntries(link.id, viewedWeekStart);
     rows = buildWeeklyGrid(entries, viewedWeekStart, nowUtc);
-  } catch {
+  } catch (err) {
     // Same "temporarily unavailable" page as a failed link lookup, instead of an unhandled server error.
+    logError(
+      "page_week_entries_failed",
+      { route: "GET /w/[token]/grid", linkId: link.id, op: viewedWeekStart.toISOString() },
+      err,
+    );
     unavailable = true;
     Astro.response.status = 503;
   }

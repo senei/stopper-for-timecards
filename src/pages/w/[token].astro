@@ -5,6 +5,7 @@ import { logAccess } from "@/lib/access-log";
 import { LINK_COOKIE, setLinkCookie } from "@/lib/link-cookie";
 import { isWellFormedToken } from "@/lib/link-token";
 import { findLinkByToken } from "@/lib/links";
+import { logError } from "@/lib/log";
 import type { Project } from "@/lib/projects";
 import { listProjects } from "@/lib/projects";
 import { errorMessage, statusMessage } from "@/lib/status-messages";
@@ -28,7 +29,8 @@ let link: { id: string } | null = null;
 let unavailable = false;
 try {
   link = await findLinkByToken(token);
-} catch {
+} catch (err) {
+  logError("page_link_lookup_failed", { route: "GET /w/[token]" }, err);
   unavailable = true;
 }
 
