@@ -16,6 +16,16 @@ export type TurnstileRefusal = "missing_token" | "missing_secret" | "rejected" |
 /** `ok: true` only when Cloudflare answered `success: true`; every other outcome says why it was refused. */
 export type TurnstileVerdict = { ok: true } | { ok: false; reason: TurnstileRefusal; errorCodes?: string[] };
 
+/** What Cloudflare said in the body: `success` and its `error-codes` (strings only); `null` when there is no boolean `success`. */
+function readVerdict(result: unknown): { success: boolean; errorCodes: string[] } | null {
+  if (typeof result !== "object" || result === null || !("success" in result) || typeof result.success !== "boolean") {
+    return null;
+  }
+  const codes: unknown = "error-codes" in result ? result["error-codes"] : undefined;
+  const errorCodes = Array.isArray(codes) ? codes.filter((code): code is string => typeof code === "string") : [];
+  return { success: result.success, errorCodes };
+}
+
 function refuse(reason: TurnstileRefusal, errorCodes?: string[]): TurnstileVerdict {
   return errorCodes === undefined ? { ok: false, reason } : { ok: false, reason, errorCodes };
 }
@@ -58,36 +68,44 @@ export async function verifyTurnstile(
     logError("turnstile_unavailable", { route: ROUTE }, err);
     return refuse("unavailable");
   }
-  if (!response.ok) {
-    logError(
-      "turnstile_unavailable",
-      { route: ROUTE, detail: `HTTP ${String(response.status)}` },
-      { message: "siteverify did not answer with a 2xx status" },
-    );
-    return refuse("unavailable");
-  }
-
+  // Cloudflare answers a wrong or missing secret with HTTP 400 and the verdict in the body, so the body is read before
+  // the status decides anything: only a non-2xx answer without a spelled-out refusal means Cloudflare is unavailable.
+  const status = `HTTP ${String(response.status)}`;
   let result: unknown;
   try {
     result = await response.json();
   } catch (err) {
-    logError("turnstile_bad_response", { route: ROUTE }, err);
-    return refuse("bad_response");
+    if (response.ok) {
+      logError("turnstile_bad_response", { route: ROUTE }, err);
+      return refuse("bad_response");
+    }
+    logError("turnstile_unavailable", { route: ROUTE, detail: status }, err);
+    return refuse("unavailable");
   }
-  if (typeof result !== "object" || result === null || !("success" in result) || typeof result.success !== "boolean") {
+
+  const verdict = readVerdict(result);
+  if (verdict === null || (!response.ok && (verdict.success || verdict.errorCodes.length === 0))) {
+    if (response.ok) {
+      logError(
+        "turnstile_bad_response",
+        { route: ROUTE },
+        { message: "siteverify answered with a body that has no boolean success" },
+      );
+      return refuse("bad_response");
+    }
     logError(
-      "turnstile_bad_response",
-      { route: ROUTE },
-      { message: "siteverify answered with a body that has no boolean success" },
+      "turnstile_unavailable",
+      { route: ROUTE, detail: status },
+      { message: "siteverify did not answer with a 2xx status or a refusal" },
     );
-    return refuse("bad_response");
+    return refuse("unavailable");
   }
-  if (result.success) {
+  // `success: true` counts only on a 2xx answer; a refusal (also on a 400) falls through to be logged and returned.
+  if (response.ok && verdict.success) {
     return { ok: true };
   }
 
-  const codes: unknown = "error-codes" in result ? result["error-codes"] : undefined;
-  const errorCodes = Array.isArray(codes) ? codes.filter((code): code is string => typeof code === "string") : [];
+  const { errorCodes } = verdict;
   const context = { route: ROUTE, detail: errorCodes.slice(0, MAX_LOGGED_CODES).join(",") };
   if (errorCodes.some((code) => OPERATOR_CODES.has(code))) {
     logError("turnstile_rejected", context, { message: "Turnstile refused the check for a reason on our side" });

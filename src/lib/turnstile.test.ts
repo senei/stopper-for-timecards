@@ -181,6 +181,66 @@ describe("verifyTurnstile", () => {
     });
   });
 
+  // Cloudflare answers an unknown or missing secret with HTTP 400 and the verdict in the body (observed against the real
+  // endpoint). That is a configuration problem to read, not an outage, so the codes must not be lost behind the status.
+  describe("a refusal Cloudflare spells out on a non-2xx answer", () => {
+    it.each([
+      { status: 400, code: "invalid-input-secret" },
+      { status: 400, code: "missing-input-secret" },
+      { status: 400, code: "bad-request" },
+      { status: 500, code: "internal-error" },
+    ])("is rejected with $code and logged as an error on HTTP $status", async ({ status, code }) => {
+      respondWith({ success: false, "error-codes": [code] }, status);
+
+      expect(await verifyTurnstile(TOKEN, IP, SECRET)).toEqual({ ok: false, reason: "rejected", errorCodes: [code] });
+
+      expect(lines()).toEqual([
+        { via: "error", line: expect.objectContaining({ event: "turnstile_rejected", detail: code }) as unknown },
+      ]);
+      expectNoSecretsLogged();
+    });
+
+    it("is rejected, and logged as a warning, for a visitor-side code on a non-2xx answer", async () => {
+      respondWith({ success: false, "error-codes": ["timeout-or-duplicate"] }, 400);
+
+      expect(await verifyTurnstile(TOKEN, IP, SECRET)).toEqual({
+        ok: false,
+        reason: "rejected",
+        errorCodes: ["timeout-or-duplicate"],
+      });
+      expect(lines().map(({ via, line }) => [via, line.event])).toEqual([["warn", "turnstile_rejected"]]);
+    });
+
+    it.each([
+      { name: "success: true", body: { success: true, "error-codes": [] } },
+      { name: "success: false but no codes", body: { success: false, "error-codes": [] } },
+      { name: "no verdict at all", body: { message: "Bad Gateway" } },
+    ])("is still unavailable, never ok, when a non-2xx answer carries $name", async ({ body }) => {
+      respondWith(body, 502);
+
+      expect(await verifyTurnstile(TOKEN, IP, SECRET)).toEqual({ ok: false, reason: "unavailable" });
+      expect(lines()).toEqual([
+        {
+          via: "error",
+          line: expect.objectContaining({ event: "turnstile_unavailable", detail: "HTTP 502" }) as unknown,
+        },
+      ]);
+    });
+
+    it("is unavailable when a non-2xx answer is not JSON at all", async () => {
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 502,
+        json: () => Promise.reject(new SyntaxError("Unexpected token < in JSON")),
+      });
+
+      expect(await verifyTurnstile(TOKEN, IP, SECRET)).toEqual({ ok: false, reason: "unavailable" });
+      expect(lines().map(({ via, line }) => [via, line.event, line.detail])).toEqual([
+        ["error", "turnstile_unavailable", "HTTP 502"],
+      ]);
+    });
+  });
+
   describe("Cloudflare unavailable or unreadable", () => {
     it("is unavailable and logged as an error with the status on a non-2xx answer", async () => {
       respondWith({ success: true }, 503);
