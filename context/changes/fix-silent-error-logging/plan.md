@@ -295,9 +295,9 @@ None. No schema, env or deploy changes; log shape changes only, so any saved Wor
 
 #### Automated
 
-- [ ] 1.1 New unit tests pass: `npx vitest run src/lib/log.test.ts src/lib/db-error.test.ts`
-- [ ] 1.2 Whole suite stays green: `npx vitest run`
-- [ ] 1.3 Type checking passes: `npx tsc --noEmit`
+- [x] 1.1 New unit tests pass: `npx vitest run src/lib/log.test.ts src/lib/db-error.test.ts`
+- [x] 1.2 Whole suite stays green: `npx vitest run`
+- [x] 1.3 Type checking passes: `npx tsc --noEmit`
 
 #### Manual
 
