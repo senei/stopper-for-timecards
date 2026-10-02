@@ -301,24 +301,24 @@ None. No schema, env or deploy changes; log shape changes only, so any saved Wor
 
 #### Manual
 
-- [ ] 1.4 Printed sample lines for an `Error` with `cause`, a PostgREST-style object and a 600-character HTML message each read as one JSON line containing `event`, `route` and `error.code` where the input had one
+- [x] 1.4 Printed sample lines for an `Error` with `cause`, a PostgREST-style object and a 600-character HTML message each read as one JSON line containing `event`, `route` and `error.code` where the input had one — 27c4882 (read by the user; found and fixed the stack-repeats-message bug)
 
 ### Phase 2: Data layer keeps the cause
 
 #### Automated
 
-- [x] 2.1 Suite passes with the extended lib tests: `npx vitest run`
-- [x] 2.2 Type checking passes: `npx tsc --noEmit`
-- [x] 2.3 No message-only rethrow remains in the data layer: `grep -rnE "new Error\(\`._(error|Error)\.message" src/lib --include=_.ts --exclude=*.test.ts` prints nothing
+- [x] 2.1 Suite passes with the extended lib tests: `npx vitest run` — 3df7b84
+- [x] 2.2 Type checking passes: `npx tsc --noEmit` — 3df7b84
+- [x] 2.3 No message-only rethrow remains in the data layer: `grep -rnE "new Error\(\`._(error|Error)\.message" src/lib --include=_.ts --exclude=*.test.ts` prints nothing — 3df7b84
 
 ### Phase 3: API routes log with context
 
 #### Automated
 
-- [ ] 3.1 Route tests pass: `npx vitest run src/__tests__`
-- [ ] 3.2 Whole suite stays green: `npx vitest run`
-- [ ] 3.3 Type checking passes: `npx tsc --noEmit`
-- [ ] 3.4 No inline console call or disable comment remains in the routes: `grep -rnE "console\.|eslint-disable-next-line no-console" src/pages/api` prints nothing
+- [x] 3.1 Route tests pass: `npx vitest run src/__tests__`
+- [x] 3.2 Whole suite stays green: `npx vitest run`
+- [x] 3.3 Type checking passes: `npx tsc --noEmit`
+- [x] 3.4 No inline console call or disable comment remains in the routes: `grep -rnE "console\.|eslint-disable-next-line no-console" src/pages/api` prints nothing
 
 ### Phase 4: Pages and the lint guard
 

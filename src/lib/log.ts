@@ -73,10 +73,10 @@ export function serializeError(err: unknown, depth = 0): SerializedError {
   return { message: truncate(String(err)) };
 }
 
-function toLine(level: "error" | "warn", event: string, context: LogContext, err?: unknown): string {
+function toLine(level: "error" | "warn", event: string, context: LogContext, ...err: [] | [unknown]): string {
   try {
     const entry =
-      level === "error" ? { level, event, ...context, error: serializeError(err) } : { level, event, ...context };
+      err.length > 0 ? { level, event, ...context, error: serializeError(err[0]) } : { level, event, ...context };
     return JSON.stringify(entry);
   } catch {
     return JSON.stringify({ level, event, route: context.route, error: { message: "log serialization failed" } });
@@ -89,8 +89,8 @@ export function logError(event: string, context: LogContext, err: unknown): void
   console.error(toLine("error", event, context, err));
 }
 
-/** Writes one JSON line for something odd that did not fail the request. Never throws. */
-export function logWarn(event: string, context: LogContext): void {
+/** Writes one JSON line for something odd that did not fail the request. Never throws. Pass `err` when there is one. */
+export function logWarn(event: string, context: LogContext, ...err: [] | [unknown]): void {
   // eslint-disable-next-line no-console
-  console.warn(toLine("warn", event, context));
+  console.warn(toLine("warn", event, context, ...err));
 }

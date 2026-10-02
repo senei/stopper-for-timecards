@@ -1,8 +1,11 @@
 import type { APIRoute } from "astro";
 import { isWellFormedToken } from "@/lib/link-token";
 import { findLinkByToken } from "@/lib/links";
+import { logError, logWarn } from "@/lib/log";
 import { ERROR_GENERIC, STATUS_TIMER_STOPPED } from "@/lib/status-messages";
 import { NoActiveTimerError, stopTimer } from "@/lib/timer";
+
+const ROUTE = "POST /api/w/[token]/timer/stop";
 
 /**
  * The only way a running timer is stopped. Re-derives the link from the URL token exactly as
@@ -21,8 +24,7 @@ export const POST: APIRoute = async ({ params, redirect, rewrite }) => {
   try {
     link = await findLinkByToken(token);
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("link lookup failed:", err);
+    logError("link_lookup_failed", { route: ROUTE }, err);
     return new Response(null, { status: 503 });
   }
   if (!link) {
@@ -35,10 +37,10 @@ export const POST: APIRoute = async ({ params, redirect, rewrite }) => {
     if (err instanceof NoActiveTimerError) {
       // The UI only shows the stop form while a timer runs — this is a race backstop, not a
       // primary path. The workspace already reflects the actual state.
+      logWarn("timer_stop_no_active", { route: ROUTE, linkId: link.id });
       return redirect(`/w/${token}`, 303);
     }
-    // eslint-disable-next-line no-console
-    console.error("timer stop failed:", err);
+    logError("timer_stop_failed", { route: ROUTE, linkId: link.id }, err);
     return redirect(`/w/${token}?error=${ERROR_GENERIC}`, 303);
   }
 

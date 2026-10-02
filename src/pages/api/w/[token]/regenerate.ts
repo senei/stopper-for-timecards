@@ -3,7 +3,10 @@ import { logAccess } from "@/lib/access-log";
 import { setLinkCookie } from "@/lib/link-cookie";
 import { isWellFormedToken } from "@/lib/link-token";
 import { findLinkByToken, regenerateLink } from "@/lib/links";
+import { logError } from "@/lib/log";
 import { ERROR_GENERIC, STATUS_LINK_REGENERATED } from "@/lib/status-messages";
+
+const ROUTE = "POST /api/w/[token]/regenerate";
 
 /**
  * The only way a link is actually regenerated. Re-derives the link from the URL token exactly as
@@ -22,8 +25,7 @@ export const POST: APIRoute = async ({ params, request, cookies, redirect, rewri
   try {
     link = await findLinkByToken(token);
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("link lookup failed:", err);
+    logError("link_lookup_failed", { route: ROUTE }, err);
     return new Response(null, { status: 503 });
   }
   if (!link) {
@@ -46,8 +48,7 @@ export const POST: APIRoute = async ({ params, request, cookies, redirect, rewri
     return redirect(`/w/${result.token}?status=${STATUS_LINK_REGENERATED}`, 303);
   } catch (err) {
     await logAccess(link.id, request, "error");
-    // eslint-disable-next-line no-console
-    console.error("link regenerate failed:", err);
+    logError("link_regenerate_failed", { route: ROUTE, linkId: link.id }, err);
     return redirect(`/w/${token}?error=${ERROR_GENERIC}`, 303);
   }
 };

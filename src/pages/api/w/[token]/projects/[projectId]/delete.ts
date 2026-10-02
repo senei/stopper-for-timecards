@@ -1,9 +1,12 @@
 import type { APIRoute } from "astro";
 import { isWellFormedToken } from "@/lib/link-token";
 import { findLinkByToken } from "@/lib/links";
+import { logError, logWarn } from "@/lib/log";
 import { isWellFormedId } from "@/lib/project-id";
 import { deleteProject, ProjectInUseError } from "@/lib/projects";
 import { ERROR_GENERIC, ERROR_PROJECT_IN_USE, STATUS_PROJECT_DELETED } from "@/lib/status-messages";
+
+const ROUTE = "POST /api/w/[token]/projects/[projectId]/delete";
 
 /**
  * The only way a project is actually deleted. Re-derives the link from the URL token exactly as
@@ -22,8 +25,7 @@ export const POST: APIRoute = async ({ params, redirect, rewrite }) => {
   try {
     link = await findLinkByToken(token);
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("link lookup failed:", err);
+    logError("link_lookup_failed", { route: ROUTE }, err);
     return new Response(null, { status: 503 });
   }
   if (!link) {
@@ -39,10 +41,10 @@ export const POST: APIRoute = async ({ params, redirect, rewrite }) => {
     deleted = await deleteProject(link.id, projectId);
   } catch (err) {
     if (err instanceof ProjectInUseError) {
+      logWarn("project_delete_in_use", { route: ROUTE, linkId: link.id, projectId });
       return redirect(`/w/${token}?error=${ERROR_PROJECT_IN_USE}`, 303);
     }
-    // eslint-disable-next-line no-console
-    console.error("project delete failed:", err);
+    logError("project_delete_failed", { route: ROUTE, linkId: link.id, projectId }, err);
     return redirect(`/w/${token}?error=${ERROR_GENERIC}`, 303);
   }
 

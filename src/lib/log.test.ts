@@ -123,6 +123,12 @@ describe("logWarn", () => {
     expect(line).toMatchObject({ level: "warn", event: "timer_start_already_running", linkId: "link-1" });
     expect(line).not.toHaveProperty("error");
   });
+
+  it("includes the error when one is passed", () => {
+    logWarn("form_parse_failed", context, new TypeError("bad body"));
+
+    expect(loggedLine(warnSpy)).toMatchObject({ level: "warn", error: { name: "TypeError", message: "bad body" } });
+  });
 });
 
 describe("serializeError", () => {

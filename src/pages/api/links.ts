@@ -3,7 +3,10 @@ import { LINK_CREATION_CLOSED, TURNSTILE_SECRET_KEY } from "astro:env/server";
 import { isCreationClosed } from "@/lib/creation-closed";
 import { resolveCookieLink, setLinkCookie } from "@/lib/link-cookie";
 import { countRecentLinks, createLink } from "@/lib/links";
+import { logError, logWarn } from "@/lib/log";
 import { verifyTurnstile } from "@/lib/turnstile";
+
+const ROUTE = "POST /api/links";
 
 // At most THROTTLE_MAX_LINKS links may be created in any THROTTLE_WINDOW_MINUTES, across all visitors.
 const THROTTLE_WINDOW_MINUTES = 10;
@@ -27,8 +30,9 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   let rawToken: FormDataEntryValue | null = null;
   try {
     rawToken = (await request.formData()).get("cf-turnstile-response");
-  } catch {
+  } catch (err) {
     // Left as null: the check below refuses it.
+    logWarn("form_parse_failed", { route: ROUTE, detail: request.headers.get("content-type") ?? undefined }, err);
   }
   const turnstileToken = typeof rawToken === "string" ? rawToken : null;
   const ip = request.headers.get("cf-connecting-ip");
@@ -49,8 +53,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     setLinkCookie(cookies, result.token);
     return redirect(`/w/${result.token}`, 303);
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("link creation failed:", err);
+    logError("link_create_failed", { route: ROUTE }, err);
     return redirect("/?error=1", 303);
   }
 };

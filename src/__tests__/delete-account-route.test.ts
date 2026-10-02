@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import type { APIContext, AstroCookies } from "astro";
 import { generateToken } from "@/lib/link-token";
 import { deleteAccount, findLinkByToken } from "@/lib/links";
@@ -29,6 +29,14 @@ function call({ token, phrase, cookie }: { token: string; phrase?: string; cooki
     rewrite,
   } as unknown as APIContext;
   return { response: POST(context), del, rewrite };
+}
+
+/** The one error line the route wrote: parsed, matching `expected`, and never containing the URL token. */
+function expectLoggedError(spy: MockInstance<typeof console.error>, token: string, expected: Record<string, unknown>) {
+  expect(spy).toHaveBeenCalledOnce();
+  const line = String(spy.mock.calls[0][0]);
+  expect(JSON.parse(line)).toMatchObject({ level: "error", ...expected });
+  expect(line).not.toContain(token);
 }
 
 beforeEach(() => {
@@ -95,7 +103,7 @@ describe("POST /api/w/[token]/delete-account", () => {
     const token = generateToken();
     findLink.mockResolvedValue({ id: "link-1" });
     removeAccount.mockRejectedValue(new Error("database down"));
-    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
     const { response, del } = call({ token, phrase: "DELETE", cookie: token });
     const result = await response;
@@ -103,6 +111,12 @@ describe("POST /api/w/[token]/delete-account", () => {
     expect(result.status).toBe(303);
     expect(result.headers.get("Location")).toBe(`/w/${token}/delete-account?error=1`);
     expect(del).not.toHaveBeenCalled();
+    expectLoggedError(errorSpy, token, {
+      event: "account_delete_failed",
+      route: "POST /api/w/[token]/delete-account",
+      linkId: "link-1",
+      error: { message: "database down" },
+    });
   });
 
   it("is a 404 and keeps the remembered link when the link was already gone by the time of the delete", async () => {
@@ -119,12 +133,18 @@ describe("POST /api/w/[token]/delete-account", () => {
 
   it("answers 503 and deletes nothing when the link lookup fails", async () => {
     findLink.mockRejectedValue(new Error("database down"));
-    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const token = generateToken();
 
-    const result = await call({ token: generateToken(), phrase: "DELETE" }).response;
+    const result = await call({ token, phrase: "DELETE" }).response;
 
     expect(result.status).toBe(503);
     expect(removeAccount).not.toHaveBeenCalled();
+    expectLoggedError(errorSpy, token, {
+      event: "link_lookup_failed",
+      route: "POST /api/w/[token]/delete-account",
+      error: { message: "database down" },
+    });
   });
 
   it("looks up and deletes the person whose token is in the URL, not the one whose link the cookie holds", async () => {

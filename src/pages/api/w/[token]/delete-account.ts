@@ -2,7 +2,10 @@ import type { APIRoute } from "astro";
 import { clearLinkCookie, LINK_COOKIE } from "@/lib/link-cookie";
 import { isWellFormedToken } from "@/lib/link-token";
 import { deleteAccount, findLinkByToken } from "@/lib/links";
+import { logError, logWarn } from "@/lib/log";
 import { ERROR_CONFIRM_PHRASE, ERROR_GENERIC, STATUS_ACCOUNT_DELETED } from "@/lib/status-messages";
+
+const ROUTE = "POST /api/w/[token]/delete-account";
 
 const CONFIRM_PHRASE = "DELETE";
 
@@ -23,8 +26,7 @@ export const POST: APIRoute = async ({ params, request, cookies, redirect, rewri
   try {
     link = await findLinkByToken(token);
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("link lookup failed:", err);
+    logError("link_lookup_failed", { route: ROUTE }, err);
     return new Response(null, { status: 503 });
   }
   if (!link) {
@@ -34,8 +36,13 @@ export const POST: APIRoute = async ({ params, request, cookies, redirect, rewri
   let phrase: FormDataEntryValue | null = null;
   try {
     phrase = (await request.formData()).get("confirm");
-  } catch {
+  } catch (err) {
     // A body that is not a form counts as no phrase.
+    logWarn(
+      "form_parse_failed",
+      { route: ROUTE, linkId: link.id, detail: request.headers.get("content-type") ?? undefined },
+      err,
+    );
   }
   if (typeof phrase !== "string" || phrase.trim() !== CONFIRM_PHRASE) {
     return redirect(`/w/${token}/delete-account?error=${ERROR_CONFIRM_PHRASE}`, 303);
@@ -45,8 +52,7 @@ export const POST: APIRoute = async ({ params, request, cookies, redirect, rewri
   try {
     deleted = await deleteAccount(link.id);
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error("account delete failed:", err);
+    logError("account_delete_failed", { route: ROUTE, linkId: link.id }, err);
     return redirect(`/w/${token}/delete-account?error=${ERROR_GENERIC}`, 303);
   }
   if (!deleted) {
