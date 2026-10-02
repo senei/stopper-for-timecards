@@ -1,7 +1,7 @@
 ---
 change_id: turnstile-failure-visibility
 title: Make Turnstile failures visible to the operator
-status: implementing
+status: implemented
 created: 2026-10-02
 updated: 2026-10-02
 archived_at: null

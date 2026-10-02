@@ -252,13 +252,13 @@ The two HTTP 400 rows corrected the phase 1 design: a wrong or missing secret ar
 
 #### Automated
 
-- [x] 3.1 The script runs on both commits and writes `probe/out-turnstile/results.json` for each: `node probe/turnstile.mjs`
-- [x] 3.2 For all three scenarios the HTTP status and `Location` header after the change equal the baseline's
-- [x] 3.3 After the change the three scenarios log `turnstile_rejected` with a rejection code, `turnstile_rejected` with `timeout-or-duplicate`, and `turnstile_secret_missing` respectively; the baseline has none of these
-- [x] 3.4 No line containing `"event":"turnstile_` contains the dummy token or any secret string
-- [x] 3.5 No process is left listening on the probe ports
+- [x] 3.1 The script runs on both commits and writes `probe/out-turnstile/results.json` for each: `node probe/turnstile.mjs` — 9e58afc
+- [x] 3.2 For all three scenarios the HTTP status and `Location` header after the change equal the baseline's — 9e58afc
+- [x] 3.3 After the change the three scenarios log `turnstile_rejected` with a rejection code, `turnstile_rejected` with `timeout-or-duplicate`, and `turnstile_secret_missing` respectively; the baseline has none of these — 9e58afc
+- [x] 3.4 No line containing `"event":"turnstile_` contains the dummy token or any secret string — 9e58afc
+- [x] 3.5 No process is left listening on the probe ports — 9e58afc
 
 #### Manual
 
-- [x] 3.6 The before/after table was read and the three scenarios are visibly told apart in the logs
-- [x] 3.7 A `mode: verify` report with the table is written under `context/audits/observability/` and the original report is untouched
+- [x] 3.6 The before/after table was read and the three scenarios are visibly told apart in the logs — 9e58afc
+- [x] 3.7 A `mode: verify` report with the table is written under `context/audits/observability/` and the original report is untouched — 9e58afc
