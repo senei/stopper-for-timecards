@@ -36,7 +36,9 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   }
   const turnstileToken = typeof rawToken === "string" ? rawToken : null;
   const ip = request.headers.get("cf-connecting-ip");
-  if (!(await verifyTurnstile(turnstileToken, ip, TURNSTILE_SECRET_KEY))) {
+  // Fails closed: only an explicit `ok` continues; every refusal looks the same to the visitor (and is logged inside).
+  const verdict = await verifyTurnstile(turnstileToken, ip, TURNSTILE_SECRET_KEY);
+  if (!verdict.ok) {
     return redirect("/?error=verify", 303);
   }
 
