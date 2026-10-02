@@ -324,23 +324,23 @@ None. No schema, env or deploy changes; log shape changes only, so any saved Wor
 
 #### Automated
 
-- [x] 4.1 Lint is clean: `npm run lint`
-- [x] 4.2 Astro check passes: `npx astro check`
-- [x] 4.3 Whole suite stays green: `npx vitest run`
-- [x] 4.4 Type checking passes: `npx tsc --noEmit`
-- [x] 4.5 Deliberate break: a bare `catch {` added in `src/lib` makes `npx eslint <that file>` report `no-restricted-syntax`, and the temporary edit is removed afterwards
+- [x] 4.1 Lint is clean: `npm run lint` — c35c93d
+- [x] 4.2 Astro check passes: `npx astro check` — c35c93d
+- [x] 4.3 Whole suite stays green: `npx vitest run` — c35c93d
+- [x] 4.4 Type checking passes: `npx tsc --noEmit` — c35c93d
+- [x] 4.5 Deliberate break: a bare `catch {` added in `src/lib` makes `npx eslint <that file>` report `no-restricted-syntax`, and the temporary edit is removed afterwards — c35c93d
 
 ### Phase 5: Runtime proof (before/after)
 
 #### Automated
 
-- [ ] 5.1 The suite completes and writes `probe/out/results.json`: `bash probe/suite.sh`
-- [ ] 5.2 Every probe's HTTP status equals its status in `probe/out-before/results.json`
-- [ ] 5.3 Probe rows R7, R8, R12, R13, R14 now show a log line containing an `"event"` and a `"route"`
-- [ ] 5.4 Probe rows R1, R2s, R3, R5 now show the database `code`
-- [ ] 5.5 No line containing `"event"` in `probe/out/full-console.log` contains the seeded link token
+- [x] 5.1 The suite completes and writes `probe/out/results.json`: `bash probe/suite.sh`
+- [x] 5.2 Every probe's HTTP status equals its status in `probe/out-before/results.json`
+- [x] 5.3 Probe rows R7, R8, R12, R13, R14 now show a log line containing an `"event"` and a `"route"`
+- [x] 5.4 Probe rows R1, R2s, R3, R5 now show the database `code`
+- [x] 5.5 No line containing `"event"` in `probe/out/full-console.log` contains the seeded link token
 
 #### Manual
 
-- [ ] 5.6 The before/after table was read and the four formerly "missed" rows (R7, R12, R13, R14) are visibly diagnosable
-- [ ] 5.7 A `mode: verify` report with the table is written under `context/audits/observability/` and the original report is untouched
+- [x] 5.6 The before/after table was read and the four formerly "missed" rows (R7, R12, R13, R14) are visibly diagnosable
+- [x] 5.7 A `mode: verify` report with the table is written under `context/audits/observability/` and the original report is untouched
