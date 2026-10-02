@@ -54,9 +54,16 @@ if (unavailable) {
   }
   // Read-only: this page only shows state. Starting a timer happens through the form's POST
   // to /api/w/[token]/timer/start, which re-derives the link itself rather than trusting this one.
-  const [timer, projectList] = await Promise.all([getCurrentTimer(link.id), listProjects(link.id)]);
-  currentTimer = timer;
-  projects = projectList;
+  try {
+    const [timer, projectList] = await Promise.all([getCurrentTimer(link.id), listProjects(link.id)]);
+    currentTimer = timer;
+    projects = projectList;
+  } catch (err) {
+    // Same "temporarily unavailable" view as a failed link lookup, instead of an empty 500 without the privacy headers.
+    logError("page_workspace_read_failed", { route: "GET /w/[token]", linkId: link.id }, err);
+    unavailable = true;
+    Astro.response.status = 503;
+  }
 }
 
 const workspaceUrl = Astro.url.href;

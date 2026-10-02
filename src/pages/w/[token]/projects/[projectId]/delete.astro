@@ -40,8 +40,19 @@ if (unavailable) {
 } else if (!isWellFormedId(projectId)) {
   return Astro.rewrite("/404");
 } else {
-  project = await getProject(link.id, projectId);
-  if (!project) {
+  try {
+    project = await getProject(link.id, projectId);
+  } catch (err) {
+    logError(
+      "page_project_read_failed",
+      { route: "GET /w/[token]/projects/[projectId]/delete", linkId: link.id, projectId },
+      err,
+    );
+    unavailable = true;
+    Astro.response.status = 503;
+  }
+  // A missing project is a 404 only when the read succeeded; a failed read already took the unavailable view.
+  if (!unavailable && !project) {
     return Astro.rewrite("/404");
   }
 }
