@@ -334,13 +334,13 @@ None. No schema, env or deploy changes; log shape changes only, so any saved Wor
 
 #### Automated
 
-- [x] 5.1 The suite completes and writes `probe/out/results.json`: `bash probe/suite.sh`
-- [x] 5.2 Every probe's HTTP status equals its status in `probe/out-before/results.json`
-- [x] 5.3 Probe rows R7, R8, R12, R13, R14 now show a log line containing an `"event"` and a `"route"`
-- [x] 5.4 Probe rows R1, R2s, R3, R5 now show the database `code`
-- [x] 5.5 No line containing `"event"` in `probe/out/full-console.log` contains the seeded link token
+- [x] 5.1 The suite completes and writes `probe/out/results.json`: `bash probe/suite.sh` — 117b34a
+- [x] 5.2 Every probe's HTTP status equals its status in `probe/out-before/results.json` — 117b34a
+- [x] 5.3 Probe rows R7, R8, R12, R13, R14 now show a log line containing an `"event"` and a `"route"` — 117b34a
+- [x] 5.4 Probe rows R1, R2s, R3, R5 now show the database `code` — 117b34a
+- [x] 5.5 No line containing `"event"` in `probe/out/full-console.log` contains the seeded link token — 117b34a
 
 #### Manual
 
-- [x] 5.6 The before/after table was read and the four formerly "missed" rows (R7, R12, R13, R14) are visibly diagnosable
-- [x] 5.7 A `mode: verify` report with the table is written under `context/audits/observability/` and the original report is untouched
+- [x] 5.6 The before/after table was read and the four formerly "missed" rows (R7, R12, R13, R14) are visibly diagnosable — 117b34a
+- [x] 5.7 A `mode: verify` report with the table is written under `context/audits/observability/` and the original report is untouched — 117b34a
