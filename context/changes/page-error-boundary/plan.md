@@ -235,29 +235,29 @@ None for data or deploy. Pages that failed with a blank 500 now answer 503, so a
 
 #### Automated
 
-- [x] 2.1 Boundary tests pass: `npx vitest run src/lib/error-boundary.test.ts`
-- [x] 2.2 Whole suite stays green: `npx vitest run`
-- [x] 2.3 Type checking passes: `npx tsc --noEmit`
-- [x] 2.4 Lint is clean: `npm run lint`
-- [x] 2.5 Astro check passes: `npx astro check`
-- [x] 2.6 Deliberate break: a boundary that returns a `Response` instead of rethrowing turns the rethrow case red and one that labels the event with the URL path turns the token case red; both edits are reverted
+- [x] 2.1 Boundary tests pass: `npx vitest run src/lib/error-boundary.test.ts` — ab1d1a9
+- [x] 2.2 Whole suite stays green: `npx vitest run` — ab1d1a9
+- [x] 2.3 Type checking passes: `npx tsc --noEmit` — ab1d1a9
+- [x] 2.4 Lint is clean: `npm run lint` — ab1d1a9
+- [x] 2.5 Astro check passes: `npx astro check` — ab1d1a9
+- [x] 2.6 Deliberate break: a boundary that returns a `Response` instead of rethrowing turns the rethrow case red and one that labels the event with the URL path turns the token case red; both edits are reverted — ab1d1a9
 
 #### Manual
 
-- [x] 2.7 The text on the 500 page was read and approved
+- [x] 2.7 The text on the 500 page was read and approved — ab1d1a9
 
 ### Phase 3: Runtime proof through the probe harness
 
 #### Automated
 
-- [ ] 3.1 The harness runs on both commits and writes `results.json` for each: `node probe/boundary.mjs before` and `node probe/boundary.mjs after`
-- [ ] 3.2 After the change R9, R10 and D1 answer `503` with a non-empty HTML body and all three privacy headers, and the console shows a `page_workspace_read_failed` or `page_project_read_failed` line with a link id
-- [ ] 3.3 After the change P10a and P1 answer `500`, `text/html`, a non-empty body and all three privacy headers, and the console shows an `unhandled_request_error` line whose route is a template
-- [ ] 3.4 After the change P10b, A503, N404, ASSET and HEALTHY match the baseline in status, body length and the three headers
-- [ ] 3.5 No `unhandled_request_error` or `page_*_read_failed` line contains the seeded token or the link id inside a URL
-- [ ] 3.6 No process is left listening on the probe ports
+- [x] 3.1 The harness runs on both commits and writes `results.json` for each: `node probe/boundary.mjs before` and `node probe/boundary.mjs after`
+- [x] 3.2 After the change R9, R10 and D1 answer `503` with a non-empty HTML body and all three privacy headers, and the console shows a `page_workspace_read_failed` or `page_project_read_failed` line with a link id
+- [x] 3.3 After the change P10a and P1 answer `500`, `text/html`, a non-empty body and all three privacy headers, and the console shows an `unhandled_request_error` line whose route is a template
+- [x] 3.4 After the change P10b, A503, N404, ASSET and HEALTHY match the baseline in status, body length and the three headers
+- [x] 3.5 No `unhandled_request_error` or `page_*_read_failed` line contains the seeded token or the link id inside a URL
+- [x] 3.6 No process is left listening on the probe ports
 
 #### Manual
 
-- [ ] 3.7 The before/after table was read and the failing requests are visibly diagnosable, with unchanged requests unchanged
-- [ ] 3.8 A `mode: verify` report with the table is written under `context/audits/observability/` and earlier reports are untouched
+- [x] 3.7 The before/after table was read and the failing requests are visibly diagnosable, with unchanged requests unchanged
+- [x] 3.8 A `mode: verify` report with the table is written under `context/audits/observability/` and earlier reports are untouched
