@@ -238,27 +238,27 @@ The two HTTP 400 rows corrected the phase 1 design: a wrong or missing secret ar
 
 #### Automated
 
-- [x] 2.1 Live test passes against Cloudflare: `TURNSTILE_LIVE=1 npx vitest run --config vitest.integration.config.ts src/lib/turnstile.integration.test.ts`
-- [x] 2.2 Without the variable the suite is skipped, with the reason in its title, and does not fail
-- [x] 2.3 Lint is clean: `npm run lint`
-- [x] 2.4 Astro check passes: `npx astro check`
-- [x] 2.5 Whole suite and types stay green: `npx vitest run` and `npx tsc --noEmit`
+- [x] 2.1 Live test passes against Cloudflare: `TURNSTILE_LIVE=1 npx vitest run --config vitest.integration.config.ts src/lib/turnstile.integration.test.ts` — 1f718d2
+- [x] 2.2 Without the variable the suite is skipped, with the reason in its title, and does not fail — 1f718d2
+- [x] 2.3 Lint is clean: `npm run lint` — 1f718d2
+- [x] 2.4 Astro check passes: `npx astro check` — 1f718d2
+- [x] 2.5 Whole suite and types stay green: `npx vitest run` and `npx tsc --noEmit` — 1f718d2
 
 #### Manual
 
-- [x] 2.6 The actual `error-codes` returned for the `2x…AA`, `3x…AA` and made-up secrets were read and are recorded in Migration Notes
+- [x] 2.6 The actual `error-codes` returned for the `2x…AA`, `3x…AA` and made-up secrets were read and are recorded in Migration Notes — 1f718d2
 
 ### Phase 3: Runtime proof through the real route
 
 #### Automated
 
-- [ ] 3.1 The script runs on both commits and writes `probe/out-turnstile/results.json` for each: `node probe/turnstile.mjs`
-- [ ] 3.2 For all three scenarios the HTTP status and `Location` header after the change equal the baseline's
-- [ ] 3.3 After the change the three scenarios log `turnstile_rejected` with a rejection code, `turnstile_rejected` with `timeout-or-duplicate`, and `turnstile_secret_missing` respectively; the baseline has none of these
-- [ ] 3.4 No line containing `"event":"turnstile_` contains the dummy token or any secret string
-- [ ] 3.5 No process is left listening on the probe ports
+- [x] 3.1 The script runs on both commits and writes `probe/out-turnstile/results.json` for each: `node probe/turnstile.mjs`
+- [x] 3.2 For all three scenarios the HTTP status and `Location` header after the change equal the baseline's
+- [x] 3.3 After the change the three scenarios log `turnstile_rejected` with a rejection code, `turnstile_rejected` with `timeout-or-duplicate`, and `turnstile_secret_missing` respectively; the baseline has none of these
+- [x] 3.4 No line containing `"event":"turnstile_` contains the dummy token or any secret string
+- [x] 3.5 No process is left listening on the probe ports
 
 #### Manual
 
-- [ ] 3.6 The before/after table was read and the three scenarios are visibly told apart in the logs
-- [ ] 3.7 A `mode: verify` report with the table is written under `context/audits/observability/` and the original report is untouched
+- [x] 3.6 The before/after table was read and the three scenarios are visibly told apart in the logs
+- [x] 3.7 A `mode: verify` report with the table is written under `context/audits/observability/` and the original report is untouched
