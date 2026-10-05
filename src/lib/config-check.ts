@@ -61,7 +61,7 @@ export function checkSignupConfig(input: SignupConfigInput): void {
   const missingSupabase = [
     isMissing(input.supabaseUrl) ? "SUPABASE_URL" : undefined,
     isMissing(input.supabaseServiceRoleKey) ? "SUPABASE_SERVICE_ROLE_KEY" : undefined,
-  ].filter((name) => name !== undefined);
+  ].filter((name): name is string => name !== undefined);
   if (missingSupabase.length > 0) {
     reportOnce("supabase_secrets_missing", () => {
       logError(
