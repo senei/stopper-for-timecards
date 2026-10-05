@@ -1,7 +1,7 @@
 ---
 change_id: failed-lookup-not-absence
 title: Failed lookup not absence
-status: implementing
+status: implemented
 created: 2026-10-05
 updated: 2026-10-05
 archived_at: null

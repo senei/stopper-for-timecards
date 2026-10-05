@@ -210,9 +210,9 @@ None for data or deploy. A saved Workers Logs query on `cookie_link_lookup_faile
 
 #### Automated
 
-- [x] 2.1 Lib and route tests pass: `npx vitest run src/lib/links.test.ts src/__tests__/links-route.test.ts`
-- [x] 2.2 Whole suite stays green: `npx vitest run`
-- [x] 2.3 Type checking passes: `npx tsc --noEmit`
-- [x] 2.4 Lint is clean: `npm run lint`
-- [x] 2.5 Astro check passes: `npx astro check`
-- [x] 2.6 Deliberate break: restoring `return count ?? 0` turns the null-count case red; the edit is reverted
+- [x] 2.1 Lib and route tests pass: `npx vitest run src/lib/links.test.ts src/__tests__/links-route.test.ts` — ec8bde2
+- [x] 2.2 Whole suite stays green: `npx vitest run` — ec8bde2
+- [x] 2.3 Type checking passes: `npx tsc --noEmit` — ec8bde2
+- [x] 2.4 Lint is clean: `npm run lint` — ec8bde2
+- [x] 2.5 Astro check passes: `npx astro check` — ec8bde2
+- [x] 2.6 Deliberate break: restoring `return count ?? 0` turns the null-count case red; the edit is reverted — ec8bde2
