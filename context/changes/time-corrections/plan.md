@@ -344,12 +344,12 @@ One new migration (`20261005120000_time_entry_corrections.sql`) adding two funct
 
 #### Automated
 
-- [ ] 3.1 Route and parsing tests pass: `npx vitest run src/__tests__/entry-routes.test.ts src/lib/utc-datetime.test.ts src/lib/status-messages.test.ts`
-- [ ] 3.2 Whole suite stays green: `npx vitest run`
-- [ ] 3.3 Type checking passes: `npx tsc --noEmit`
-- [ ] 3.4 Changed files lint clean: `npx eslint "src/pages/api/w/[token]/entries/[entryId]/correct.ts" "src/pages/api/w/[token]/entries/[entryId]/delete.ts" src/lib/utc-datetime.ts src/lib/utc-datetime.test.ts src/lib/status-messages.ts src/lib/status-messages.test.ts src/__tests__/entry-routes.test.ts`
-- [ ] 3.5 No `console` call or disable comment in the new routes: `grep -rnE "console\.|eslint-disable-next-line no-console" "src/pages/api/w/[token]/entries"` prints nothing
-- [ ] 3.6 Deliberate break: letting the correct route fall through to the generic failure for a refusal turns the refusal cases red and passing the URL's entry id instead of `link.id` turns the link-scoping case red; both edits are reverted
+- [x] 3.1 Route and parsing tests pass: `npx vitest run src/__tests__/entry-routes.test.ts src/lib/utc-datetime.test.ts src/lib/status-messages.test.ts`
+- [x] 3.2 Whole suite stays green: `npx vitest run`
+- [x] 3.3 Type checking passes: `npx tsc --noEmit`
+- [x] 3.4 Changed files lint clean: `npx eslint "src/pages/api/w/[token]/entries/[entryId]/correct.ts" "src/pages/api/w/[token]/entries/[entryId]/delete.ts" src/lib/utc-datetime.ts src/lib/utc-datetime.test.ts src/lib/status-messages.ts src/lib/status-messages.test.ts src/__tests__/entry-routes.test.ts`
+- [x] 3.5 No `console` call or disable comment in the new routes: `grep -rnE "console\.|eslint-disable-next-line no-console" "src/pages/api/w/[token]/entries"` prints nothing
+- [x] 3.6 Deliberate break: letting the correct route fall through to the generic failure for a refusal turns the refusal cases red and passing the URL's entry id instead of `link.id` turns the link-scoping case red; both edits are reverted
 
 ### Phase 4: Pages and links
 
