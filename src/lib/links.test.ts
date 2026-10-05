@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { countRecentLinks, deleteAccount } from "./links";
+import { countRecentLinks, createLink, deleteAccount } from "./links";
 import { adminOrThrow } from "./supabase-admin";
 
 vi.mock("./supabase-admin", () => ({ adminOrThrow: vi.fn() }));
@@ -50,6 +50,45 @@ describe("deleteAccount", () => {
 
     await expect(deleteAccount("link-1")).rejects.toThrow();
     expect(rpc).not.toHaveBeenCalled();
+  });
+});
+
+// createLink commits inside the RPC, so every outcome after the call matters: the id comes back as the RPC result.
+describe("createLink", () => {
+  it("returns the created link's id and a token that is not the id", async () => {
+    rpc.mockResolvedValue({ data: "link-1", error: null });
+
+    const result = await createLink();
+
+    expect(result).toMatchObject({ status: "created", id: "link-1" });
+    expect(result.status === "created" && result.token).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(result.status === "created" && result.token).not.toBe("link-1");
+  });
+
+  it("reports full, and creates nothing, when the cap is reached (the function answers null)", async () => {
+    rpc.mockResolvedValue({ data: null, error: null });
+
+    expect(await createLink()).toEqual({ status: "full" });
+  });
+
+  it("throws, keeping the original error as cause, when the database call fails", async () => {
+    const failure = { message: "connection lost" };
+    rpc.mockResolvedValue({ data: null, error: failure });
+
+    const error: unknown = await createLink().then(
+      () => undefined,
+      (thrown: unknown) => thrown,
+    );
+
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toBe("create_link failed: connection lost");
+    expect((error as Error).cause).toBe(failure);
+  });
+
+  it("names the type, never the value, when the function answers with something unexpected", async () => {
+    rpc.mockResolvedValue({ data: 42, error: null });
+
+    await expect(createLink()).rejects.toThrow("create_link returned an unexpected value (typeof number)");
   });
 });
 

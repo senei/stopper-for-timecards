@@ -1,14 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
-import { logError, logWarn, serializeError } from "./log";
+import { logError, logInfo, logWarn, serializeError } from "./log";
 
 const context = { route: "POST /api/w/[token]/timer/start", linkId: "link-1", op: "timer_start" };
 
 let errorSpy: MockInstance<typeof console.error>;
 let warnSpy: MockInstance<typeof console.warn>;
+let infoSpy: MockInstance<typeof console.info>;
 
 beforeEach(() => {
   errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
   warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  infoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
 });
 
 afterEach(() => {
@@ -128,6 +130,17 @@ describe("logWarn", () => {
     logWarn("form_parse_failed", context, new TypeError("bad body"));
 
     expect(loggedLine(warnSpy)).toMatchObject({ level: "warn", error: { name: "TypeError", message: "bad body" } });
+  });
+});
+
+describe("logInfo", () => {
+  it("writes one JSON line through console.info, with the context and no error", () => {
+    logInfo("link_created", { route: "POST /api/links", linkId: "link-1" });
+
+    expect(errorSpy).not.toHaveBeenCalled();
+    expect(warnSpy).not.toHaveBeenCalled();
+    const line = loggedLine(infoSpy);
+    expect(line).toEqual({ level: "info", event: "link_created", route: "POST /api/links", linkId: "link-1" });
   });
 });
 

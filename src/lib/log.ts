@@ -73,7 +73,7 @@ export function serializeError(err: unknown, depth = 0): SerializedError {
   return { message: truncate(String(err)) };
 }
 
-function toLine(level: "error" | "warn", event: string, context: LogContext, ...err: [] | [unknown]): string {
+function toLine(level: "error" | "warn" | "info", event: string, context: LogContext, ...err: [] | [unknown]): string {
   try {
     const entry =
       err.length > 0 ? { level, event, ...context, error: serializeError(err[0]) } : { level, event, ...context };
@@ -91,4 +91,9 @@ export function logError(event: string, context: LogContext, err: unknown): void
 /** Writes one JSON line for something odd that did not fail the request. Never throws. Pass `err` when there is one. */
 export function logWarn(event: string, context: LogContext, ...err: [] | [unknown]): void {
   console.warn(toLine("warn", event, context, ...err));
+}
+
+/** Writes one JSON line for an expected outcome worth counting (a created link, a deliberate refusal). Never throws. */
+export function logInfo(event: string, context: LogContext): void {
+  console.info(toLine("info", event, context));
 }

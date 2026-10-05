@@ -12,11 +12,19 @@ export function createAdminClient() {
   });
 }
 
+/** Thrown when the Supabase env vars are missing, so a caller can tell "not configured" from a database failure. */
+export class SupabaseNotConfiguredError extends Error {
+  constructor() {
+    super("Supabase is not configured");
+    this.name = "SupabaseNotConfiguredError";
+  }
+}
+
 /** The service-role client, or throws if Supabase isn't configured. */
 export function adminOrThrow() {
   const admin = createAdminClient();
   if (!admin) {
-    throw new Error("Supabase is not configured");
+    throw new SupabaseNotConfiguredError();
   }
   return admin;
 }

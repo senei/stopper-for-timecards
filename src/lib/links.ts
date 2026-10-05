@@ -20,7 +20,7 @@ export async function createLink(): Promise<CreateLinkResult> {
     return { status: "full" };
   }
   if (typeof id !== "string") {
-    throw new Error("create_link returned an unexpected value");
+    throw new Error(`create_link returned an unexpected value (typeof ${typeof id})`);
   }
   return { status: "created", id, token };
 }
