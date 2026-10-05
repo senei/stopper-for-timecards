@@ -132,6 +132,26 @@ describe("POST /api/links and the Turnstile verdict", () => {
     expect(setCookie).not.toHaveBeenCalled();
   });
 
+  // A throttle count that could not be read is not "no recent links": skipping the throttle would let the sign-up through.
+  it("refuses, creates nothing and logs one link_create_failed when the throttle count fails", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    countLinks.mockRejectedValue(new Error("recent link count returned null"));
+
+    try {
+      const response = await call();
+
+      expect(response.status).toBe(303);
+      expect(response.headers.get("Location")).toBe("/?error=1");
+      expect(create).not.toHaveBeenCalled();
+      expect(setCookie).not.toHaveBeenCalled();
+      expect(errorSpy.mock.calls.map((args) => JSON.parse(String(args[0])) as unknown)).toMatchObject([
+        { event: "link_create_failed", error: { message: "recent link count returned null" } },
+      ]);
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
   it.each(["1", "true", " TRUE "])(
     "closes creation, before any Turnstile check, when the switch is %j",
     async (value) => {

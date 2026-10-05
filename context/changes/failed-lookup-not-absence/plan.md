@@ -193,26 +193,26 @@ None for data or deploy. A saved Workers Logs query on `cookie_link_lookup_faile
 
 #### Automated
 
-- [x] 1.1 Cookie and route tests pass: `npx vitest run src/lib/link-cookie.test.ts src/__tests__/links-route.test.ts`
-- [x] 1.2 Whole suite stays green: `npx vitest run`
-- [x] 1.3 Type checking passes: `npx tsc --noEmit`
-- [x] 1.4 Changed files lint clean: `npx eslint src/lib/link-cookie.ts src/lib/link-cookie.test.ts src/pages/api/links.ts src/__tests__/links-route.test.ts src/pages/index.astro`
-- [x] 1.5 Deliberate break: a helper that returns `none` when the lookup throws turns the `unknown` case red and a route that falls through on `unknown` turns the refusal case red; both edits are reverted
+- [x] 1.1 Cookie and route tests pass: `npx vitest run src/lib/link-cookie.test.ts src/__tests__/links-route.test.ts` — 10abb2d
+- [x] 1.2 Whole suite stays green: `npx vitest run` — 10abb2d
+- [x] 1.3 Type checking passes: `npx tsc --noEmit` — 10abb2d
+- [x] 1.4 Changed files lint clean: `npx eslint src/lib/link-cookie.ts src/lib/link-cookie.test.ts src/pages/api/links.ts src/__tests__/links-route.test.ts src/pages/index.astro` — 10abb2d
+- [x] 1.5 Deliberate break: a helper that returns `none` when the lookup throws turns the `unknown` case red and a route that falls through on `unknown` turns the refusal case red; both edits are reverted — 10abb2d
 
 #### Manual
 
-- [x] 1.6 With an unreachable Supabase URL and a well-formed `stopper_link` cookie, `/` answers 503 with the "Temporarily unavailable" view, a "Try again" button, no sign-up form, the cookie kept, and one `cookie_link_lookup_failed` line with route `GET /`
-- [x] 1.7 In the same state a POST to `/api/links` with the cookie answers 303 to `/?error=1`, creates nothing, and logs route `POST /api/links`
-- [x] 1.8 With a healthy Supabase the same cookie still redirects to the workspace, and with no cookie `/` still shows the sign-up form
-- [x] 1.9 The wording of the unavailable sentence was read and approved
+- [x] 1.6 With an unreachable Supabase URL and a well-formed `stopper_link` cookie, `/` answers 503 with the "Temporarily unavailable" view, a "Try again" button, no sign-up form, the cookie kept, and one `cookie_link_lookup_failed` line with route `GET /` — 10abb2d
+- [x] 1.7 In the same state a POST to `/api/links` with the cookie answers 303 to `/?error=1`, creates nothing, and logs route `POST /api/links` — 10abb2d
+- [x] 1.8 With a healthy Supabase the same cookie still redirects to the workspace, and with no cookie `/` still shows the sign-up form — 10abb2d
+- [x] 1.9 The wording of the unavailable sentence was read and approved — 10abb2d
 
 ### Phase 2: Throttle count fails loudly
 
 #### Automated
 
-- [ ] 2.1 Lib and route tests pass: `npx vitest run src/lib/links.test.ts src/__tests__/links-route.test.ts`
-- [ ] 2.2 Whole suite stays green: `npx vitest run`
-- [ ] 2.3 Type checking passes: `npx tsc --noEmit`
-- [ ] 2.4 Lint is clean: `npm run lint`
-- [ ] 2.5 Astro check passes: `npx astro check`
-- [ ] 2.6 Deliberate break: restoring `return count ?? 0` turns the null-count case red; the edit is reverted
+- [x] 2.1 Lib and route tests pass: `npx vitest run src/lib/links.test.ts src/__tests__/links-route.test.ts`
+- [x] 2.2 Whole suite stays green: `npx vitest run`
+- [x] 2.3 Type checking passes: `npx tsc --noEmit`
+- [x] 2.4 Lint is clean: `npm run lint`
+- [x] 2.5 Astro check passes: `npx astro check`
+- [x] 2.6 Deliberate break: restoring `return count ?? 0` turns the null-count case red; the edit is reverted

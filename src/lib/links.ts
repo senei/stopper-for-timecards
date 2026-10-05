@@ -107,5 +107,8 @@ export async function countRecentLinks(windowMinutes: number): Promise<number> {
     throw dbError("recent link count", error);
   }
 
-  return count ?? 0;
+  if (count === null) {
+    throw new Error("recent link count returned null");
+  }
+  return count;
 }
