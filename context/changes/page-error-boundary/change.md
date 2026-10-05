@@ -1,9 +1,9 @@
 ---
 change_id: page-error-boundary
 title: Guard page reads and add a 500 page and error boundary
-status: implemented
+status: impl_reviewed
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-05
 archived_at: null
 ---
 
