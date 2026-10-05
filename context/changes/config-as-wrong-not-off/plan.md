@@ -187,7 +187,7 @@ None for data or deploy. `creation_closed_unrecognised`, `turnstile_site_key_mis
 - [x] 1.2 Whole suite stays green: `npx vitest run`
 - [x] 1.3 Type checking passes: `npx tsc --noEmit`
 - [x] 1.4 Changed files lint clean: `npx eslint src/lib/creation-closed.ts src/lib/creation-closed.test.ts src/lib/config-check.ts src/lib/config-check.test.ts`
-- [ ] 1.5 Deliberate break: `isCreationClosed` returning true for `yes` turns the "yes is open" test red, removing the once-per-isolate check turns the repeat-call case red, and logging the kill-switch value turns the sentinel case red; all edits are reverted
+- [x] 1.5 Deliberate break: `isCreationClosed` returning true for `yes` turns the "yes is open" test red, removing the once-per-isolate check turns the repeat-call case red, and logging the kill-switch value turns the sentinel case red; all edits are reverted
 
 ### Phase 2: Check on render
 
@@ -201,6 +201,6 @@ None for data or deploy. `creation_closed_unrecognised`, `turnstile_site_key_mis
 
 #### Manual
 
-- [ ] 2.6 With `LINK_CREATION_CLOSED=yes`, `GET /` renders the same form and prints one `creation_closed_unrecognised` warn line with no value in it and no second line on a repeat request; with `1` the closed message shows and no config line is printed
-- [ ] 2.7 With `TURNSTILE_SITE_KEY` removed, `GET /` renders the same form and prints one `turnstile_site_key_missing` error line; with the key set none is printed
-- [ ] 2.8 With `SUPABASE_URL` or `SUPABASE_SERVICE_ROLE_KEY` removed, `GET /` without a cookie renders as before and prints one `supabase_secrets_missing` line naming the missing variable; with all values set no config line appears; `.dev.vars` is restored afterwards
+- [x] 2.6 With `LINK_CREATION_CLOSED=yes`, `GET /` renders the same form and prints one `creation_closed_unrecognised` warn line with no value in it and no second line on a repeat request; with `1` the closed message shows and no config line is printed
+- [x] 2.7 With `TURNSTILE_SITE_KEY` removed, `GET /` renders the same form and prints one `turnstile_site_key_missing` error line; with the key set none is printed
+- [x] 2.8 With `SUPABASE_URL` or `SUPABASE_SERVICE_ROLE_KEY` removed, `GET /` without a cookie renders as before and prints one `supabase_secrets_missing` line naming the missing variable; with all values set no config line appears; `.dev.vars` is restored afterwards
