@@ -77,6 +77,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     setLinkCookie(cookies, result.token);
     return redirect(`/w/${result.token}`, 303);
   } catch (err) {
+    // The error is logged serialized: nothing thrown above may put the link token in its message.
     const context = { route: ROUTE, op: stage, linkId: createdLinkId };
     logError(
       err instanceof SupabaseNotConfiguredError ? "supabase_not_configured" : "link_create_failed",

@@ -188,6 +188,8 @@ describe("POST /api/links events", () => {
   });
 
   afterEach(() => {
+    // Whatever the case, the token the mocked createLink hands out must never appear in any emitted line.
+    expect(everyLine()).not.toContain("new-token");
     vi.restoreAllMocks();
   });
 
