@@ -48,56 +48,75 @@ describe("link cookie — documents current behavior (oracle is the code comment
   });
 
   describe("resolveCookieLink", () => {
-    it("returns null and touches nothing when there is no cookie", async () => {
+    const ROUTE = "GET /";
+
+    it("is none, and touches nothing, when there is no cookie", async () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
       const { jar, del } = fakeCookies();
 
-      expect(await resolveCookieLink(jar)).toBeNull();
+      expect(await resolveCookieLink(jar, ROUTE)).toEqual({ status: "none" });
       expect(findLink).not.toHaveBeenCalled();
       expect(del).not.toHaveBeenCalled();
+      expect(warnSpy).not.toHaveBeenCalled();
     });
 
-    it("clears a malformed cookie without looking it up", async () => {
+    it("clears a malformed cookie without looking it up, and says why", async () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
       const { jar, del } = fakeCookies("not-a-token");
 
-      expect(await resolveCookieLink(jar)).toBeNull();
+      expect(await resolveCookieLink(jar, ROUTE)).toEqual({ status: "none" });
       expect(findLink).not.toHaveBeenCalled();
       expect(del).toHaveBeenCalledWith("stopper_link", { path: "/" });
+      expect(warnSpy).toHaveBeenCalledOnce();
+      expect(JSON.parse(warnSpy.mock.calls[0]?.[0] as string)).toMatchObject({
+        level: "warn",
+        event: "cookie_stale",
+        route: ROUTE,
+        detail: "malformed",
+      });
     });
 
-    it("clears a well-formed cookie whose link no longer exists", async () => {
+    it("clears a well-formed cookie whose link no longer exists, and says why", async () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
       const token = generateToken();
       findLink.mockResolvedValue(null);
       const { jar, del } = fakeCookies(token);
 
-      expect(await resolveCookieLink(jar)).toBeNull();
+      expect(await resolveCookieLink(jar, ROUTE)).toEqual({ status: "none" });
       expect(findLink).toHaveBeenCalledWith(token);
       expect(del).toHaveBeenCalledWith("stopper_link", { path: "/" });
+      expect(warnSpy).toHaveBeenCalledOnce();
+      const line = warnSpy.mock.calls[0]?.[0] as string;
+      expect(JSON.parse(line)).toMatchObject({ event: "cookie_stale", route: ROUTE, detail: "not_found" });
+      expect(line).not.toContain(token);
     });
 
-    it("returns the token and keeps the cookie when the link resolves", async () => {
+    it("is linked, and keeps the cookie, when the link resolves", async () => {
       const token = generateToken();
       findLink.mockResolvedValue({ id: "link-1" });
       const { jar, del } = fakeCookies(token);
 
-      expect(await resolveCookieLink(jar)).toBe(token);
+      expect(await resolveCookieLink(jar, ROUTE)).toEqual({ status: "linked", token });
       expect(del).not.toHaveBeenCalled();
     });
 
-    it("returns null and leaves the cookie alone when the lookup throws", async () => {
+    it("is unknown, not none, and leaves the cookie alone when the lookup throws", async () => {
       const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
       findLink.mockRejectedValue(new Error("db down"));
       const token = generateToken();
       const { jar, del } = fakeCookies(token);
 
-      expect(await resolveCookieLink(jar)).toBeNull();
+      expect(await resolveCookieLink(jar, "POST /api/links")).toEqual({ status: "unknown" });
       expect(del).not.toHaveBeenCalled();
+      expect(warnSpy).not.toHaveBeenCalled();
 
-      // The failure is logged, with the route and the error, and never with the cookie's token.
+      // The failure is logged with the caller's route and the error, and never with the cookie's token.
       expect(errorSpy).toHaveBeenCalledOnce();
       const line = errorSpy.mock.calls[0]?.[0] as string;
       expect(JSON.parse(line)).toMatchObject({
         event: "cookie_link_lookup_failed",
-        route: "lib/link-cookie",
+        route: "POST /api/links",
         error: { message: "db down" },
       });
       expect(line).not.toContain(token);

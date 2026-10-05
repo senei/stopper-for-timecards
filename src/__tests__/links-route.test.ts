@@ -42,7 +42,7 @@ function call(form?: Record<string, string>) {
 beforeEach(() => {
   vi.resetAllMocks();
   env.closed = undefined;
-  cookieLink.mockResolvedValue(null);
+  cookieLink.mockResolvedValue({ status: "none" });
   countLinks.mockResolvedValue(0);
   create.mockResolvedValue({ status: "created", id: "link-1", token: "new-token" });
   verify.mockResolvedValue({ ok: true });
@@ -103,13 +103,33 @@ describe("POST /api/links and the Turnstile verdict", () => {
   });
 
   it("sends a visitor who already holds a valid link to it without spending a Turnstile check", async () => {
-    cookieLink.mockResolvedValue("existing-token");
+    cookieLink.mockResolvedValue({ status: "linked", token: "existing-token" });
 
     const response = await call();
 
     expect(response.headers.get("Location")).toBe("/w/existing-token");
     expect(verify).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
+  });
+
+  it("asks the cookie helper with its own route", async () => {
+    await call();
+
+    expect(cookieLink).toHaveBeenCalledExactlyOnceWith(expect.anything(), "POST /api/links");
+  });
+
+  // A failed cookie check is not "no link": creating one now could hand a returning visitor a second link and burn a slot.
+  it("refuses, and creates nothing, when the cookie could not be checked", async () => {
+    cookieLink.mockResolvedValue({ status: "unknown" });
+
+    const response = await call();
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("Location")).toBe("/?error=1");
+    expect(verify).not.toHaveBeenCalled();
+    expect(countLinks).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+    expect(setCookie).not.toHaveBeenCalled();
   });
 
   it.each(["1", "true", " TRUE "])(

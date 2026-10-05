@@ -2,16 +2,23 @@
 import { LINK_CREATION_CLOSED, TURNSTILE_SITE_KEY } from "astro:env/server";
 import PageCard from "@/components/PageCard.astro";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import Layout from "@/layouts/Layout.astro";
 import { isCreationClosed } from "@/lib/creation-closed";
 import { resolveCookieLink } from "@/lib/link-cookie";
 import { statusMessage } from "@/lib/status-messages";
+import { cn } from "@/lib/utils";
 
 // A browser that already holds a valid link goes straight to its workspace.
-const linkedToken = await resolveCookieLink(Astro.cookies);
-if (linkedToken) {
-  return Astro.redirect(`/w/${linkedToken}`);
+const cookieLink = await resolveCookieLink(Astro.cookies, "GET /");
+if (cookieLink.status === "linked") {
+  return Astro.redirect(`/w/${cookieLink.token}`);
+}
+
+// The cookie could not be checked (already logged): do not offer a second link while the first may be fine.
+const unavailable = cookieLink.status === "unknown";
+if (unavailable) {
+  Astro.response.status = 503;
 }
 
 const params = Astro.url.searchParams;
@@ -29,39 +36,51 @@ const status = statusMessage(params.get("status"));
 
 <Layout title="Stopper for Timecards">
   <PageCard width="md" class="text-center">
-    <h1 class="mb-4 text-3xl font-bold text-heading">Stopper for Timecards</h1>
-    <p class="text-muted-foreground">
-      Track your time across projects during the day and get it back as your weekly timesheet grid. There are no
-      accounts: your private link is your identity, so keep it safe.
-    </p>
-
-    {error && (
-      <Alert variant="destructive" className="mt-4">
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    )}
-
-    {status && (
-      <Alert variant="success" role="status" className="mt-4">
-        <AlertDescription>{status}</AlertDescription>
-      </Alert>
-    )}
-
-    {full ? (
-      <p class="mt-6 text-card-foreground">All 10 spots are taken; no new links can be created.</p>
-    ) : closed ? (
-      <p class="mt-6 text-card-foreground">New links are closed. If you already have a link, open it directly.</p>
+    {unavailable ? (
+      <>
+        <h1 class="mb-4 text-2xl font-bold text-heading">Temporarily unavailable</h1>
+        <p class="text-muted-foreground">We could not check your link right now. Please try again in a moment.</p>
+        <a href={Astro.url.pathname} class:list={cn(buttonVariants({ variant: "secondary" }), "mt-4")}>
+          Try again
+        </a>
+      </>
     ) : (
-      <form method="POST" action="/api/links" class="mt-6 flex flex-col items-center gap-4">
-        <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} data-theme="light"></div>
-        <Button type="submit" size="lg">
-          Create my private link
-        </Button>
-      </form>
+      <>
+        <h1 class="mb-4 text-3xl font-bold text-heading">Stopper for Timecards</h1>
+        <p class="text-muted-foreground">
+          Track your time across projects during the day and get it back as your weekly timesheet grid. There are no
+          accounts: your private link is your identity, so keep it safe.
+        </p>
+
+        {error && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {status && (
+          <Alert variant="success" role="status" className="mt-4">
+            <AlertDescription>{status}</AlertDescription>
+          </Alert>
+        )}
+
+        {full ? (
+          <p class="mt-6 text-card-foreground">All 10 spots are taken; no new links can be created.</p>
+        ) : closed ? (
+          <p class="mt-6 text-card-foreground">New links are closed. If you already have a link, open it directly.</p>
+        ) : (
+          <form method="POST" action="/api/links" class="mt-6 flex flex-col items-center gap-4">
+            <div class="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} data-theme="light"></div>
+            <Button type="submit" size="lg">
+              Create my private link
+            </Button>
+          </form>
+        )}
+      </>
     )}
   </PageCard>
 
-  {!full && !closed && (
+  {!unavailable && !full && !closed && (
     <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   )}
 </Layout>

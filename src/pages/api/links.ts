@@ -17,9 +17,13 @@ const THROTTLE_MAX_LINKS = 3;
  * close switch, the Turnstile bot check, the creation throttle, and finally the capped database function.
  */
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
-  const linkedToken = await resolveCookieLink(cookies);
-  if (linkedToken) {
-    return redirect(`/w/${linkedToken}`, 303);
+  const cookieLink = await resolveCookieLink(cookies, ROUTE);
+  if (cookieLink.status === "linked") {
+    return redirect(`/w/${cookieLink.token}`, 303);
+  }
+  // The visitor's cookie could not be checked (already logged). Creating a link now could give them a second one.
+  if (cookieLink.status === "unknown") {
+    return redirect("/?error=1", 303);
   }
 
   if (isCreationClosed(LINK_CREATION_CLOSED)) {
