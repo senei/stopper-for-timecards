@@ -1,9 +1,9 @@
 ---
 change_id: fix-silent-error-logging
 title: Fix silent error logging
-status: implemented
+status: impl_reviewed
 created: 2026-10-02
-updated: 2026-10-02
+updated: 2026-10-05
 archived_at: null
 ---
 
