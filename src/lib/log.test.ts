@@ -48,6 +48,14 @@ describe("logError", () => {
     expect(Object.keys(loggedLine(errorSpy)).sort()).toEqual(["error", "event", "level", "linkId", "op", "route"]);
   });
 
+  it("passes entryId through, and adds no other key", () => {
+    logError("correction_refused", { ...context, entryId: "entry-1" }, new Error("outside_window"));
+
+    const line = loggedLine(errorSpy);
+    expect(line.entryId).toBe("entry-1");
+    expect(Object.keys(line).sort()).toEqual(["entryId", "error", "event", "level", "linkId", "op", "route"]);
+  });
+
   it("surfaces the code, details and hint of an Error's cause", () => {
     const cause = { message: "relation missing", code: "42P01", details: "no such table", hint: "run the migration" };
 

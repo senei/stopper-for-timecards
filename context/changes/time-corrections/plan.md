@@ -333,12 +333,12 @@ One new migration (`20261005120000_time_entry_corrections.sql`) adding two funct
 
 #### Automated
 
-- [ ] 2.1 Unit tests pass: `npx vitest run src/lib/time-entries.test.ts src/lib/log.test.ts`
-- [ ] 2.2 Integration test passes against the local stack (own slot): `npx vitest run --config vitest.integration.config.ts src/lib/time-entries.integration.test.ts`
-- [ ] 2.3 Whole suite stays green: `npx vitest run`
-- [ ] 2.4 Type checking passes: `npx tsc --noEmit`
-- [ ] 2.5 Changed files lint clean: `npx eslint src/lib/time-entries.ts src/lib/time-entries.test.ts src/lib/time-entries.integration.test.ts src/lib/log.ts src/lib/log.test.ts src/test/integration-db.ts`
-- [ ] 2.6 Deliberate break: removing the `.eq("link_id", …)` predicate turns the list unit test red and mapping `overlap` to a generic `dbError` turns the refusal-mapping test red; both edits are reverted
+- [x] 2.1 Unit tests pass: `npx vitest run src/lib/time-entries.test.ts src/lib/log.test.ts`
+- [x] 2.2 Integration test passes against the local stack (own slot): `npx vitest run --config vitest.integration.config.ts src/lib/time-entries.integration.test.ts`
+- [x] 2.3 Whole suite stays green: `npx vitest run`
+- [x] 2.4 Type checking passes: `npx tsc --noEmit`
+- [x] 2.5 Changed files lint clean: `npx eslint src/lib/time-entries.ts src/lib/time-entries.test.ts src/lib/time-entries.integration.test.ts src/lib/log.ts src/lib/log.test.ts src/test/integration-db.ts`
+- [x] 2.6 Deliberate break: removing the `.eq("link_id", …)` predicate turns the list unit test red and mapping `overlap` to a generic `dbError` turns the refusal-mapping test red; both edits are reverted
 
 ### Phase 3: Routes
 

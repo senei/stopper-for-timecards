@@ -65,6 +65,29 @@ export async function seedProject(linkId: string, name: string): Promise<string>
   return idOf(data);
 }
 
+/** Inserts one closed (or, with `endedAt` null, open) time entry directly, skipping the timer RPCs. Returns its id. */
+export async function seedTimeEntry(
+  linkId: string,
+  projectId: string,
+  projectName: string,
+  startedAt: Date,
+  endedAt: Date | null,
+): Promise<string> {
+  const { data, error } = await admin()
+    .from("time_entries")
+    .insert({
+      link_id: linkId,
+      project_id: projectId,
+      project_name: projectName,
+      started_at: startedAt.toISOString(),
+      ended_at: endedAt?.toISOString() ?? null,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(`seed time entry failed: ${error.message}`);
+  return idOf(data);
+}
+
 /**
  * Removes every seeded link with its time entries, projects and access-log rows. A regenerated link keeps its id,
  * so it is covered. A failed delete throws (after the rest ran), because a leftover link blocks the next smoke run.
