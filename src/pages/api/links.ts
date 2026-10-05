@@ -3,7 +3,8 @@ import { LINK_CREATION_CLOSED, TURNSTILE_SECRET_KEY } from "astro:env/server";
 import { isCreationClosed } from "@/lib/creation-closed";
 import { resolveCookieLink, setLinkCookie } from "@/lib/link-cookie";
 import { countRecentLinks, createLink } from "@/lib/links";
-import { logError, logWarn } from "@/lib/log";
+import { logError, logInfo, logWarn } from "@/lib/log";
+import { SupabaseNotConfiguredError } from "@/lib/supabase-admin";
 import { verifyTurnstile } from "@/lib/turnstile";
 
 const ROUTE = "POST /api/links";
@@ -27,6 +28,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   }
 
   if (isCreationClosed(LINK_CREATION_CLOSED)) {
+    logInfo("link_creation_closed", { route: ROUTE });
     return redirect("/?closed=1", 303);
   }
 
@@ -46,20 +48,41 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     return redirect("/?error=verify", 303);
   }
 
+  // Which step is running, and the created link's id once it exists, so a failure says where it happened and for whom.
+  let stage: "count_recent" | "create_link" | "set_cookie" = "count_recent";
+  let createdLinkId: string | undefined;
   try {
-    if ((await countRecentLinks(THROTTLE_WINDOW_MINUTES)) >= THROTTLE_MAX_LINKS) {
+    const recentLinks = await countRecentLinks(THROTTLE_WINDOW_MINUTES);
+    if (recentLinks >= THROTTLE_MAX_LINKS) {
+      logWarn("link_creation_busy", {
+        route: ROUTE,
+        op: stage,
+        detail: `${String(recentLinks)} of ${String(THROTTLE_MAX_LINKS)} in ${String(THROTTLE_WINDOW_MINUTES)} minutes`,
+      });
       return redirect("/?error=busy", 303);
     }
 
+    stage = "create_link";
     const result = await createLink();
     if (result.status === "full") {
+      logWarn("link_creation_full", { route: ROUTE, op: stage });
       return redirect("/?full=1", 303);
     }
 
+    // The row is committed: log its id now (never the token), before the cookie and redirect that can still fail.
+    createdLinkId = result.id;
+    logInfo("link_created", { route: ROUTE, linkId: result.id });
+
+    stage = "set_cookie";
     setLinkCookie(cookies, result.token);
     return redirect(`/w/${result.token}`, 303);
   } catch (err) {
-    logError("link_create_failed", { route: ROUTE }, err);
+    const context = { route: ROUTE, op: stage, linkId: createdLinkId };
+    logError(
+      err instanceof SupabaseNotConfiguredError ? "supabase_not_configured" : "link_create_failed",
+      context,
+      err,
+    );
     return redirect("/?error=1", 303);
   }
 };

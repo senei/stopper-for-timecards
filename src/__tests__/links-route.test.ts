@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import type { APIContext } from "astro";
 import { resolveCookieLink, setLinkCookie } from "@/lib/link-cookie";
 import { countRecentLinks, createLink } from "@/lib/links";
+import { SupabaseNotConfiguredError } from "@/lib/supabase-admin";
 import { verifyTurnstile, type TurnstileRefusal } from "@/lib/turnstile";
 import { ALL, POST } from "@/pages/api/links";
 
@@ -170,5 +171,126 @@ describe("POST /api/links and the Turnstile verdict", () => {
 
     expect(response.status).toBe(405);
     expect(response.headers.get("Allow")).toBe("POST");
+  });
+});
+
+// One line per outcome of the sign-up, so a drop in sign-ups, a full cap or a failing stage can be told apart in the
+// logs. The created link's id is logged as soon as it exists; its token never is.
+describe("POST /api/links events", () => {
+  let infoSpy: MockInstance<typeof console.info>;
+  let warnSpy: MockInstance<typeof console.warn>;
+  let errorSpy: MockInstance<typeof console.error>;
+
+  beforeEach(() => {
+    infoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const linesOf = (spy: MockInstance<typeof console.info>) =>
+    spy.mock.calls.map((args) => JSON.parse(String(args[0])) as Record<string, unknown>);
+  const everyLine = () =>
+    [infoSpy, warnSpy, errorSpy].flatMap((spy) => spy.mock.calls.map((args) => String(args[0]))).join("\n");
+
+  it("writes one link_created info line with the link id, and never the token, for a created link", async () => {
+    const response = await call();
+
+    expect(response.headers.get("Location")).toBe("/w/new-token");
+    expect(linesOf(infoSpy)).toEqual([
+      { level: "info", event: "link_created", route: "POST /api/links", linkId: "link-1" },
+    ]);
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
+    expect(everyLine()).not.toContain("new-token");
+  });
+
+  it("writes one link_creation_closed info line when the kill switch is on", async () => {
+    env.closed = "1";
+
+    await call();
+
+    expect(linesOf(infoSpy)).toEqual([{ level: "info", event: "link_creation_closed", route: "POST /api/links" }]);
+    expect(verify).not.toHaveBeenCalled();
+  });
+
+  it("writes one link_creation_busy warning with the count and the limit when the throttle fires", async () => {
+    countLinks.mockResolvedValue(3);
+
+    const response = await call();
+
+    expect(response.headers.get("Location")).toBe("/?error=busy");
+    expect(linesOf(warnSpy)).toEqual([
+      {
+        level: "warn",
+        event: "link_creation_busy",
+        route: "POST /api/links",
+        op: "count_recent",
+        detail: "3 of 3 in 10 minutes",
+      },
+    ]);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("writes one link_creation_full warning when the cap is reached", async () => {
+    create.mockResolvedValue({ status: "full" });
+
+    const response = await call();
+
+    expect(response.headers.get("Location")).toBe("/?full=1");
+    expect(linesOf(warnSpy)).toEqual([
+      { level: "warn", event: "link_creation_full", route: "POST /api/links", op: "create_link" },
+    ]);
+    expect(infoSpy).not.toHaveBeenCalled();
+    expect(setCookie).not.toHaveBeenCalled();
+  });
+
+  it("labels a failing throttle count with the count_recent stage", async () => {
+    countLinks.mockRejectedValue(new Error("count down"));
+
+    const response = await call();
+
+    expect(response.headers.get("Location")).toBe("/?error=1");
+    expect(linesOf(errorSpy)).toMatchObject([{ event: "link_create_failed", op: "count_recent" }]);
+  });
+
+  it("labels a failing create_link with its stage and has no link id to report", async () => {
+    create.mockRejectedValue(new Error("create down"));
+
+    const response = await call();
+
+    expect(response.headers.get("Location")).toBe("/?error=1");
+    const [line] = linesOf(errorSpy);
+    expect(line).toMatchObject({ event: "link_create_failed", op: "create_link" });
+    expect(line).not.toHaveProperty("linkId");
+    expect(infoSpy).not.toHaveBeenCalled();
+  });
+
+  // The row is committed when createLink returns: a later failure must still say which link it was.
+  it("keeps the created link's id on the log line when only the cookie step fails", async () => {
+    setCookie.mockImplementation(() => {
+      throw new Error("cookie jar broke");
+    });
+
+    const response = await call();
+
+    expect(response.headers.get("Location")).toBe("/?error=1");
+    expect(linesOf(infoSpy)).toMatchObject([{ event: "link_created", linkId: "link-1" }]);
+    expect(linesOf(errorSpy)).toMatchObject([{ event: "link_create_failed", op: "set_cookie", linkId: "link-1" }]);
+    expect(everyLine()).not.toContain("new-token");
+  });
+
+  it("logs a missing Supabase configuration under its own event, not as link_create_failed", async () => {
+    create.mockRejectedValue(new SupabaseNotConfiguredError());
+
+    const response = await call();
+
+    expect(response.headers.get("Location")).toBe("/?error=1");
+    const lines = linesOf(errorSpy);
+    expect(lines).toMatchObject([{ event: "supabase_not_configured", op: "create_link" }]);
+    expect(lines).toHaveLength(1);
   });
 });

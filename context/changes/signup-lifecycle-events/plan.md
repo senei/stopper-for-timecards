@@ -189,24 +189,24 @@ None for data or deploy. `link_create_failed` keeps its name and gains `op` and,
 
 #### Automated
 
-- [x] 1.1 New and extended unit tests pass: `npx vitest run src/lib/log.test.ts src/lib/links.test.ts src/lib/supabase-admin.test.ts`
-- [x] 1.2 Whole suite stays green: `npx vitest run`
-- [x] 1.3 Type checking passes: `npx tsc --noEmit`
-- [x] 1.4 Changed files lint clean: `npx eslint src/lib/log.ts src/lib/log.test.ts src/lib/links.ts src/lib/links.test.ts src/lib/supabase-admin.ts src/lib/supabase-admin.test.ts`
-- [x] 1.5 Deliberate break: `logInfo` calling `console.warn` turns the `logInfo` test red and `adminOrThrow` throwing a plain `Error` turns the instance check red; both edits are reverted
+- [x] 1.1 New and extended unit tests pass: `npx vitest run src/lib/log.test.ts src/lib/links.test.ts src/lib/supabase-admin.test.ts` — d465192
+- [x] 1.2 Whole suite stays green: `npx vitest run` — d465192
+- [x] 1.3 Type checking passes: `npx tsc --noEmit` — d465192
+- [x] 1.4 Changed files lint clean: `npx eslint src/lib/log.ts src/lib/log.test.ts src/lib/links.ts src/lib/links.test.ts src/lib/supabase-admin.ts src/lib/supabase-admin.test.ts` — d465192
+- [x] 1.5 Deliberate break: `logInfo` calling `console.warn` turns the `logInfo` test red and `adminOrThrow` throwing a plain `Error` turns the instance check red; both edits are reverted — d465192
 
 ### Phase 2: Route events and stages
 
 #### Automated
 
-- [ ] 2.1 Route tests pass: `npx vitest run src/__tests__/links-route.test.ts`
-- [ ] 2.2 Whole suite stays green: `npx vitest run`
-- [ ] 2.3 Type checking passes: `npx tsc --noEmit`
-- [ ] 2.4 Lint is clean: `npm run lint`
-- [ ] 2.5 No `console` call or disable comment was added outside `log.ts`: `grep -rnE "console\.|eslint-disable-next-line no-console" src/pages/api/links.ts` prints nothing
-- [ ] 2.6 Deliberate break: removing the `link_created` call turns the created case red and setting the stage only once turns the `set_cookie` case red; both edits are reverted
+- [x] 2.1 Route tests pass: `npx vitest run src/__tests__/links-route.test.ts`
+- [x] 2.2 Whole suite stays green: `npx vitest run`
+- [x] 2.3 Type checking passes: `npx tsc --noEmit`
+- [x] 2.4 Lint is clean: `npm run lint`
+- [x] 2.5 No `console` call or disable comment was added outside `log.ts`: `grep -rnE "console\.|eslint-disable-next-line no-console" src/pages/api/links.ts` prints nothing
+- [x] 2.6 Deliberate break: removing the `link_created` call turns the created case red and setting the stage only once turns the `set_cookie` case red; both edits are reverted
 
 #### Manual
 
-- [ ] 2.7 With the local stack and dev server, a POST to `/api/links` with the always-pass dummy token creates a link and the server output shows exactly one `link_created` line with route `POST /api/links` and a `linkId`, and no line contains the token from the redirect URL
-- [ ] 2.8 With `LINK_CREATION_CLOSED=1` the same POST redirects to `/?closed=1` and prints one `link_creation_closed` line; the visitor-facing redirects in both cases are unchanged from today
+- [x] 2.7 With the local stack and dev server, a POST to `/api/links` with the always-pass dummy token creates a link and the server output shows exactly one `link_created` line with route `POST /api/links` and a `linkId`, and no line contains the token from the redirect URL
+- [x] 2.8 With `LINK_CREATION_CLOSED=1` the same POST redirects to `/?closed=1` and prints one `link_creation_closed` line; the visitor-facing redirects in both cases are unchanged from today
