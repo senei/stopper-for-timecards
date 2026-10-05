@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isCreationClosed } from "./creation-closed";
+import { classifyKillSwitch, isCreationClosed } from "./creation-closed";
 
 describe("isCreationClosed", () => {
   it("is open when unset or empty", () => {
@@ -18,5 +18,24 @@ describe("isCreationClosed", () => {
     expect(isCreationClosed("true")).toBe(true);
     expect(isCreationClosed("TRUE")).toBe(true);
     expect(isCreationClosed(" true ")).toBe(true);
+  });
+});
+
+// The three states let a caller tell a deliberate "off" from a value nobody understands; isCreationClosed above still
+// treats both as open.
+describe("classifyKillSwitch", () => {
+  it.each(["1", "true", "TRUE", " true "])("is closed for %j", (value) => {
+    expect(classifyKillSwitch(value)).toBe("closed");
+  });
+
+  it.each([undefined, "", "   ", "0", "false", "No", "off", " OFF "])(
+    "is open, as a deliberate off, for %j",
+    (value) => {
+      expect(classifyKillSwitch(value)).toBe("open");
+    },
+  );
+
+  it.each(["yes", "on", "closed", "enabled", "2"])("is unrecognised for %j", (value) => {
+    expect(classifyKillSwitch(value)).toBe("unrecognised");
   });
 });

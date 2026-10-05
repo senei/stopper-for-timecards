@@ -1,9 +1,10 @@
 ---
-import { LINK_CREATION_CLOSED, TURNSTILE_SITE_KEY } from "astro:env/server";
+import { LINK_CREATION_CLOSED, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL, TURNSTILE_SITE_KEY } from "astro:env/server";
 import PageCard from "@/components/PageCard.astro";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import Layout from "@/layouts/Layout.astro";
+import { checkSignupConfig } from "@/lib/config-check";
 import { isCreationClosed } from "@/lib/creation-closed";
 import { resolveCookieLink } from "@/lib/link-cookie";
 import { statusMessage } from "@/lib/status-messages";
@@ -24,6 +25,14 @@ if (unavailable) {
 const params = Astro.url.searchParams;
 const closed = isCreationClosed(LINK_CREATION_CLOSED) || params.get("closed") === "1";
 const full = params.get("full") === "1";
+checkSignupConfig({
+  route: "GET /",
+  killSwitch: LINK_CREATION_CLOSED,
+  turnstileSiteKey: TURNSTILE_SITE_KEY,
+  supabaseUrl: SUPABASE_URL,
+  supabaseServiceRoleKey: SUPABASE_SERVICE_ROLE_KEY,
+  formShown: !unavailable && !full && !closed,
+});
 
 const messages: Record<string, string> = {
   "1": "Something went wrong creating your link. Please try again.",
