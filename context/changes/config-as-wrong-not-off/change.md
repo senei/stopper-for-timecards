@@ -1,7 +1,7 @@
 ---
 change_id: config-as-wrong-not-off
 title: Make wrong or missing configuration visible
-status: implemented
+status: impl_reviewed
 created: 2026-10-05
 updated: 2026-10-05
 archived_at: null
