@@ -3,7 +3,7 @@ project: "Stopper for Timecards"
 version: 1
 status: draft
 created: 2026-09-21
-updated: 2026-10-05
+updated: 2026-10-06
 prd_version: 4
 main_goal: speed
 top_blocker: capacity
@@ -39,18 +39,18 @@ People who work across several projects a day don't capture time as it happens, 
 
 ## At a glance
 
-| ID   | Change ID                 | Outcome (user can …)                                                     | Prerequisites | PRD refs                   | Status   |
-| ---- | ------------------------- | ------------------------------------------------------------------------ | ------------- | -------------------------- | -------- |
-| S-01 | private-link-access       | create their own private link and open it to land in their own workspace | —             | FR-007, US-02              | done     |
-| S-02 | first-timer-start         | add a project and pick it to start the timer instantly                   | S-01          | FR-001, FR-002, US-01, NFR | done     |
-| S-03 | timer-switch-rounding     | switch the running timer to another project with 15-min-rounded splits   | S-02          | FR-003                     | done     |
-| S-04 | timer-stop-and-flags      | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                     | done     |
-| S-05 | time-corrections          | correct logged time at end of day or start of next day                   | S-03, S-04    | FR-005                     | planning |
-| S-06 | weekly-grid-summary       | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001             | done     |
-| S-07 | link-regeneration         | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02              | done     |
-| S-08 | time-entry-purge-verified | have entries older than 3 months purged automatically                    | S-02          | FR-008                     | done     |
-| S-09 | delete-project            | delete a project from their list, blocked if it has any logged time      | S-02          | FR-009                     | done     |
-| S-10 | delete-account            | permanently delete all their own data and their link, freeing their slot | S-02          | FR-010, FR-007             | done     |
+| ID   | Change ID                 | Outcome (user can …)                                                     | Prerequisites | PRD refs                   | Status |
+| ---- | ------------------------- | ------------------------------------------------------------------------ | ------------- | -------------------------- | ------ |
+| S-01 | private-link-access       | create their own private link and open it to land in their own workspace | —             | FR-007, US-02              | done   |
+| S-02 | first-timer-start         | add a project and pick it to start the timer instantly                   | S-01          | FR-001, FR-002, US-01, NFR | done   |
+| S-03 | timer-switch-rounding     | switch the running timer to another project with 15-min-rounded splits   | S-02          | FR-003                     | done   |
+| S-04 | timer-stop-and-flags      | stop the timer for the day and see long-running timers flagged           | S-02          | FR-004                     | done   |
+| S-05 | time-corrections          | correct logged time at end of day or start of next day                   | S-03, S-04    | FR-005                     | done   |
+| S-06 | weekly-grid-summary       | view a weekly Project/Task/Type/Work Type × Mon–Sun table to copy        | S-03, S-04    | FR-006, FR-001             | done   |
+| S-07 | link-regeneration         | regenerate their own link, invalidating the old one                      | S-01          | FR-007, US-02              | done   |
+| S-08 | time-entry-purge-verified | have entries older than 3 months purged automatically                    | S-02          | FR-008                     | done   |
+| S-09 | delete-project            | delete a project from their list, blocked if it has any logged time      | S-02          | FR-009                     | done   |
+| S-10 | delete-account            | permanently delete all their own data and their link, freeing their slot | S-02          | FR-010, FR-007             | done   |
 
 ## Streams
 
@@ -143,7 +143,7 @@ None. Deploy/infra is already present, and every other technical element (link i
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Needs both real switching and stopping to have something meaningful to correct; must not become a substitute for live tracking.
-- **Status:** planning
+- **Status:** done
 
 ### S-06: Weekly grid summary
 
@@ -250,3 +250,4 @@ GitHub issues created 2026-09-21 in `senei/stopper-for-timecards`.
 - **S-06: user can view a weekly table laid out exactly as Project/Task/Type/Work Type × Mon–Sun, ready to copy into the company timesheet** — Archived 2026-09-29 → `context/archive/2026-09-28-weekly-grid-summary/`. Lesson: —.
 - **S-10: permanently delete all their own data and their link, freeing their slot** — Archived 2026-09-29 → `context/archive/2026-09-29-delete-account/`. Lesson: —.
 - **S-07: user can regenerate their own link from within the app; the old link stops working immediately and no one else's link is affected** — Archived 2026-10-01 → `context/archive/2026-09-28-link-regeneration/`. Lesson: —.
+- **S-05: user can correct logged time from today or yesterday, by editing the start or end of a closed entry or deleting it, without breaking the per-day 15-minute rounding** — Archived 2026-10-06 → `context/archive/2026-10-05-time-corrections/`. Lesson: —.
