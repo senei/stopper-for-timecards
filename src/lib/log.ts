@@ -8,6 +8,7 @@ export interface LogContext {
   route: string;
   linkId?: string;
   projectId?: string;
+  entryId?: string;
   op?: string;
   detail?: string;
 }

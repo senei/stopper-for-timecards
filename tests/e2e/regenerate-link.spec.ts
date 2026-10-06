@@ -13,10 +13,16 @@ test.skip(!hasEnv, "needs SUPABASE_URL (a local stack) and SUPABASE_SERVICE_ROLE
 const userAgent = `e2e-regenerate-link-${Date.now()}`;
 test.use({ userAgent });
 
+const seededLinkIds: string[] = [];
+
+test.beforeEach(() => {
+  seededLinkIds.length = 0;
+});
+
 test.afterEach(async () => {
   const { error } = await admin().from("access_log").delete().eq("user_agent", userAgent);
   expect(error).toBeNull();
-  await cleanupSeeded();
+  await cleanupSeeded(seededLinkIds);
 });
 
 test.describe("regenerate link", () => {
@@ -27,7 +33,9 @@ test.describe("regenerate link", () => {
     // Setup: two people with their own projects; the second must be unaffected throughout.
     const suffix = Date.now();
     const person = await seedPerson();
+    seededLinkIds.push(person.linkId);
     const bystander = await seedPerson();
+    seededLinkIds.push(bystander.linkId);
     const ownProject = `Own project ${suffix}`;
     const otherProject = `Other project ${suffix}`;
     await seedProject(person.linkId, ownProject);

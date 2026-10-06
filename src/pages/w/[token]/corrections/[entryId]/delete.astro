@@ -1,0 +1,103 @@
+---
+import PageCard from "@/components/PageCard.astro";
+import { Button, buttonVariants } from "@/components/ui/button";
+import Layout from "@/layouts/Layout.astro";
+import { isWellFormedToken } from "@/lib/link-token";
+import { findLinkByToken } from "@/lib/links";
+import { logError } from "@/lib/log";
+import { isWellFormedId } from "@/lib/project-id";
+import type { CorrectableEntry } from "@/lib/time-entries";
+import { listCorrectableEntries } from "@/lib/time-entries";
+
+const ROUTE = "GET /w/[token]/corrections/[entryId]/delete";
+
+// Keep the token out of caches, referrers and search indexes. `strict-origin` sends only the site origin, never the
+// path; `no-referrer` would make browsers send `Origin: null` on this page's form, which Astro's origin check rejects.
+Astro.response.headers.set("Referrer-Policy", "strict-origin");
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("X-Robots-Tag", "noindex");
+
+const { token, entryId } = Astro.params;
+
+// Malformed tokens never reach the database.
+if (!isWellFormedToken(token)) {
+  return Astro.rewrite("/404");
+}
+
+let link: { id: string } | null = null;
+let unavailable = false;
+try {
+  link = await findLinkByToken(token);
+} catch (err) {
+  logError("page_link_lookup_failed", { route: ROUTE }, err);
+  unavailable = true;
+}
+
+let entry: CorrectableEntry | null = null;
+
+if (unavailable) {
+  Astro.response.status = 503;
+} else if (!link) {
+  return Astro.rewrite("/404");
+} else if (!isWellFormedId(entryId)) {
+  return Astro.rewrite("/404");
+} else {
+  try {
+    const entries = await listCorrectableEntries(link.id);
+    entry = entries.find((candidate) => candidate.id === entryId) ?? null;
+  } catch (err) {
+    logError("page_entries_failed", { route: ROUTE, linkId: link.id, entryId }, err);
+    unavailable = true;
+    Astro.response.status = 503;
+  }
+  // Absent, already outside the window (so never fetched), or still running: all the same 404, only
+  // reachable once the read succeeded.
+  if (!unavailable && entry?.endedAt == null) {
+    return Astro.rewrite("/404");
+  }
+}
+
+const cancelUrl = `/w/${token}/corrections`;
+const deleteAction = `/api/w/${token}/entries/${entryId}/delete`;
+
+/** "Oct 5, 09:00–10:00 UTC" for a closed entry's span. */
+function formatUtcRange(startedAt: string, endedAt: string): string {
+  const start = new Date(startedAt);
+  const end = new Date(endedAt);
+  const dateLabel = start.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+  const startLabel = start.toISOString().slice(11, 16);
+  const endLabel = end.toISOString().slice(11, 16);
+  return `${dateLabel}, ${startLabel}–${endLabel} UTC`;
+}
+
+const formattedRange = entry?.endedAt != null ? formatUtcRange(entry.startedAt, entry.endedAt) : null;
+---
+
+<Layout title="Delete entry">
+  <PageCard>
+    {unavailable ? (
+      <>
+        <h1 class="mb-4 text-2xl font-bold text-heading">Temporarily unavailable</h1>
+        <p class="text-muted-foreground">We could not load your workspace right now. Please try again in a moment.</p>
+      </>
+    ) : (
+      <>
+        <h1 class="mb-4 text-3xl font-bold text-heading">Delete this entry?</h1>
+        <p class="text-muted-foreground">
+          <span class="font-semibold text-card-foreground">{entry?.projectName}</span>, {formattedRange}. This can't be
+          undone.
+        </p>
+        <div class="mt-6 flex gap-2">
+          <form method="post" action={deleteAction}>
+            <Button type="submit" variant="destructive">
+              Confirm delete
+            </Button>
+          </form>
+          <a href={cancelUrl} class:list={buttonVariants({ variant: "secondary" })}>
+            Cancel
+          </a>
+        </div>
+      </>
+    )}
+  </PageCard>
+</Layout>

@@ -1,0 +1,196 @@
+---
+import PageCard from "@/components/PageCard.astro";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Layout from "@/layouts/Layout.astro";
+import { isWellFormedToken } from "@/lib/link-token";
+import { findLinkByToken } from "@/lib/links";
+import { logError } from "@/lib/log";
+import { errorMessage, statusMessage } from "@/lib/status-messages";
+import type { CorrectableEntry } from "@/lib/time-entries";
+import { listCorrectableEntries } from "@/lib/time-entries";
+import { formatUtcDateTimeLocal } from "@/lib/utc-datetime";
+
+const ROUTE = "GET /w/[token]/corrections";
+
+// Keep the token out of caches, referrers and search indexes — the same convention every other tokenized page
+// uses (src/pages/w/[token].astro:14-18).
+Astro.response.headers.set("Referrer-Policy", "strict-origin");
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("X-Robots-Tag", "noindex");
+
+const { token } = Astro.params;
+
+// Malformed tokens never reach the database.
+if (!isWellFormedToken(token)) {
+  return Astro.rewrite("/404");
+}
+
+let link: { id: string } | null = null;
+let unavailable = false;
+try {
+  link = await findLinkByToken(token);
+} catch (err) {
+  logError("page_link_lookup_failed", { route: ROUTE }, err);
+  unavailable = true;
+}
+
+let entries: CorrectableEntry[] = [];
+
+if (unavailable) {
+  Astro.response.status = 503;
+} else if (!link) {
+  return Astro.rewrite("/404");
+} else {
+  try {
+    entries = await listCorrectableEntries(link.id);
+  } catch (err) {
+    logError("page_entries_failed", { route: ROUTE, linkId: link.id }, err);
+    unavailable = true;
+    Astro.response.status = 503;
+  }
+}
+
+const bannerError = errorMessage(Astro.url.searchParams.get("error"));
+const bannerStatus = statusMessage(Astro.url.searchParams.get("status"));
+const workspaceUrl = `/w/${token}`;
+
+/** A UTC calendar-day key (`YYYY-MM-DD`): the first 10 characters of any valid ISO instant. */
+function dayKeyOf(iso: string): string {
+  return iso.slice(0, 10);
+}
+
+const todayKey = dayKeyOf(new Date().toISOString());
+const yesterdayKey = dayKeyOf(new Date(Date.now() - 86_400_000).toISOString());
+
+/** "Today — Monday, Oct 5", "Yesterday — Sunday, Oct 4", or the plain weekday/date for anything else. */
+function dayHeading(key: string): string {
+  const pretty = new Date(`${key}T00:00:00Z`).toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+  if (key === todayKey) return `Today — ${pretty}`;
+  if (key === yesterdayKey) return `Yesterday — ${pretty}`;
+  return pretty;
+}
+
+interface DayGroup {
+  heading: string;
+  entries: CorrectableEntry[];
+}
+
+// `entries` is already newest-first from listCorrectableEntries, so days come out in contiguous runs.
+const dayGroups: DayGroup[] = [];
+for (const entry of entries) {
+  const key = dayKeyOf(entry.startedAt);
+  const current = dayGroups.at(-1);
+  if (current?.heading === dayHeading(key)) {
+    current.entries.push(entry);
+  } else {
+    dayGroups.push({ heading: dayHeading(key), entries: [entry] });
+  }
+}
+
+/** UTC `HH:MM` for a running entry's read-only display. */
+function formatUtcHm(iso: string): string {
+  return new Date(iso).toISOString().slice(11, 16);
+}
+---
+
+<Layout title="Corrections">
+  <PageCard>
+    <div>
+      {unavailable ? (
+        <>
+          <h1 class="mb-4 text-2xl font-bold text-heading">Temporarily unavailable</h1>
+          <p class="text-muted-foreground">We could not load your workspace right now. Please try again in a moment.</p>
+        </>
+      ) : (
+        <>
+          <a
+            href={workspaceUrl}
+            class="mb-4 inline-block text-sm text-muted-foreground underline-offset-4 hover:text-card-foreground hover:underline"
+          >
+            ← Back to workspace
+          </a>
+          <h1 class="mb-2 text-3xl font-bold text-heading">Corrections</h1>
+          <p class="mb-4 text-muted-foreground">Fix a mistake from today or yesterday. Times are UTC.</p>
+          {bannerError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{bannerError}</AlertDescription>
+            </Alert>
+          )}
+          {bannerStatus && (
+            <Alert variant="success" role="status" className="mb-4">
+              <AlertDescription>{bannerStatus}</AlertDescription>
+            </Alert>
+          )}
+          {dayGroups.length === 0 ? (
+            <p class="text-sm text-muted-foreground">No entries from today or yesterday yet.</p>
+          ) : (
+            dayGroups.map((group) => (
+              <div class="mb-6">
+                <h2 class="mb-2 text-sm font-semibold tracking-wide text-heading uppercase">{group.heading}</h2>
+                <ul class="space-y-4">
+                  {group.entries.map((entry) => (
+                    <li class="rounded-md border border-border p-3">
+                      <p class="mb-2 font-semibold text-card-foreground">{entry.projectName}</p>
+                      {entry.endedAt === null ? (
+                        <p class="text-sm text-muted-foreground">
+                          Running since {formatUtcHm(entry.startedAt)} UTC — stop the timer first to correct it.
+                        </p>
+                      ) : (
+                        <form
+                          method="post"
+                          action={`/api/w/${token}/entries/${entry.id}/correct`}
+                          class="flex flex-wrap items-end gap-2"
+                        >
+                          <div>
+                            <label for={`started-${entry.id}`} class="mb-1 block text-xs text-muted-foreground">
+                              Start (UTC)
+                            </label>
+                            <Input
+                              type="datetime-local"
+                              id={`started-${entry.id}`}
+                              name="startedAt"
+                              step="60"
+                              required
+                              value={formatUtcDateTimeLocal(entry.startedAt)}
+                            />
+                          </div>
+                          <div>
+                            <label for={`ended-${entry.id}`} class="mb-1 block text-xs text-muted-foreground">
+                              End (UTC)
+                            </label>
+                            <Input
+                              type="datetime-local"
+                              id={`ended-${entry.id}`}
+                              name="endedAt"
+                              step="60"
+                              required
+                              value={formatUtcDateTimeLocal(entry.endedAt)}
+                            />
+                          </div>
+                          <Button type="submit">Save</Button>
+                          <a
+                            href={`/w/${token}/corrections/${entry.id}/delete`}
+                            class:list={buttonVariants({ variant: "secondary" })}
+                          >
+                            Delete
+                          </a>
+                        </form>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          )}
+        </>
+      )}
+    </div>
+  </PageCard>
+</Layout>
