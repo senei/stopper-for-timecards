@@ -116,7 +116,11 @@ function formatUtcTime(iso: string): string {
               <Alert variant="warning" className="mt-4" data-long-running-warning>
                 <AlertDescription>
                   This timer has been running for {elapsedHours} hours. Did you forget to stop it? Stopping or switching
-                  now records all of that time.
+                  now records all of that time; if that is too much, you can shorten it afterwards under{" "}
+                  <a href={`/w/${token}/corrections`} class="underline underline-offset-4 hover:text-destructive-text">
+                    Corrections
+                  </a>
+                  .
                 </AlertDescription>
               </Alert>
             )}
@@ -216,6 +220,14 @@ function formatUtcTime(iso: string): string {
           <h2 class="mb-2 text-sm font-semibold tracking-wide text-heading uppercase">Weekly summary</h2>
           <a href={`/w/${token}/grid`} class:list={buttonVariants({ variant: "secondary" })}>
             View weekly grid
+          </a>
+        </div>
+
+        <div class="mt-8 border-t border-border pt-6">
+          <h2 class="mb-2 text-sm font-semibold tracking-wide text-heading uppercase">Corrections</h2>
+          <p class="mb-2 text-sm text-muted-foreground">Fix a mistake from today or yesterday.</p>
+          <a href={`/w/${token}/corrections`} class:list={buttonVariants({ variant: "secondary" })}>
+            Open corrections
           </a>
         </div>
 
