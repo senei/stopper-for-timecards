@@ -92,9 +92,19 @@ export async function seedTimeEntry(
  * Removes every seeded link with its time entries, projects and access-log rows. A regenerated link keeps its id,
  * so it is covered. A failed delete throws (after the rest ran), because a leftover link blocks the next smoke run.
  */
-export async function cleanupSeeded(): Promise<void> {
+export async function cleanupSeeded(linkIds?: readonly string[]): Promise<void> {
   const failures: string[] = [];
-  for (const id of seededLinkIds.splice(0)) {
+  const idsToClean = linkIds === undefined ? seededLinkIds.splice(0) : [...new Set(linkIds)];
+  if (linkIds !== undefined) {
+    for (const id of idsToClean) {
+      let index = seededLinkIds.indexOf(id);
+      while (index !== -1) {
+        seededLinkIds.splice(index, 1);
+        index = seededLinkIds.indexOf(id);
+      }
+    }
+  }
+  for (const id of idsToClean) {
     for (const table of ["time_entries", "projects", "access_log"] as const) {
       const { error } = await admin().from(table).delete().eq("link_id", id);
       if (error) failures.push(`${table} for ${id}: ${error.message}`);

@@ -6,13 +6,21 @@ import { cleanupSeeded, hasEnv, seedPerson } from "../../src/test/integration-db
 
 test.skip(!hasEnv, "needs SUPABASE_URL (a local stack) and SUPABASE_SERVICE_ROLE_KEY in .env");
 
+const seededLinkIds: string[] = [];
+
+test.beforeEach(() => {
+  seededLinkIds.length = 0;
+});
+
 test.afterEach(async () => {
-  await cleanupSeeded();
+  await cleanupSeeded(seededLinkIds);
 });
 
 test("a private link opens a workspace where a timer starts and stops in a real browser", async ({ page }) => {
   // Setup: a direct insert, so the 10-person cap and the Turnstile check of link creation do not apply.
-  const { token } = await seedPerson();
+  const person = await seedPerson();
+  seededLinkIds.push(person.linkId);
+  const { token } = person;
   const project = `E2E project ${Date.now()}`;
 
   await page.goto(`/w/${token}`);

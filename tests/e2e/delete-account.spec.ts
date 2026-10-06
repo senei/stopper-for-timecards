@@ -8,15 +8,21 @@ import { admin, cleanupSeeded, hasEnv, seedPerson, seedProject } from "../../src
 
 test.skip(!hasEnv, "needs SUPABASE_URL (a local stack) and SUPABASE_SERVICE_ROLE_KEY in .env");
 
+const seededLinkIds: string[] = [];
+
 // Visiting the deleted link logs a null-link access_log row that cleanupSeeded never removes. A user agent unique to
 // this run makes those rows findable, so afterEach can delete them and fail the run if it cannot.
 const userAgent = `e2e-delete-account-${Date.now()}`;
 test.use({ userAgent });
 
+test.beforeEach(() => {
+  seededLinkIds.length = 0;
+});
+
 test.afterEach(async () => {
   const { error } = await admin().from("access_log").delete().eq("user_agent", userAgent);
   expect(error).toBeNull();
-  await cleanupSeeded();
+  await cleanupSeeded(seededLinkIds);
 });
 
 test.describe("delete-all", () => {
@@ -24,7 +30,9 @@ test.describe("delete-all", () => {
     // Setup: two people, each with a project, so a delete-everything bug cannot pass as "all my data is gone".
     const suffix = Date.now();
     const person = await seedPerson();
+    seededLinkIds.push(person.linkId);
     const bystander = await seedPerson();
+    seededLinkIds.push(bystander.linkId);
     const ownProject = `Own project ${suffix}`;
     const otherProject = `Other project ${suffix}`;
     await seedProject(person.linkId, ownProject);
