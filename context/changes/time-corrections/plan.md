@@ -355,27 +355,27 @@ One new migration (`20261005120000_time_entry_corrections.sql`) adding two funct
 
 #### Automated
 
-- [ ] 4.1 Changed files lint clean: `npx eslint "src/pages/w/[token]/corrections.astro" "src/pages/w/[token]/corrections/[entryId]/delete.astro" src/components/WorkspaceCard.astro`
-- [ ] 4.2 Type checking passes: `npx tsc --noEmit`
-- [ ] 4.3 Whole suite stays green: `npx vitest run`
+- [x] 4.1 Changed files lint clean: `npx eslint "src/pages/w/[token]/corrections.astro" "src/pages/w/[token]/corrections/[entryId]/delete.astro" src/components/WorkspaceCard.astro` — 2420b21
+- [x] 4.2 Type checking passes: `npx tsc --noEmit` — 2420b21
+- [x] 4.3 Whole suite stays green: `npx vitest run` — 2420b21
 
 #### Manual
 
-- [ ] 4.4 With the local stack and dev server, the Corrections page lists entries from today and yesterday grouped by UTC day with "(UTC)" labels, the running entry is read-only, and the workspace card links to the page
-- [ ] 4.5 In a real browser an edit saves with the "Entry corrected." banner and the new times show on reload; an overlap, a future end and an end before the start each show their own message and change nothing; the weekly grid shows the corrected, rounded total
-- [ ] 4.6 In a real browser the delete link opens the confirm page, Confirm removes the entry with "Entry deleted.", Cancel changes nothing, and another person's entry id gives a 404
-- [ ] 4.7 The privacy headers are present on both pages, and the wording of the pages, the banners and the warning sentence was read and approved
+- [x] 4.4 With the local stack and dev server, the Corrections page lists entries from today and yesterday grouped by UTC day with "(UTC)" labels, the running entry is read-only, and the workspace card links to the page — 2420b21
+- [x] 4.5 In a real browser an edit saves with the "Entry corrected." banner and the new times show on reload; an overlap, a future end and an end before the start each show their own message and change nothing; the weekly grid shows the corrected, rounded total — 2420b21
+- [x] 4.6 In a real browser the delete link opens the confirm page, Confirm removes the entry with "Entry deleted.", Cancel changes nothing, and another person's entry id gives a 404 — 2420b21
+- [x] 4.7 The privacy headers are present on both pages, and the wording of the pages, the banners and the warning sentence was read and approved — 2420b21
 
 ### Phase 5: e2e and final checks
 
 #### Automated
 
-- [ ] 5.1 The new e2e spec passes: `npx playwright test tests/e2e/corrections.spec.ts`
-- [ ] 5.2 The whole e2e suite stays green: `npx playwright test`
-- [ ] 5.3 Whole unit suite and types stay green: `npx vitest run` and `npx tsc --noEmit`
-- [ ] 5.4 Lint is clean: `npm run lint`
-- [ ] 5.5 Astro check passes: `npx astro check`
-- [ ] 5.6 Production build succeeds: `npm run build`
-- [ ] 5.7 The whole pgTAP suite passes: `npx supabase test db`
-- [ ] 5.8 The local smoke test passes: `npm run smoke:local -- --yes`
-- [ ] 5.9 Deliberate break: making the correct route redirect with the success code for a refusal turns the overlap e2e case red; the edit is reverted
+- [x] 5.1 The new e2e spec passes: `npx playwright test tests/e2e/corrections.spec.ts` — 06fd675
+- [x] 5.2 The whole e2e suite stays green: `npx playwright test` — 06fd675
+- [x] 5.3 Whole unit suite and types stay green: `npx vitest run` and `npx tsc --noEmit` — 06fd675
+- [x] 5.4 Lint is clean: `npm run lint` — 06fd675
+- [x] 5.5 Astro check passes: `npx astro check` — 06fd675
+- [x] 5.6 Production build succeeds: `npm run build` — 06fd675
+- [x] 5.7 The whole pgTAP suite passes: `npx supabase test db` — 06fd675
+- [x] 5.8 The local smoke test passes: `npm run smoke:local -- --yes` — 06fd675
+- [x] 5.9 Deliberate break: making the correct route redirect with the success code for a refusal turns the overlap e2e case red; the edit is reverted — 06fd675
