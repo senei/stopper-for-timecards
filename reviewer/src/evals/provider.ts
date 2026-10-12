@@ -12,8 +12,12 @@ import { createReviewer, reviewDiff } from "../reviewer.js";
 
 interface ProviderOptions {
   id?: string;
-  config?: { model?: unknown };
+  config?: { model?: unknown; maxOutputTokens?: unknown };
 }
+
+// A review is about 1.5k tokens. A bound keeps OpenRouter from reserving each model's huge default maximum
+// up front, which a small account balance cannot cover.
+export const DEFAULT_MAX_OUTPUT_TOKENS = 4096;
 
 interface CallContext {
   vars?: Record<string, unknown>;
@@ -30,10 +34,14 @@ export type MakeModel = (modelId: string, apiKey: string) => LanguageModel;
 export function createReviewerProvider(makeModel: MakeModel) {
   return class ReviewerProvider {
     private readonly model: string | undefined;
+    private readonly maxOutputTokens: number;
 
     constructor(options: ProviderOptions = {}) {
       const configured = options.config?.model;
       this.model = typeof configured === "string" && configured !== "" ? configured : undefined;
+      const cap = options.config?.maxOutputTokens;
+      this.maxOutputTokens =
+        typeof cap === "number" && Number.isInteger(cap) && cap > 0 ? cap : DEFAULT_MAX_OUTPUT_TOKENS;
     }
 
     id(): string {
@@ -60,7 +68,7 @@ export function createReviewerProvider(makeModel: MakeModel) {
       if (diff === undefined || diff === "") return { error: "Test var `diff` or `diffFile` is missing or empty" };
 
       try {
-        const reviewer = createReviewer(makeModel(this.model, apiKey));
+        const reviewer = createReviewer(makeModel(this.model, apiKey), { maxOutputTokens: this.maxOutputTokens });
         const { review, usage } = await reviewDiff(reviewer, diff);
         const prompt = usage.inputTokens ?? 0;
         const completion = usage.outputTokens ?? 0;

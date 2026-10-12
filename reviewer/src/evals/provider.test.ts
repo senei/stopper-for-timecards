@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import { MockLanguageModelV4 } from "ai/test";
-import { createReviewerProvider } from "./provider.js";
+import { DEFAULT_MAX_OUTPUT_TOKENS, createReviewerProvider } from "./provider.js";
 
 const REVIEW = {
   implementationCorrectness: 3,
@@ -122,6 +122,26 @@ void describe("reviewer provider", () => {
     assert.match(result.error ?? "", /diffFile/);
     assert.equal(result.output, undefined);
     assert.equal(calls.count, 0);
+  });
+
+  void it("bounds the model output by default and honours a configured limit", async () => {
+    const byDefault = mockReturning(JSON.stringify(REVIEW));
+    const configured = mockReturning(JSON.stringify(REVIEW));
+    const invalid = mockReturning(JSON.stringify(REVIEW));
+    const vars = { diff: "+x" };
+
+    await new (providerWith(byDefault, { count: 0 }))({ config: { model: "v/m" } }).callApi("p", { vars });
+    await new (providerWith(configured, { count: 0 }))({ config: { model: "v/m", maxOutputTokens: 777 } }).callApi(
+      "p",
+      { vars },
+    );
+    await new (providerWith(invalid, { count: 0 }))({ config: { model: "v/m", maxOutputTokens: -5 } }).callApi("p", {
+      vars,
+    });
+
+    assert.equal(byDefault.doGenerateCalls[0]?.maxOutputTokens, DEFAULT_MAX_OUTPUT_TOKENS);
+    assert.equal(configured.doGenerateCalls[0]?.maxOutputTokens, 777);
+    assert.equal(invalid.doGenerateCalls[0]?.maxOutputTokens, DEFAULT_MAX_OUTPUT_TOKENS);
   });
 
   void it("labels itself with the configured model", () => {

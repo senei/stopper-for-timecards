@@ -71,6 +71,17 @@ void describe("reviewer", () => {
     assert.ok(sent.includes("diff --git a/src/a.ts"));
   });
 
+  void it("sends maxOutputTokens to the model when a limit is given and omits it otherwise", async () => {
+    const limited = modelReturning(JSON.stringify(VALID_REVIEW));
+    const unlimited = modelReturning(JSON.stringify(VALID_REVIEW));
+
+    await reviewDiff(createReviewer(limited, { maxOutputTokens: 1234 }), DIFF);
+    await reviewDiff(createReviewer(unlimited), DIFF);
+
+    assert.equal(limited.doGenerateCalls[0]?.maxOutputTokens, 1234);
+    assert.equal(unlimited.doGenerateCalls[0]?.maxOutputTokens, undefined);
+  });
+
   void it("sends no pull request block when no context is given", async () => {
     const model = modelReturning(JSON.stringify(VALID_REVIEW));
 

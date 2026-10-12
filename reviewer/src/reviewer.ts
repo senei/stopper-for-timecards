@@ -5,11 +5,18 @@ import { SYSTEM_PROMPT } from "./prompts/system.js";
 import { buildUserPrompt, type PullRequestContext } from "./prompts/user.js";
 import { REVIEW_SCHEMA, type Review } from "./review-schema.js";
 
-export function createReviewer(model: LanguageModel) {
+export interface ReviewerOptions {
+  // Upper bound on generated tokens. Without it a provider may reserve its model's whole default maximum
+  // (for example 131072 tokens) up front, which fails on an account with a small balance.
+  maxOutputTokens?: number;
+}
+
+export function createReviewer(model: LanguageModel, options: ReviewerOptions = {}) {
   return new ToolLoopAgent({
     model,
     instructions: SYSTEM_PROMPT,
     output: Output.object({ schema: REVIEW_SCHEMA }),
+    maxOutputTokens: options.maxOutputTokens,
   });
 }
 
