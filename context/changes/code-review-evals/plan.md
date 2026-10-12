@@ -207,11 +207,11 @@ None. The change adds files only, and the CLI and tests are untouched.
 
 #### Automated
 
-- [x] 2.1 Eval run completes with exit code 0 or 100 (not 1): `npm run eval --prefix reviewer; rc=$?; [ $rc -eq 0 ] || [ $rc -eq 100 ]`
-- [x] 2.2 Results file holds one result per provider: `node -e "process.exit(require('./reviewer/evals/results.json').results.results.length===3?0:1)"`
-- [x] 2.3 Each result carries token usage: `node -e "process.exit(require('./reviewer/evals/results.json').results.results.every(r=>r.response&&r.response.tokenUsage&&r.response.tokenUsage.total>0)?0:1)"`
-- [x] 2.4 Results file is ignored by git: `git check-ignore reviewer/evals/results.json`
+- [x] 2.1 Eval run completes with exit code 0 or 100 (not 1): `npm run eval --prefix reviewer; rc=$?; [ $rc -eq 0 ] || [ $rc -eq 100 ]` — 258595a
+- [x] 2.2 Results file holds one result per provider: `node -e "process.exit(require('./reviewer/evals/results.json').results.results.length===3?0:1)"` — 258595a
+- [x] 2.3 Each result carries token usage: `node -e "process.exit(require('./reviewer/evals/results.json').results.results.every(r=>r.response&&r.response.tokenUsage&&r.response.tokenUsage.total>0)?0:1)"` — 258595a
+- [x] 2.4 Results file is ignored by git: `git check-ignore reviewer/evals/results.json` — 258595a
 
 #### Manual
 
-- [x] 2.5 For each of the three models the llm-rubric reason names which of the three planted flaws were found, and the outcome per model is recorded in the phase commit body
+- [x] 2.5 For each of the three models the llm-rubric reason names which of the three planted flaws were found, and the outcome per model is recorded in the phase commit body — 258595a

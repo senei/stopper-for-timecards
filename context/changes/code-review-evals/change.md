@@ -1,7 +1,7 @@
 ---
 change_id: code-review-evals
 title: Code review evals with promptfoo
-status: implementing
+status: implemented
 created: 2026-10-12
 updated: 2026-10-12
 archived_at: null
