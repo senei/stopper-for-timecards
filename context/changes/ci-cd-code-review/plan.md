@@ -266,16 +266,16 @@ None. New files only, plus backward-compatible reviewer changes. Rollback is del
 
 #### Automated
 
-- [x] 2.1 Workflow and action parse as YAML: `node -e "const {parse}=require('yaml'),fs=require('fs');['.github/workflows/review.yml','.github/actions/ai-reviewer/action.yml'].forEach(f=>parse(fs.readFileSync(f,'utf8')))"`
-- [x] 2.2 Workflow targets main and does not mention master: `grep -c "master" .github/workflows/review.yml` prints 0
-- [x] 2.3 Pinned checkout SHA exists upstream: `git ls-remote https://github.com/actions/checkout 'refs/tags/v7.0.1*' | grep -c 3d3c42e5aac5ba805825da76410c181273ba90b1` prints 1 or more
-- [x] 2.4 Pinned setup-node SHA exists upstream: `git ls-remote https://github.com/actions/setup-node 'refs/tags/v7.1.0*' | grep -c 949feb2413d6458794dcd2491c4babbbce0c15c1` prints 1 or more
-- [x] 2.5 Existing CI workflow is unchanged: `git diff --quiet HEAD -- .github/workflows/ci.yml`
+- [x] 2.1 Workflow and action parse as YAML: `node -e "const {parse}=require('yaml'),fs=require('fs');['.github/workflows/review.yml','.github/actions/ai-reviewer/action.yml'].forEach(f=>parse(fs.readFileSync(f,'utf8')))"` — f730432
+- [x] 2.2 Workflow targets main and does not mention master: `grep -c "master" .github/workflows/review.yml` prints 0 — f730432
+- [x] 2.3 Pinned checkout SHA exists upstream: `git ls-remote https://github.com/actions/checkout 'refs/tags/v7.0.1*' | grep -c 3d3c42e5aac5ba805825da76410c181273ba90b1` prints 1 or more — f730432
+- [x] 2.4 Pinned setup-node SHA exists upstream: `git ls-remote https://github.com/actions/setup-node 'refs/tags/v7.1.0*' | grep -c 949feb2413d6458794dcd2491c4babbbce0c15c1` prints 1 or more — f730432
+- [x] 2.5 Existing CI workflow is unchanged: `git diff --quiet HEAD -- .github/workflows/ci.yml` — f730432
 
 #### Manual
 
-- [x] 2.6 Untrusted PR text (title, body) is referenced only in `env:` blocks of the workflow and the action, never inside a `run:` script
-- [x] 2.7 Workflow permissions are limited to `contents: read`, `pull-requests: write` and `issues: write`
+- [x] 2.6 Untrusted PR text (title, body) is referenced only in `env:` blocks of the workflow and the action, never inside a `run:` script — f730432
+- [x] 2.7 Workflow permissions are limited to `contents: read`, `pull-requests: write` and `issues: write` — f730432
 
 ### Phase 3: Verification on GitHub
 
