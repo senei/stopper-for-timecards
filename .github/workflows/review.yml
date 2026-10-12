@@ -1,0 +1,77 @@
+# AI code review on every pull request to main.
+# - one review comment per PR, edited on each run, plus the ai-cr:passed or ai-cr:failed label
+# - the "review" check fails on a "fail" verdict and on a diff above the limit
+# - re-run on demand by adding the ai-cr:review label
+# Needs the repository secret OPENROUTER_API_KEY. To turn the verdict into a merge gate, make the
+# "review" check required in branch protection (a repository setting, not part of this file).
+name: AI Code Review
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write # comments and labels go through the issues API
+
+# One review per PR. A run triggered by an unrelated label gets its own group key, so it cannot
+# cancel a review that is already running.
+concurrency:
+  group: ai-review-${{ github.event.pull_request.number }}-${{ github.event.action == 'labeled' && github.event.label.name != 'ai-cr:review' && github.run_id || 'review' }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Skip labels other than ai-cr:review, and fork PRs (repository secrets are not available to them).
+    if: ${{ (github.event.action != 'labeled' || github.event.label.name == 'ai-cr:review') && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # full history, otherwise there is no base to diff against
+
+      - name: Compute diff
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git diff "origin/$BASE_REF...HEAD" > "$RUNNER_TEMP/pr.diff"
+
+      - id: review
+        uses: ./.github/actions/ai-reviewer
+        with:
+          api-key: ${{ secrets.OPENROUTER_API_KEY }}
+          pr-title: ${{ github.event.pull_request.title }}
+          pr-body: ${{ github.event.pull_request.body }}
+          diff-file: ${{ runner.temp }}/pr.diff
+
+      - name: Comment and label
+        if: always() && steps.review.outputs.status != ''
+        env:
+          STATUS: ${{ steps.review.outputs.status }}
+          VERDICT: ${{ steps.review.outputs.verdict }}
+          REVIEW_FILE: ${{ steps.review.outputs.review-file }}
+        run: |
+          if [ "$STATUS" = too-large ]; then
+            printf '%s\n' '## AI Code Review: skipped' '' 'The diff is larger than the review limit, so it was not sent to the model. Split the change or review it manually.' > "$RUNNER_TEMP/comment.md"
+            add=ai-cr:failed; drop=ai-cr:passed
+          else
+            node -e 'const r = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")); console.log(`## AI Code Review: ${r.verdict}\n\n${r.summary}`)' "$REVIEW_FILE" > "$RUNNER_TEMP/comment.md"
+            if [ "$VERDICT" = pass ]; then add=ai-cr:passed; drop=ai-cr:failed; else add=ai-cr:failed; drop=ai-cr:passed; fi
+          fi
+          gh pr comment "$PR" --edit-last --create-if-none --body-file "$RUNNER_TEMP/comment.md"
+          gh label create ai-cr:passed --color 0E8A16 --force
+          gh label create ai-cr:failed --color B60205 --force
+          gh pr edit "$PR" --add-label "$add" --remove-label "$drop"
+          gh pr edit "$PR" --remove-label ai-cr:review || true
+
+      - name: Gate on verdict
+        env:
+          STATUS: ${{ steps.review.outputs.status }}
+          VERDICT: ${{ steps.review.outputs.verdict }}
+        run: |
+          if [ "$STATUS" = too-large ]; then echo "AI review skipped: diff above the limit"; exit 1; fi
+          test "$VERDICT" = pass || { echo "AI review verdict: ${VERDICT:-missing}"; exit 1; }

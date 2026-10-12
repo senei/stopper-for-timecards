@@ -252,11 +252,11 @@ None. New files only, plus backward-compatible reviewer changes. Rollback is del
 
 #### Automated
 
-- [x] 1.1 Reviewer tests pass offline, including the new context and limit tests: `npm test --prefix reviewer`
-- [x] 1.2 Type checking passes: `npx tsc --noEmit`
-- [x] 1.3 Linting passes on the package (run once, uncached, in this last TypeScript phase): `npx eslint --no-cache reviewer/src`
-- [x] 1.4 App unit tests are unchanged: `npx vitest run`
-- [x] 1.5 A diff above the limit exits with code 3 before any model call: `cd reviewer && printf 'xxxxxxxxxxxx' | MAX_DIFF_CHARS=5 OPENROUTER_API_KEY=unused REVIEWER_MODEL=unused npx tsx src/index.ts; test $? -eq 3`
+- [x] 1.1 Reviewer tests pass offline, including the new context and limit tests: `npm test --prefix reviewer` — b0d2a2a
+- [x] 1.2 Type checking passes: `npx tsc --noEmit` — b0d2a2a
+- [x] 1.3 Linting passes on the package (run once, uncached, in this last TypeScript phase): `npx eslint --no-cache reviewer/src` — b0d2a2a
+- [x] 1.4 App unit tests are unchanged: `npx vitest run` — b0d2a2a
+- [x] 1.5 A diff above the limit exits with code 3 before any model call: `cd reviewer && printf 'xxxxxxxxxxxx' | MAX_DIFF_CHARS=5 OPENROUTER_API_KEY=unused REVIEWER_MODEL=unused npx tsx src/index.ts; test $? -eq 3` — b0d2a2a
 
 #### Manual
 
@@ -266,16 +266,16 @@ None. New files only, plus backward-compatible reviewer changes. Rollback is del
 
 #### Automated
 
-- [ ] 2.1 Workflow and action parse as YAML: `node -e "const {parse}=require('yaml'),fs=require('fs');['.github/workflows/review.yml','.github/actions/ai-reviewer/action.yml'].forEach(f=>parse(fs.readFileSync(f,'utf8')))"`
-- [ ] 2.2 Workflow targets main and does not mention master: `grep -c "master" .github/workflows/review.yml` prints 0
-- [ ] 2.3 Pinned checkout SHA exists upstream: `git ls-remote https://github.com/actions/checkout 'refs/tags/v7.0.1*' | grep -c 3d3c42e5aac5ba805825da76410c181273ba90b1` prints 1 or more
-- [ ] 2.4 Pinned setup-node SHA exists upstream: `git ls-remote https://github.com/actions/setup-node 'refs/tags/v7.1.0*' | grep -c 949feb2413d6458794dcd2491c4babbbce0c15c1` prints 1 or more
-- [ ] 2.5 Existing CI workflow is unchanged: `git diff --quiet HEAD -- .github/workflows/ci.yml`
+- [x] 2.1 Workflow and action parse as YAML: `node -e "const {parse}=require('yaml'),fs=require('fs');['.github/workflows/review.yml','.github/actions/ai-reviewer/action.yml'].forEach(f=>parse(fs.readFileSync(f,'utf8')))"`
+- [x] 2.2 Workflow targets main and does not mention master: `grep -c "master" .github/workflows/review.yml` prints 0
+- [x] 2.3 Pinned checkout SHA exists upstream: `git ls-remote https://github.com/actions/checkout 'refs/tags/v7.0.1*' | grep -c 3d3c42e5aac5ba805825da76410c181273ba90b1` prints 1 or more
+- [x] 2.4 Pinned setup-node SHA exists upstream: `git ls-remote https://github.com/actions/setup-node 'refs/tags/v7.1.0*' | grep -c 949feb2413d6458794dcd2491c4babbbce0c15c1` prints 1 or more
+- [x] 2.5 Existing CI workflow is unchanged: `git diff --quiet HEAD -- .github/workflows/ci.yml`
 
 #### Manual
 
-- [ ] 2.6 Untrusted PR text (title, body) is referenced only in `env:` blocks of the workflow and the action, never inside a `run:` script
-- [ ] 2.7 Workflow permissions are limited to `contents: read`, `pull-requests: write` and `issues: write`
+- [x] 2.6 Untrusted PR text (title, body) is referenced only in `env:` blocks of the workflow and the action, never inside a `run:` script
+- [x] 2.7 Workflow permissions are limited to `contents: read`, `pull-requests: write` and `issues: write`
 
 ### Phase 3: Verification on GitHub
 
