@@ -12,6 +12,12 @@
       "sourceType": "github",
       "skillPath": "skills/10x-cli-setup/SKILL.md",
       "computedHash": "688db7d77ed6dabbe34b8e9e50c65cc65f327bf65bdb85491a37ac556866f87d"
+    },
+    "ai-sdk": {
+      "source": "vercel/ai",
+      "sourceType": "github",
+      "skillPath": "skills/use-ai-sdk/SKILL.md",
+      "computedHash": "12672e7c040c99b182ceb86517f36f6409e7e22e101178cf554767b0f5d9dd0a"
     }
   }
 }
