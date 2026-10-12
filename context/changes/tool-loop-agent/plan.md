@@ -201,12 +201,12 @@ None. The CLI contract (stdin in, JSON out, env names) is unchanged.
 
 #### Automated
 
-- [x] 2.1 Reviewer tests pass: `npm test --prefix reviewer`
-- [x] 2.2 Type checking passes: `npx tsc --noEmit`
-- [x] 2.3 Linting passes on the package (run once, uncached, in this last code phase): `npx eslint --no-cache reviewer/src`
-- [x] 2.4 App unit tests are unchanged: `npx vitest run`
+- [x] 2.1 Reviewer tests pass: `npm test --prefix reviewer` — c8f81a1
+- [x] 2.2 Type checking passes: `npx tsc --noEmit` — c8f81a1
+- [x] 2.3 Linting passes on the package (run once, uncached, in this last code phase): `npx eslint --no-cache reviewer/src` — c8f81a1
+- [x] 2.4 App unit tests are unchanged: `npx vitest run` — c8f81a1
 
 #### Manual
 
-- [x] 2.5 With `reviewer/.env` filled in (`OPENROUTER_API_KEY`, `REVIEWER_MODEL`), `git diff | npm run review --prefix reviewer` prints a JSON object with six scores, a `verdict` of `pass` or `fail` and a `summary`
-- [x] 2.6 Deliberately breaking the output shape in a test (for example renaming a schema field) makes the suite fail, then restoring it makes it pass
+- [x] 2.5 With `reviewer/.env` filled in (`OPENROUTER_API_KEY`, `REVIEWER_MODEL`), `git diff | npm run review --prefix reviewer` prints a JSON object with six scores, a `verdict` of `pass` or `fail` and a `summary` — c8f81a1
+- [x] 2.6 Deliberately breaking the output shape in a test (for example renaming a schema field) makes the suite fail, then restoring it makes it pass — c8f81a1
