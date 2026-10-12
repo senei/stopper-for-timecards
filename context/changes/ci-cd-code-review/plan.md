@@ -260,7 +260,7 @@ None. New files only, plus backward-compatible reviewer changes. Rollback is del
 
 #### Manual
 
-- [ ] 1.6 `git diff | npm run review --prefix reviewer` with none of the new variables set prints the same JSON shape as before
+- [x] 1.6 `git diff | npm run review --prefix reviewer` with none of the new variables set prints the same JSON shape as before — b0d2a2a
 
 ### Phase 2: Composite action and workflow
 
