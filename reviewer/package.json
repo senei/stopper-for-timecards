@@ -7,7 +7,8 @@
     "node": ">=22"
   },
   "scripts": {
-    "review": "tsx --env-file-if-exists=.env src/index.ts"
+    "review": "tsx --env-file-if-exists=.env src/index.ts",
+    "test": "tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@openrouter/ai-sdk-provider": "3.1.0",

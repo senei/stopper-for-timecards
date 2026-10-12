@@ -189,24 +189,24 @@ None. The CLI contract (stdin in, JSON out, env names) is unchanged.
 
 #### Automated
 
-- [x] 1.1 Type checking passes for the whole repo including `reviewer/`: `npx tsc --noEmit`
-- [x] 1.2 Empty input still fails with the usage message: `echo "" | npm run review --prefix reviewer` exits non-zero and prints `Empty diff on stdin`
-- [x] 1.3 `SYSTEM_PROMPT` is no longer exported from the schema file: `grep -n SYSTEM_PROMPT reviewer/src/review-schema.ts` returns nothing
+- [x] 1.1 Type checking passes for the whole repo including `reviewer/`: `npx tsc --noEmit` — 75417f7
+- [x] 1.2 Empty input still fails with the usage message: `echo "" | npm run review --prefix reviewer` exits non-zero and prints `Empty diff on stdin` — 75417f7
+- [x] 1.3 `SYSTEM_PROMPT` is no longer exported from the schema file: `grep -n SYSTEM_PROMPT reviewer/src/review-schema.ts` returns nothing — 75417f7
 
 #### Manual
 
-- [x] 1.4 `reviewer/src` reads as four small modules (schema, prompts, agent, CLI) with no duplicated prompt text
+- [x] 1.4 `reviewer/src` reads as four small modules (schema, prompts, agent, CLI) with no duplicated prompt text — 75417f7
 
 ### Phase 2: Verification
 
 #### Automated
 
-- [ ] 2.1 Reviewer tests pass: `npm test --prefix reviewer`
-- [ ] 2.2 Type checking passes: `npx tsc --noEmit`
-- [ ] 2.3 Linting passes on the package (run once, uncached, in this last code phase): `npx eslint --no-cache reviewer/src`
-- [ ] 2.4 App unit tests are unchanged: `npx vitest run`
+- [x] 2.1 Reviewer tests pass: `npm test --prefix reviewer`
+- [x] 2.2 Type checking passes: `npx tsc --noEmit`
+- [x] 2.3 Linting passes on the package (run once, uncached, in this last code phase): `npx eslint --no-cache reviewer/src`
+- [x] 2.4 App unit tests are unchanged: `npx vitest run`
 
 #### Manual
 
-- [ ] 2.5 With `reviewer/.env` filled in (`OPENROUTER_API_KEY`, `REVIEWER_MODEL`), `git diff | npm run review --prefix reviewer` prints a JSON object with six scores, a `verdict` of `pass` or `fail` and a `summary`
-- [ ] 2.6 Deliberately breaking the output shape in a test (for example renaming a schema field) makes the suite fail, then restoring it makes it pass
+- [x] 2.5 With `reviewer/.env` filled in (`OPENROUTER_API_KEY`, `REVIEWER_MODEL`), `git diff | npm run review --prefix reviewer` prints a JSON object with six scores, a `verdict` of `pass` or `fail` and a `summary`
+- [x] 2.6 Deliberately breaking the output shape in a test (for example renaming a schema field) makes the suite fail, then restoring it makes it pass
