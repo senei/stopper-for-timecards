@@ -2,8 +2,8 @@
   "package": "@przeprogramowani/10x-cli",
   "version": "1.21.0",
   "manifestVersion": 3,
-  "lastApplied": "2026-10-02T06:29:28.991Z",
-  "lessonId": "m3l5",
+  "lastApplied": "2026-10-12T11:49:44.054Z",
+  "lessonId": "m5l1",
   "course": "10xdevs4",
   "tool": "claude-code",
   "files": {
@@ -326,6 +326,18 @@
           "references/report-template.md": "62b899ba58760e8d4b00137db891df3db6ece79708df920569dbbd1f7cc082c5",
           "references/runtime-probes.md": "5b2b2784874f1de693b41d312a01d519bc31b0e5632b6a3b9f5c7d771e76a1e1",
           "scripts/fake-ingest.mjs": "ad5877bb0924a1faa42b5d186d05b314ed899fc973de422f200074237510bc12"
+        }
+      },
+      "10x-opportunity-map": {
+        "files": ["SKILL.md"],
+        "contentHashes": {
+          "SKILL.md": "b46c602c3d7dea83ef9eee79d21a300901c3c3c64d2af0799cccb0ac5ed56f51"
+        }
+      },
+      "10x-mom-test": {
+        "files": ["SKILL.md"],
+        "contentHashes": {
+          "SKILL.md": "dcd30143311c7bd1f53e56fa07c2e62073c1efa5b17e4f7c266a583a695f47a0"
         }
       }
     },
@@ -1006,6 +1018,19 @@
       },
       "installedReleaseId": "r-0628f35a60af9a79c8afc1521f960249e876989acf4848552723d5643fd31bd3",
       "installedManifestHash": "ac135ee6a924df7f040b18fdd9b16989370f052dbf9fd99b299f2bb3f10f9c36"
+    },
+    "m5l1": {
+      "appliedAt": "2026-10-12T11:49:44.054Z",
+      "skills": {
+        "10x-opportunity-map": {
+          "files": ["SKILL.md"]
+        },
+        "10x-mom-test": {
+          "files": ["SKILL.md"]
+        }
+      },
+      "prompts": [],
+      "configs": []
     }
   },
   "managedRules": {
