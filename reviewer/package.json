@@ -8,7 +8,8 @@
   },
   "scripts": {
     "review": "tsx --env-file-if-exists=.env src/index.ts",
-    "test": "tsx --test \"src/**/*.test.ts\""
+    "test": "tsx --test \"src/**/*.test.ts\"",
+    "eval": "npx --yes promptfoo@0.124.1 eval -c promptfooconfig.yaml --no-cache -o evals/results.json"
   },
   "dependencies": {
     "@openrouter/ai-sdk-provider": "3.1.0",

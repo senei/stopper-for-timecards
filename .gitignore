@@ -68,3 +68,6 @@ playwright-report/
 blob-report/
 playwright/.cache/
 .playwright-cli/
+
+# promptfoo eval results (generated, run-specific, cost-bearing)
+reviewer/evals/results*.json

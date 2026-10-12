@@ -1,0 +1,92 @@
+diff --git a/package.json b/package.json
+index 3b1c2f0..9d4e7a1 100644
+--- a/package.json
++++ b/package.json
+@@ -2,8 +2,7 @@
+   "name": "shop-ui",
+   "private": true,
+   "dependencies": {
+-    "prop-types": "^15.8.1",
+-    "react": "^16.14.0",
+-    "react-dom": "^16.14.0"
++    "react": "^19.0.0",
++    "react-dom": "^19.0.0"
+   }
+ }
+diff --git a/src/index.jsx b/src/index.jsx
+index 7c0a4e2..b81f9d3 100644
+--- a/src/index.jsx
++++ b/src/index.jsx
+@@ -1,5 +1,10 @@
+-import React from "react";
++import { StrictMode } from "react";
+ import ReactDOM from "react-dom";
+ import App from "./App";
+
+-ReactDOM.render(<App />, document.getElementById("root"));
++ReactDOM.render(
++  <StrictMode>
++    <App />
++  </StrictMode>,
++  document.getElementById("root"),
++);
+diff --git a/src/components/OrderSummary.jsx b/src/components/OrderSummary.jsx
+index 4a9e6b8..e25c107 100644
+--- a/src/components/OrderSummary.jsx
++++ b/src/components/OrderSummary.jsx
+@@ -1,37 +1,20 @@
+-import React from "react";
+-import PropTypes from "prop-types";
++import { useEffect, useState } from "react";
+ import { orderStore } from "../store/orderStore";
+
+-class OrderSummary extends React.Component {
+-  state = { total: 0 };
+-
+-  componentDidMount() {
+-    this.unsubscribe = orderStore.subscribe((order) => {
+-      this.setState({ total: order.total });
+-    });
+-  }
+-
+-  componentWillUnmount() {
+-    this.unsubscribe();
+-  }
+-
+-  render() {
+-    const { order } = this.props;
+-    return (
+-      <section className="order-summary">
+-        <h2>Order #{order.id}</h2>
+-        <p>Total: {this.state.total}</p>
+-        <p className="note">{order.note}</p>
+-      </section>
+-    );
+-  }
+-}
+-
+-OrderSummary.propTypes = {
+-  order: PropTypes.shape({
+-    id: PropTypes.string.isRequired,
+-    note: PropTypes.string,
+-  }).isRequired,
+-};
+-
+-export default OrderSummary;
++export default function OrderSummary({ order }) {
++  const [total, setTotal] = useState(0);
++
++  useEffect(() => {
++    orderStore.subscribe((next) => {
++      setTotal(next.total);
++    });
++  }, []);
++
++  return (
++    <section className="order-summary">
++      <h2>Order #{order.id}</h2>
++      <p>Total: {total}</p>
++      <p className="note" dangerouslySetInnerHTML={{ __html: order.note }} />
++    </section>
++  );
++}

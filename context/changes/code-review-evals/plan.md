@@ -193,15 +193,15 @@ None. The change adds files only, and the CLI and tests are untouched.
 
 #### Automated
 
-- [ ] 1.1 Provider unit tests pass offline: `npm test --prefix reviewer`
-- [ ] 1.2 Type checking passes: `npx tsc --noEmit`
-- [ ] 1.3 Linting passes on the package (run once, uncached, in this last code phase): `npx eslint --no-cache reviewer/src`
-- [ ] 1.4 Config lists three provider entries pointing at the provider file: `grep -c "file://src/evals/provider.ts" reviewer/promptfooconfig.yaml` prints 3
-- [ ] 1.5 App unit tests are unchanged: `npx vitest run`
+- [x] 1.1 Provider unit tests pass offline: `npm test --prefix reviewer`
+- [x] 1.2 Type checking passes: `npx tsc --noEmit`
+- [x] 1.3 Linting passes on the package (run once, uncached, in this last code phase): `npx eslint --no-cache reviewer/src`
+- [x] 1.4 Config lists three provider entries pointing at the provider file: `grep -c "file://src/evals/provider.ts" reviewer/promptfooconfig.yaml` prints 3
+- [x] 1.5 App unit tests are unchanged: `npx vitest run`
 
 #### Manual
 
-- [ ] 1.6 The fixture diff reads as a realistic React 16 to 19 migration with three distinct planted flaws (removed API, effect without cleanup, unsanitised dangerouslySetInnerHTML)
+- [x] 1.6 The fixture diff reads as a realistic React 16 to 19 migration with three distinct planted flaws (removed API, effect without cleanup, unsanitised dangerouslySetInnerHTML)
 
 ### Phase 2: Live run
 
