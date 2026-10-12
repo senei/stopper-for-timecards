@@ -281,14 +281,14 @@ None. New files only, plus backward-compatible reviewer changes. Rollback is del
 
 #### Automated
 
-- [ ] 3.1 Workflow is registered after the push: `gh workflow list | grep -c "AI Code Review"` prints 1
+- [x] 3.1 Workflow is registered after the push: `gh workflow list | grep -c "AI Code Review"` prints 1
 
 #### Manual
 
-- [ ] 3.2 Repository secret `OPENROUTER_API_KEY` exists (created by the user in repository settings)
-- [ ] 3.3 A PR with a deliberately flawed change gets one review comment, the `ai-cr:failed` label and a failing `review` check
-- [ ] 3.4 A second push to the same PR updates the existing comment instead of adding another, and the label reflects the new verdict
-- [ ] 3.5 Adding the `ai-cr:review` label re-runs the review and the label is removed afterwards
-- [ ] 3.6 Adding an unrelated label while a review is running does not cancel that run
-- [ ] 3.7 A PR whose diff exceeds the limit gets a comment saying so, no model call and a failing `review` check
+- [x] 3.2 Repository secret `OPENROUTER_API_KEY` exists (created by the user in repository settings)
+- [x] 3.3 A PR with a deliberately flawed change gets one review comment, the `ai-cr:failed` label and a failing `review` check
+- [x] 3.4 A second push to the same PR updates the existing comment instead of adding another, and the label reflects the new verdict
+- [x] 3.5 Adding the `ai-cr:review` label re-runs the review and the label is removed afterwards
+- [x] 3.6 Adding an unrelated label while a review is running does not cancel that run
+- [x] 3.7 A PR whose diff exceeds the limit gets a comment saying so, no model call and a failing `review` check
 - [ ] 3.8 With the `review` check set as required in branch protection (user action), a failing review blocks the merge button
