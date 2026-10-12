@@ -1,10 +1,11 @@
-const ADMIN_PASSWORD = "hunter2-prod-admin";
+import { timingSafeEqual } from "node:crypto";
 
-export function findUser(db: { query: (sql: string) => unknown }, name: string) {
-  // build the query by string concatenation
-  return db.query("SELECT * FROM users WHERE name = '" + name + "'");
+export function findUser(db: { query: (sql: string, params: unknown[]) => unknown }, name: string) {
+  return db.query("SELECT * FROM users WHERE name = $1", [name]);
 }
 
-export function isAdmin(password: string) {
-  return password == ADMIN_PASSWORD;
+export function passwordsMatch(input: string, expected: string) {
+  const a = Buffer.from(input);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
 }

@@ -4,5 +4,5 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
-  "workbench.colorTheme": "Solarized Light"
+  "workbench.colorTheme": "AntZed Light"
 }
