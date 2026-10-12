@@ -252,11 +252,11 @@ None. New files only, plus backward-compatible reviewer changes. Rollback is del
 
 #### Automated
 
-- [ ] 1.1 Reviewer tests pass offline, including the new context and limit tests: `npm test --prefix reviewer`
-- [ ] 1.2 Type checking passes: `npx tsc --noEmit`
-- [ ] 1.3 Linting passes on the package (run once, uncached, in this last TypeScript phase): `npx eslint --no-cache reviewer/src`
-- [ ] 1.4 App unit tests are unchanged: `npx vitest run`
-- [ ] 1.5 A diff above the limit exits with code 3 before any model call: `cd reviewer && printf 'xxxxxxxxxxxx' | MAX_DIFF_CHARS=5 OPENROUTER_API_KEY=unused REVIEWER_MODEL=unused npx tsx src/index.ts; test $? -eq 3`
+- [x] 1.1 Reviewer tests pass offline, including the new context and limit tests: `npm test --prefix reviewer`
+- [x] 1.2 Type checking passes: `npx tsc --noEmit`
+- [x] 1.3 Linting passes on the package (run once, uncached, in this last TypeScript phase): `npx eslint --no-cache reviewer/src`
+- [x] 1.4 App unit tests are unchanged: `npx vitest run`
+- [x] 1.5 A diff above the limit exits with code 3 before any model call: `cd reviewer && printf 'xxxxxxxxxxxx' | MAX_DIFF_CHARS=5 OPENROUTER_API_KEY=unused REVIEWER_MODEL=unused npx tsx src/index.ts; test $? -eq 3`
 
 #### Manual
 

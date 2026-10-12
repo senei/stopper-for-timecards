@@ -58,6 +58,29 @@ void describe("reviewer", () => {
     assert.equal(call.responseFormat?.type, "json");
   });
 
+  void it("sends the pull request title and description to the model when context is given", async () => {
+    const model = modelReturning(JSON.stringify(VALID_REVIEW));
+
+    await reviewDiff(createReviewer(model), DIFF, { title: "TITLE-MARKER", body: "BODY-MARKER" });
+
+    const [call] = model.doGenerateCalls;
+    assert.ok(call, "the model was called once");
+    const sent = JSON.stringify(call.prompt);
+    assert.ok(sent.includes("TITLE-MARKER"));
+    assert.ok(sent.includes("BODY-MARKER"));
+    assert.ok(sent.includes("diff --git a/src/a.ts"));
+  });
+
+  void it("sends no pull request block when no context is given", async () => {
+    const model = modelReturning(JSON.stringify(VALID_REVIEW));
+
+    await reviewDiff(createReviewer(model), DIFF);
+
+    const [call] = model.doGenerateCalls;
+    assert.ok(call, "the model was called once");
+    assert.ok(!JSON.stringify(call.prompt).includes("Tytuł PR:"));
+  });
+
   void it("rejects when the model output violates the schema", async () => {
     const invalid = { ...VALID_REVIEW, verdict: "maybe" };
     const reviewer = createReviewer(modelReturning(JSON.stringify(invalid)));
