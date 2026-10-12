@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { exceedsDiffLimit, parseMaxDiffChars } from "./limits.js";
+import { DEFAULT_MAX_OUTPUT_TOKENS, exceedsDiffLimit, parseMaxDiffChars, resolveMaxOutputTokens } from "./limits.js";
 
 void describe("exceedsDiffLimit", () => {
   void it("has no limit when max is undefined", () => {
@@ -21,6 +21,24 @@ void describe("exceedsDiffLimit", () => {
     assert.equal(exceedsDiffLimit("abcdef", -1), false);
     assert.equal(exceedsDiffLimit("abcdef", 2.5), false);
     assert.equal(exceedsDiffLimit("abcdef", Number.NaN), false);
+  });
+});
+
+void describe("resolveMaxOutputTokens", () => {
+  void it("defaults to a bound well below a model's huge default maximum", () => {
+    assert.equal(DEFAULT_MAX_OUTPUT_TOKENS, 8192);
+    assert.equal(resolveMaxOutputTokens(undefined), DEFAULT_MAX_OUTPUT_TOKENS);
+    assert.equal(resolveMaxOutputTokens(""), DEFAULT_MAX_OUTPUT_TOKENS);
+  });
+
+  void it("uses a positive integer from the environment", () => {
+    assert.equal(resolveMaxOutputTokens("2048"), 2048);
+  });
+
+  void it("falls back to the default for zero, negative, fractional or non-numeric input", () => {
+    for (const raw of ["0", "-1", "1.5", "abc", "   "]) {
+      assert.equal(resolveMaxOutputTokens(raw), DEFAULT_MAX_OUTPUT_TOKENS, `input ${raw}`);
+    }
   });
 });
 

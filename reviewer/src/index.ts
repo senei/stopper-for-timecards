@@ -2,7 +2,7 @@
 //   git diff | npm run review --prefix reviewer
 // Config comes from the environment (reviewer/.env, see .env.example); no model ID is hardcoded.
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { exceedsDiffLimit, parseMaxDiffChars } from "./limits.js";
+import { exceedsDiffLimit, parseMaxDiffChars, resolveMaxOutputTokens } from "./limits.js";
 import { createReviewer, reviewDiff } from "./reviewer.js";
 
 function requireEnv(name: string): string {
@@ -34,7 +34,9 @@ if (exceedsDiffLimit(diff, maxDiffChars)) {
 }
 
 const openrouter = createOpenRouter({ apiKey: requireEnv("OPENROUTER_API_KEY") });
-const reviewer = createReviewer(openrouter(requireEnv("REVIEWER_MODEL")));
+const reviewer = createReviewer(openrouter(requireEnv("REVIEWER_MODEL")), {
+  maxOutputTokens: resolveMaxOutputTokens(process.env.MAX_OUTPUT_TOKENS),
+});
 
 // Optional pull request context (set by the CI action); absent variables leave the prompt unchanged.
 const { review, usage } = await reviewDiff(reviewer, diff, {
