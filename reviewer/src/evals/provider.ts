@@ -1,6 +1,11 @@
 // promptfoo custom provider: runs the real reviewer (createReviewer/reviewDiff) for one configured OpenRouter model.
-// The diff comes from the test's `vars.diff`, not from the prompt text, so the reviewer builds its own prompt.
+// The diff comes from the test vars, not from the prompt text, so the reviewer builds its own prompt:
+// - `vars.diffFile`: path to a diff file (relative to the working directory, which is reviewer/ for `npm run eval`).
+//   Prefer this for fixtures: promptfoo renders variable values through its template engine, so a diff that
+//   contains `{{` (JSX style objects, Vue, Handlebars, Go templates) breaks when passed inline as `vars.diff`.
+// - `vars.diff`: the diff text itself, used when no file is involved (and in tests).
 // Types are declared locally on purpose: promptfoo is run through npx and is not a dependency of this package.
+import { readFile } from "node:fs/promises";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import type { LanguageModel } from "ai";
 import { createReviewer, reviewDiff } from "../reviewer.js";
@@ -41,8 +46,18 @@ export function createReviewerProvider(makeModel: MakeModel) {
       const apiKey = process.env.OPENROUTER_API_KEY;
       if (apiKey === undefined || apiKey === "") return { error: "OPENROUTER_API_KEY is not set" };
 
-      const diff = context?.vars?.diff;
-      if (typeof diff !== "string" || diff === "") return { error: "Test var `diff` is missing or empty" };
+      const vars = context?.vars;
+      let diff: string | undefined;
+      if (typeof vars?.diff === "string" && vars.diff !== "") {
+        diff = vars.diff;
+      } else if (typeof vars?.diffFile === "string" && vars.diffFile !== "") {
+        try {
+          diff = await readFile(vars.diffFile, "utf8");
+        } catch (error) {
+          return { error: `Cannot read diffFile: ${error instanceof Error ? error.message : String(error)}` };
+        }
+      }
+      if (diff === undefined || diff === "") return { error: "Test var `diff` or `diffFile` is missing or empty" };
 
       try {
         const reviewer = createReviewer(makeModel(this.model, apiKey));

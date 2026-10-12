@@ -1,5 +1,8 @@
 // Offline tests for the promptfoo provider. The model is the SDK's mock, so no network or key is needed.
 import assert from "node:assert/strict";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import { MockLanguageModelV4 } from "ai/test";
 import { createReviewerProvider } from "./provider.js";
@@ -74,6 +77,51 @@ void describe("reviewer provider", () => {
     const sent = JSON.stringify(call.prompt);
     assert.ok(sent.includes("+DIFF-FROM-VARS"));
     assert.ok(!sent.includes("PROMPT-TEXT-SHOULD-NOT-BE-USED"));
+  });
+
+  void it("reads the diff from vars.diffFile verbatim, including template-like braces", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "reviewer-eval-"));
+    const file = join(dir, "case.diff");
+    const content = "+<p dangerouslySetInnerHTML={{ __html: note }} />\n+{% not a template %}\n";
+    await writeFile(file, content, "utf8");
+    const model = mockReturning(JSON.stringify(REVIEW));
+    const Provider = providerWith(model, { count: 0 });
+    const provider = new Provider({ config: { model: "vendor/model-a" } });
+
+    try {
+      const result = await provider.callApi("prompt", { vars: { diffFile: file } });
+
+      assert.equal(result.error, undefined);
+      const [call] = model.doGenerateCalls;
+      assert.ok(call, "the model was called once");
+      assert.ok(JSON.stringify(call.prompt).includes(JSON.stringify(content).slice(1, -1)));
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  void it("prefers vars.diff over vars.diffFile when both are given", async () => {
+    const model = mockReturning(JSON.stringify(REVIEW));
+    const Provider = providerWith(model, { count: 0 });
+    const provider = new Provider({ config: { model: "vendor/model-a" } });
+
+    await provider.callApi("prompt", { vars: { diff: "+INLINE-WINS", diffFile: "does-not-exist.diff" } });
+
+    const [call] = model.doGenerateCalls;
+    assert.ok(call, "the model was called once");
+    assert.ok(JSON.stringify(call.prompt).includes("+INLINE-WINS"));
+  });
+
+  void it("returns an error and makes no model call when diffFile cannot be read", async () => {
+    const calls = { count: 0 };
+    const Provider = providerWith(mockReturning(JSON.stringify(REVIEW)), calls);
+    const provider = new Provider({ config: { model: "vendor/model-a" } });
+
+    const result = await provider.callApi("prompt", { vars: { diffFile: join(tmpdir(), "no-such-file.diff") } });
+
+    assert.match(result.error ?? "", /diffFile/);
+    assert.equal(result.output, undefined);
+    assert.equal(calls.count, 0);
   });
 
   void it("labels itself with the configured model", () => {

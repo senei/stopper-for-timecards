@@ -19,8 +19,9 @@ providers:
     config:
       model: openai/gpt-5.6-luna
 
+# promptfoo requires a prompt, but the provider ignores it and reads the diff from vars.diffFile.
 prompts:
-  - "{{diff}}"
+  - "Review the pull request diff given in the test variables."
 
 defaultTest:
   options:
@@ -31,7 +32,9 @@ defaultTest:
 tests:
   - description: React 16 -> 19 migration with three planted flaws
     vars:
-      diff: file://evals/fixtures/react19-migration.diff
+      # A plain path, read by the provider. Do not use file:// here: promptfoo renders variable values through its
+      # template engine and the fixture contains `{{`, which fails to parse.
+      diffFile: evals/fixtures/react19-migration.diff
     assert:
       # 1. the reviewer returns JSON (the CI gate depends on it)
       - type: is-json
