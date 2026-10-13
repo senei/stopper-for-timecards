@@ -291,4 +291,4 @@ None. New files only, plus backward-compatible reviewer changes. Rollback is del
 - [x] 3.5 Adding the `ai-cr:review` label re-runs the review and the label is removed afterwards
 - [x] 3.6 Adding an unrelated label while a review is running does not cancel that run
 - [x] 3.7 A PR whose diff exceeds the limit gets a comment saying so, no model call and a failing `review` check
-- [ ] 3.8 With the `review` check set as required in branch protection (user action), a failing review blocks the merge button
+- [x] 3.8 With the `review` check set as required in branch protection (user action), a failing review blocks the merge button
